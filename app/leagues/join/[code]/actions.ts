@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { Resend } from 'resend'
 
 export async function joinLeague(formData: FormData) {
   const supabase = await createClient()
@@ -36,6 +37,15 @@ export async function joinLeague(formData: FormData) {
   if (error) {
     redirect('/leagues/' + ligue_id + '?error=' + encodeURIComponent(error.message))
   }
+
+  // Notifier le commissaire par e-mail
+  const resend = new Resend(process.env.RESEND_API_KEY)
+  await resend.emails.send({
+    from: 'Project End Zone <onboarding@resend.dev>',
+    to: 'projectendzone27@gmail.com', // adresse de test tant que le domaine n'est pas vérifié
+    subject: 'Nouvelle demande d\'adhésion',
+    html: `<p>Un joueur souhaite rejoindre une de tes ligues. Va sur ton tableau de bord pour valider ou refuser la demande.</p>`,
+  })
 
   redirect('/')
 }

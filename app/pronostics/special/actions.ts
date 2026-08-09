@@ -15,7 +15,9 @@ export async function submitSpecialPick(formData: FormData) {
 
   const type = formData.get('type') as string
   const saison_id = formData.get('saison_id') as string
-  const choix = formData.get('choix') as string
+  const autre_joueur = formData.get('autre_joueur') as string
+  const choix_menu = formData.get('choix') as string
+  const choix = autre_joueur?.trim() ? autre_joueur.trim() : choix_menu
 
   // Date limite fixe pour l'instant : 1er septembre 2026 (avant le coup d'envoi de la saison)
   const date_limite = '2026-09-01T00:00:00Z'

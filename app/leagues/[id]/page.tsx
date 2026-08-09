@@ -22,7 +22,19 @@ export default async function LeagueDetail({ params }: { params: Promise<{ id: s
   }
 
   const estCommissaire = league.commissaire_id === user.id
-
+  
+  let estMembreActif = estCommissaire
+  if (!estCommissaire) {
+    const { data: monAdhesion } = await supabase
+      .from('adhesions')
+      .select('statut')
+      .eq('ligue_id', id)
+      .eq('utilisateur_id', user.id)
+      .eq('statut', 'actif')
+      .single()
+    estMembreActif = !!monAdhesion
+  }
+  
   let demandes: any[] = []
   if (estCommissaire) {
     const { data: adhesionsData } = await supabase

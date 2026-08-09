@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { selectPronostic } from './actions'
+import { TeamBadge } from '@/lib/teamBadge'
 
 export default async function Pronostics() {
   const supabase = await createClient()
@@ -107,37 +108,43 @@ export default async function Pronostics() {
               ) : (
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
                   <form action={selectPronostic}>
-                    <input type="hidden" name="match_id" value={match.id} />
-                    <input type="hidden" name="equipe" value={match.equipe_a} />
-                    <button
-                      type="submit"
-                      disabled={verrouille}
-                      style={{
-                        padding: '10px 16px',
-                        fontWeight: monPronostic?.equipe_choisie === match.equipe_a ? 'bold' : 'normal',
-                        backgroundColor: monPronostic?.equipe_choisie === match.equipe_a ? '#c00' : '#eee',
-                        color: monPronostic?.equipe_choisie === match.equipe_a ? 'white' : 'black',
-                      }}
-                    >
-                      {match.equipe_a}
-                    </button>
-                  </form>
+                  <input type="hidden" name="match_id" value={match.id} />
+                  <input type="hidden" name="equipe" value={match.equipe_a} />
+                  <button
+                    type="submit"
+                    disabled={verrouille}
+                    style={{
+                      padding: '10px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      fontWeight: monPronostic?.equipe_choisie === match.equipe_a ? 'bold' : 'normal',
+                      backgroundColor: monPronostic?.equipe_choisie === match.equipe_a ? '#C8352E' : '#16233F',
+                    }}
+                  >
+                    <TeamBadge code={match.equipe_a} size={28} />
+                    {match.equipe_a}
+                  </button>
+                </form>
                   <form action={selectPronostic}>
-                    <input type="hidden" name="match_id" value={match.id} />
-                    <input type="hidden" name="equipe" value={match.equipe_b} />
-                    <button
-                      type="submit"
-                      disabled={verrouille}
-                      style={{
-                        padding: '10px 16px',
-                        fontWeight: monPronostic?.equipe_choisie === match.equipe_b ? 'bold' : 'normal',
-                        backgroundColor: monPronostic?.equipe_choisie === match.equipe_b ? '#c00' : '#eee',
-                        color: monPronostic?.equipe_choisie === match.equipe_b ? 'white' : 'black',
-                      }}
-                    >
-                      {match.equipe_b}
-                    </button>
-                  </form>
+                  <input type="hidden" name="match_id" value={match.id} />
+                  <input type="hidden" name="equipe" value={match.equipe_b} />
+                  <button
+                    type="submit"
+                    disabled={verrouille}
+                    style={{
+                      padding: '10px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      fontWeight: monPronostic?.equipe_choisie === match.equipe_b ? 'bold' : 'normal',
+                      backgroundColor: monPronostic?.equipe_choisie === match.equipe_b ? '#C8352E' : '#16233F',
+                    }}
+                  >
+                    <TeamBadge code={match.equipe_b} size={28} />
+                    {match.equipe_b}
+                  </button>
+                </form>
                 </div>
               )}
 

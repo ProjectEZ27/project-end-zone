@@ -1,9 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { selectPronostic } from './actions'
-import { TeamBadge } from '@/lib/teamBadge'
+import { TeamBadge, NOMS_EQUIPES } from '@/lib/teamBadge'
+import SelecteurSemaine from './SelecteurSemaine'
 
-export default async function Pronostics() {
+export default async function Pronostics({ searchParams }: { searchParams: Promise<{ semaine?: string }> }) {
+  const { semaine: semaineParam } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -11,13 +13,28 @@ export default async function Pronostics() {
     redirect('/login')
   }
 
-  const { data: semaine } = await supabase
+  const { data: toutesLesSemaines } = await supabase
     .from('semaines')
-    .select('*')
-    .eq('statut', 'ouverte')
-    .order('id', { ascending: false })
-    .limit(1)
-    .single()
+    .select('id, nom')
+    .order('id', { ascending: true })
+
+  let semaine
+  if (semaineParam) {
+    const { data } = await supabase
+      .from('semaines')
+      .select('*')
+      .eq('id', semaineParam)
+      .single()
+    semaine = data
+  } else {
+    const { data } = await supabase
+      .from('semaines')
+      .select('*')
+      .order('id', { ascending: false })
+      .limit(1)
+      .single()
+    semaine = data
+  }
 
   if (!semaine) {
     return (
@@ -72,8 +89,22 @@ export default async function Pronostics() {
     }
   }
 
+ const indexActuel = toutesLesSemaines?.findIndex((s) => s.id === semaine.id) ?? -1
+  const semainePrecedente = indexActuel > 0 ? toutesLesSemaines?.[indexActuel - 1] : null
+  const semaineSuivante = indexActuel !== -1 && indexActuel < (toutesLesSemaines?.length ?? 0) - 1 ? toutesLesSemaines?.[indexActuel + 1] : null
+
   return (
     <div style={{ maxWidth: 500, margin: '40px auto', padding: 24, textAlign: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        {semainePrecedente ? (
+          <a href={`/pronostics?semaine=${semainePrecedente.id}`} style={{ padding: 8 }}>← {semainePrecedente.nom}</a>
+        ) : <span />}
+        {semaineSuivante ? (
+          <a href={`/pronostics?semaine=${semaineSuivante.id}`} style={{ padding: 8 }}>{semaineSuivante.nom} →</a>
+        ) : <span />}
+      </div>
+
+      <SelecteurSemaine semaines={toutesLesSemaines ?? []} semaineActuelle={semaine.id} />
       <h1>🏈 {semaine.nom}</h1>
       <p>
         +{semaine.bonus_1} pt dès {semaine.seuil_bonus_1} bons pronos · +{semaine.bonus_2} pts dès {semaine.seuil_bonus_2} · Perfect week +{semaine.bonus_perfect}
@@ -123,7 +154,7 @@ export default async function Pronostics() {
                     }}
                   >
                     <TeamBadge code={match.equipe_a} size={28} />
-                    {match.equipe_a}
+                    {NOMS_EQUIPES[match.equipe_a] ?? match.equipe_a}
                   </button>
                 </form>
                   <form action={selectPronostic}>
@@ -142,7 +173,7 @@ export default async function Pronostics() {
                     }}
                   >
                     <TeamBadge code={match.equipe_b} size={28} />
-                    {match.equipe_b}
+                    {NOMS_EQUIPES[match.equipe_b] ?? match.equipe_b}
                   </button>
                 </form>
                 </div>

@@ -10,17 +10,6 @@ const COULEURS_EQUIPES: Record<string, string> = {
   SF: '#B23028', TB: '#7A2C2C', TEN: '#3A5A6B', WAS: '#5A2C2C',
 }
 
-export const NOMS_EQUIPES: Record<string, string> = {
-  ARI: 'Cardinals', ATL: 'Falcons', BAL: 'Ravens', BUF: 'Bills',
-  CAR: 'Panthers', CHI: 'Bears', CIN: 'Bengals', CLE: 'Browns',
-  DAL: 'Cowboys', DEN: 'Broncos', DET: 'Lions', GB: 'Packers',
-  HOU: 'Texans', IND: 'Colts', JAX: 'Jaguars', KC: 'Chiefs',
-  LA: 'Rams', LAC: 'Chargers', LV: 'Raiders', MIA: 'Dolphins',
-  MIN: 'Vikings', NE: 'Patriots', NO: 'Saints', NYG: 'Giants',
-  NYJ: 'Jets', PHI: 'Eagles', PIT: 'Steelers', SEA: 'Seahawks',
-  SF: '49ers', TB: 'Buccaneers', TEN: 'Titans', WAS: 'Commanders',
-}
-
 export function TeamBadge({ code, size = 40 }: { code: string; size?: number }) {
   const couleur = COULEURS_EQUIPES[code] ?? '#555'
 
@@ -44,4 +33,15 @@ export function TeamBadge({ code, size = 40 }: { code: string; size?: number }) 
       {code}
     </div>
   )
+}
+
+export const NOMS_EQUIPES: Record<string, string> = {
+  ARI: 'Cardinals', ATL: 'Falcons', BAL: 'Ravens', BUF: 'Bills',
+  CAR: 'Panthers', CHI: 'Bears', CIN: 'Bengals', CLE: 'Browns',
+  DAL: 'Cowboys', DEN: 'Broncos', DET: 'Lions', GB: 'Packers',
+  HOU: 'Texans', IND: 'Colts', JAX: 'Jaguars', KC: 'Chiefs',
+  LA: 'Rams', LAC: 'Chargers', LV: 'Raiders', MIA: 'Dolphins',
+  MIN: 'Vikings', NE: 'Patriots', NO: 'Saints', NYG: 'Giants',
+  NYJ: 'Jets', PHI: 'Eagles', PIT: 'Steelers', SEA: 'Seahawks',
+  SF: '49ers', TB: 'Buccaneers', TEN: 'Titans', WAS: 'Commanders',
 }

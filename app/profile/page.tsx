@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import RappelPerso from './RappelPerso'
 
 export default async function Profile() {
   const supabase = await createClient()
@@ -107,6 +108,10 @@ export default async function Profile() {
           <p style={{ fontSize: 24, fontWeight: 'bold' }}>{semainesParfaites}</p>
           <p style={{ fontSize: 12, color: '#666' }}>Semaines parfaites</p>
         </div>
+      </div>
+
+      <div style={{ marginTop: 24, padding: 16, border: '1px solid #33415a', borderRadius: 8, textAlign: 'left' }}>
+        <RappelPerso actif={profile?.rappel_perso_actif ?? false} />
       </div>
     </div>
   )

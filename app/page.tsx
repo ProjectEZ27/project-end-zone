@@ -33,7 +33,7 @@ export default async function Home() {
 
   return (
     <div style={{ maxWidth: 400, margin: '80px auto', padding: 24, textAlign: 'center' }}>
-      <h1>🏈 Project End Zone</h1>
+      <img src="/logo-officiel.png" alt="Project End Zone" style={{ width: 200, margin: '0 auto', display: 'block' }} />
       <p>Connecté en tant que : {user.email}</p>
       <p>Bienvenue, {profile.pseudo} !</p>
       <form action="/auth/logout" method="post">

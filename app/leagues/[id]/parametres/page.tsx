@@ -42,6 +42,27 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
           <input type="number" name="taille_max" defaultValue={league.taille_max} min={2} max={50} style={{ padding: 8, width: '100%', marginTop: 4 }} />
         </label>
 
+        <label style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <input type="checkbox" name="rappel_1_actif" defaultChecked={league.config_rappels?.rappel_1_actif ?? true} />
+          Premier rappel
+        </label>
+        <select name="delai_1" defaultValue={league.config_rappels?.delais_heures?.[0] ?? 24} style={{ padding: 8, width: '100%', marginTop: -8 }}>
+          <option value={48}>48h avant</option>
+          <option value={24}>24h avant</option>
+          <option value={12}>12h avant</option>
+          <option value={6}>6h avant</option>
+        </select>
+
+        <label style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+          <input type="checkbox" name="rappel_2_actif" defaultChecked={league.config_rappels?.rappel_2_actif ?? true} />
+          Second rappel
+        </label>
+        <select name="delai_2" defaultValue={league.config_rappels?.delais_heures?.[1] ?? 3} style={{ padding: 8, width: '100%', marginTop: -8 }}>
+          <option value={6}>6h avant</option>
+          <option value={3}>3h avant</option>
+          <option value={1}>1h avant</option>
+        </select>
+
         <button type="submit" style={{ padding: 10, marginTop: 8 }}>
           Enregistrer les modifications
         </button>

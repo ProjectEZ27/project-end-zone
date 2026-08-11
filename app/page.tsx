@@ -27,9 +27,13 @@ export default async function Home() {
     .eq('utilisateur_id', user.id)
     .eq('statut', 'actif')
 
-  const mesLigues = (adhesions ?? [])
-    .map((a: any) => a.ligues)
-    .filter(Boolean)
+  const liguesBrutes = (adhesions ?? [])
+  .map((a: any) => a.ligues)
+  .filter(Boolean)
+
+  const mesLigues = Array.from(
+  new Map(liguesBrutes.map((l: any) => [l.id, l])).values()
+)
 
   return (
     <div style={{ maxWidth: 500, margin: '40px auto', padding: 24, textAlign: 'center' }}>

@@ -43,5 +43,30 @@ export async function createLeague(formData: FormData) {
     redirect('/leagues/create?error=' + encodeURIComponent(error.message))
   }
 
+  // Récupérer la saison en cours
+  const { data: saison } = await supabase
+    .from('saisons')
+    .select('id')
+    .eq('statut', 'en_cours')
+    .single()
+
+  if (!saison) {
+    redirect('/leagues/create?error=' + encodeURIComponent('Aucune saison en cours'))
+  }
+
+  // Ajouter automatiquement le commissaire comme membre actif de sa propre ligue
+  const { error: adhesionError } = await supabase
+    .from('adhesions')
+    .insert({
+      utilisateur_id: user.id,
+      ligue_id: league.id,
+      saison_id: saison.id,
+      statut: 'actif',
+    })
+
+  if (adhesionError) {
+    redirect('/leagues/' + league.id + '?error=' + encodeURIComponent(adhesionError.message))
+  }
+
   redirect('/leagues/' + league.id)
 }

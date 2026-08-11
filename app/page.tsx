@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { genererJournalSemaine } from '@/lib/journal'
+import Link from 'next/link'
+import JoinLeagueForm from './JoinLeagueForm'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -20,33 +21,70 @@ export default async function Home() {
     redirect('/onboarding')
   }
 
-  const { data: derniereSemaine } = await supabase
-    .from('semaines')
-    .select('*')
-    .order('id', { ascending: false })
-    .limit(1)
-    .single()
+  const { data: adhesions } = await supabase
+    .from('adhesions')
+    .select('ligue_id, ligues(id, nom)')
+    .eq('utilisateur_id', user.id)
+    .eq('statut', 'actif')
 
-  const journal = derniereSemaine
-    ? await genererJournalSemaine(supabase, derniereSemaine.id)
-    : []
+  const mesLigues = (adhesions ?? [])
+    .map((a: any) => a.ligues)
+    .filter(Boolean)
 
   return (
-    <div style={{ maxWidth: 400, margin: '80px auto', padding: 24, textAlign: 'center' }}>
-      <img src="/logo-officiel.png" alt="Project End Zone" style={{ width: 200, margin: '0 auto', display: 'block' }} />
-      <p>Connecté en tant que : {user.email}</p>
-      <p>Bienvenue, {profile.pseudo} !</p>
-      <form action="/auth/logout" method="post">
-        <button style={{ padding: 10, marginTop: 20 }}>Se déconnecter</button>
-      {journal.length > 0 && (
-        <div style={{ marginTop: 24, padding: 16, border: '1px solid #ccc', borderRadius: 8, textAlign: 'left' }}>
-          <p><strong>📰 Moment fort du mardi</strong></p>
-          {journal.map((phrase, i) => (
-            <p key={i}>{phrase}</p>
-          ))}
-        </div>
-      )}
+    <div style={{ maxWidth: 500, margin: '40px auto', padding: 24, textAlign: 'center' }}>
+      <img src="/logo-officiel.png" alt="Project End Zone" style={{ width: 160, margin: '0 auto', display: 'block' }} />
+      <p>Connecté en tant que {profile.pseudo}</p>
+
+      <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <Link href="/pronostics" style={{ padding: 12, backgroundColor: '#C8352E', borderRadius: 6, textDecoration: 'none', color: 'white' }}>
+          🏈 Faire mes pronostics
+        </Link>
+        <Link href="/pronostics/special" style={{ padding: 12, backgroundColor: '#16233F', borderRadius: 6, textDecoration: 'none', color: 'white' }}>
+          🏆 Pronostics bonus (Super Bowl, MVP)
+        </Link>
+        <Link href="/bilan" style={{ padding: 12, backgroundColor: '#16233F', borderRadius: 6, textDecoration: 'none', color: 'white' }}>
+          📊 Mon bilan de saison
+        </Link>
+      </div>
+
+      <div style={{ marginTop: 32, textAlign: 'left' }}>
+        <h2>Mes ligues</h2>
+        {mesLigues.length === 0 ? (
+          <p style={{ color: '#999' }}>Tu ne fais partie d'aucune ligue pour le moment.</p>
+        ) : (
+          mesLigues.map((ligue: any) => (
+            <Link
+              key={ligue.id}
+              href={`/leagues/${ligue.id}`}
+              style={{ display: 'block', padding: 12, marginBottom: 8, border: '1px solid #33415a', borderRadius: 6, textDecoration: 'none', color: 'white' }}
+            >
+              🏟️ {ligue.nom}
+            </Link>
+          ))
+        )}
+      </div>
+
+      <div style={{ marginTop: 24, textAlign: 'left' }}>
+        <h2>Rejoindre une ligue</h2>
+        <JoinLeagueForm />
+      </div>
+
+      <div style={{ marginTop: 24 }}>
+        <Link href="/leagues/create" style={{ padding: 12, display: 'block', border: '1px solid #33415a', borderRadius: 6, textDecoration: 'none', color: 'white' }}>
+          ➕ Créer une nouvelle ligue
+        </Link>
+      </div>
+
+      <form action="/auth/logout" method="post" style={{ marginTop: 32 }}>
+        <button style={{ padding: 10 }}>Se déconnecter</button>
       </form>
+
+      <div style={{ marginTop: 40, fontSize: 12, color: '#666', display: 'flex', gap: 12, justifyContent: 'center' }}>
+        <Link href="/legal/mentions" style={{ color: '#666' }}>Mentions légales</Link>
+        <Link href="/legal/confidentialite" style={{ color: '#666' }}>Confidentialité</Link>
+        <Link href="/legal/cgu" style={{ color: '#666' }}>CGU</Link>
+      </div>
     </div>
   )
 }

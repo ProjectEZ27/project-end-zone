@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
+import Link from 'next/link'
 import { acceptMembership, rejectMembership } from './actions'
 
 export default async function LeagueDetail({ params }: { params: Promise<{ id: string }> }) {
@@ -61,6 +62,23 @@ export default async function LeagueDetail({ params }: { params: Promise<{ id: s
     <div style={{ maxWidth: 500, margin: '80px auto', padding: 24, textAlign: 'center' }}>
       <h1>🏈 {league.nom}</h1>
       <p>{league.taille_max} joueurs max · Statut : {league.statut}</p>
+
+      <div style={{ marginTop: 24, display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <Link href={`/leagues/${id}/classement`} style={{ padding: '8px 16px', border: '1px solid #33415a', borderRadius: 6, textDecoration: 'none', color: 'white' }}>
+          🏆 Classement
+        </Link>
+        <Link href={`/leagues/${id}/membres`} style={{ padding: '8px 16px', border: '1px solid #33415a', borderRadius: 6, textDecoration: 'none', color: 'white' }}>
+          👥 Membres
+        </Link>
+        <Link href={`/leagues/${id}/historique`} style={{ padding: '8px 16px', border: '1px solid #33415a', borderRadius: 6, textDecoration: 'none', color: 'white' }}>
+          📜 Historique
+        </Link>
+        {estCommissaire && (
+          <Link href={`/leagues/${id}/parametres`} style={{ padding: '8px 16px', border: '1px solid #33415a', borderRadius: 6, textDecoration: 'none', color: 'white' }}>
+            ⚙️ Paramètres
+          </Link>
+        )}
+      </div>
 
       {estCommissaire && (
         <div style={{ marginTop: 24, padding: 16, border: '1px solid #ccc', borderRadius: 8 }}>

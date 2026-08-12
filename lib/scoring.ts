@@ -77,13 +77,12 @@ export async function calculerClassementSaison(
 
       // Bonus, seulement si tous les matchs de la semaine sont terminés
       if (matchsTermines.length === matchsDeLaSemaine.length && matchsDeLaSemaine.length > 0) {
-        if (semaine.seuil_bonus_2 && corrects >= semaine.seuil_bonus_2) {
+        if (corrects === matchsDeLaSemaine.length) {
+          scoreSemaine += semaine.bonus_perfect ?? 0
+        } else if (semaine.seuil_bonus_2 && corrects >= semaine.seuil_bonus_2) {
           scoreSemaine += semaine.bonus_2 ?? 0
         } else if (semaine.seuil_bonus_1 && corrects >= semaine.seuil_bonus_1) {
           scoreSemaine += semaine.bonus_1 ?? 0
-        }
-        if (corrects === matchsDeLaSemaine.length) {
-          scoreSemaine += semaine.bonus_perfect ?? 0
         }
       }
 

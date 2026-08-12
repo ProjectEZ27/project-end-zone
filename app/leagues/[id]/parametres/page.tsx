@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
-import { modifierLigue } from './actions'
+import { modifierLigue, relancerRetardataires } from './actions'
 
 export default async function ParametresLigue({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -25,9 +25,88 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
     redirect('/leagues/' + id)
   }
 
+  // 1. Membres actifs de la ligue (+ leur saison)
+  const { data: adhesions } = await supabase
+    .from('adhesions')
+    .select('utilisateur_id, saison_id')
+    .eq('ligue_id', id)
+    .eq('statut', 'actif')
+
+  let retardataires: { id: string; pseudo: string; fait: number; total: number }[] = []
+  let aJourCount = 0
+
+  if (adhesions && adhesions.length > 0) {
+    const saisonId = adhesions[0].saison_id
+
+    // 2. Semaine actuellement ouverte pour cette saison
+    const { data: semaineOuverte } = await supabase
+      .from('semaines')
+      .select('id')
+      .eq('saison_id', saisonId)
+      .eq('statut', 'ouverte')
+      .single()
+
+    if (semaineOuverte) {
+      // 3. Matchs de cette semaine
+      const { data: matchs } = await supabase
+        .from('matchs')
+        .select('id')
+        .eq('semaine_id', semaineOuverte.id)
+
+      const totalMatchs = matchs?.length ?? 0
+      const matchIds = (matchs ?? []).map((m) => m.id)
+
+      // 4. Pseudos des membres actifs
+      const userIds = adhesions.map((a) => a.utilisateur_id)
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, pseudo')
+        .in('id', userIds)
+
+      // 5. Pronostics déjà faits par ces membres sur ces matchs
+      const { data: pronostics } = await supabase
+        .from('pronostics')
+        .select('utilisateur_id, match_id')
+        .in('utilisateur_id', userIds)
+        .in('match_id', matchIds.length > 0 ? matchIds : [-1])
+
+      for (const uid of userIds) {
+        const fait = (pronostics ?? []).filter((p) => p.utilisateur_id === uid).length
+        const pseudo = profiles?.find((p) => p.id === uid)?.pseudo ?? 'Joueur inconnu'
+        if (fait < totalMatchs) {
+          retardataires.push({ id: uid, pseudo, fait, total: totalMatchs })
+        } else {
+          aJourCount++
+        }
+      }
+    }
+  }
+
   return (
     <div style={{ maxWidth: 500, margin: '40px auto', padding: 24, textAlign: 'center' }}>
       <h1>⚙️ Paramètres — {league.nom}</h1>
+
+      <div style={{ marginTop: 24, padding: 16, border: '1px solid #ccc', borderRadius: 8, textAlign: 'left' }}>
+        <p><strong>Pronostics de la semaine en cours</strong></p>
+        {retardataires.length === 0 ? (
+          <p style={{ color: '#4caf50' }}>✅ Tout le monde est à jour !</p>
+        ) : (
+          <>
+            <p>{aJourCount} joueur(s) à jour · {retardataires.length} en retard</p>
+            <ul style={{ paddingLeft: 20 }}>
+              {retardataires.map((r) => (
+                <li key={r.id}>{r.pseudo} — {r.fait}/{r.total} pronostics faits</li>
+              ))}
+            </ul>
+            <form action={relancerRetardataires}>
+              <input type="hidden" name="ligue_id" value={id} />
+              <button type="submit" style={{ padding: '8px 16px', marginTop: 8 }}>
+                📧 Relancer les retardataires
+              </button>
+            </form>
+          </>
+        )}
+      </div>
 
       <form action={modifierLigue} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 24 }}>
         <input type="hidden" name="ligue_id" value={id} />

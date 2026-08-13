@@ -39,12 +39,14 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
     const saisonId = adhesions[0].saison_id
 
     // 2. Semaine actuellement ouverte pour cette saison
-    const { data: semaineOuverte } = await supabase
+    const { data: semainesOuvertes } = await supabase
       .from('semaines')
       .select('id')
       .eq('saison_id', saisonId)
       .eq('statut', 'ouverte')
-      .single()
+      .order('id', { ascending: false })
+
+    const semaineOuverte = semainesOuvertes?.[0] ?? null
 
     if (semaineOuverte) {
       // 3. Matchs de cette semaine
@@ -80,6 +82,8 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
         }
       }
     }
+  } else if (adhesions && adhesions.length > 0) {
+    // pas de semaine ouverte : on laisse retardataires vide, le JSX gèrera l'affichage
   }
 
   return (
@@ -88,8 +92,12 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
 
       <div style={{ marginTop: 24, padding: 16, border: '1px solid #ccc', borderRadius: 8, textAlign: 'left' }}>
         <p><strong>Pronostics de la semaine en cours</strong></p>
-        {retardataires.length === 0 ? (
-          <p style={{ color: '#4caf50' }}>✅ Tout le monde est à jour !</p>
+        {adhesions === null || adhesions.length === 0 ? (
+         <p style={{ color: '#999' }}>Aucun membre actif pour l'instant.</p>
+        ) : retardataires.length === 0 && aJourCount === 0 ? (
+         <p style={{ color: '#999' }}>⚠️ Aucune semaine ouverte trouvée actuellement.</p>
+        ) : retardataires.length === 0 ? (
+         <p style={{ color: '#4caf50' }}>✅ Tout le monde est à jour !</p>
         ) : (
           <>
             <p>{aJourCount} joueur(s) à jour · {retardataires.length} en retard</p>

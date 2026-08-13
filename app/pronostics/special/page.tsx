@@ -89,7 +89,7 @@ export default async function SpecialPicks() {
         <form action={submitSpecialPick} style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 8, flexWrap: 'wrap' }}>
           <input type="hidden" name="type" value="super_bowl_preseason" />
           <input type="hidden" name="saison_id" value={saison.id} />
-          <select name="choix" required defaultValue={superBowlPreseason?.choix ?? ''} style={{ padding: 8 }}>
+          <select key={superBowlPreseason?.choix ?? 'vide'} name="choix" required defaultValue={superBowlPreseason?.choix ?? ''} style={{ padding: 8 }}>
             <option value="" disabled>Choisir une équipe</option>
             {EQUIPES_NFL.map((eq) => (
               <option key={eq} value={eq}>{eq}</option>
@@ -108,7 +108,7 @@ export default async function SpecialPicks() {
         <form action={submitSpecialPick} style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 8, flexWrap: 'wrap' }}>
           <input type="hidden" name="type" value="mvp" />
           <input type="hidden" name="saison_id" value={saison.id} />
-          <select name="choix" defaultValue={mvp?.choix ?? ''} style={{ padding: 8 }}>
+          <select key={mvp?.choix ?? 'vide'} name="choix" defaultValue={mvp?.choix ?? ''} style={{ padding: 8 }}>
             <option value="" disabled>Choisir un joueur</option>
             {JOUEURS_MVP.map((joueur) => (
               <option key={joueur} value={joueur}>{joueur}</option>
@@ -136,7 +136,7 @@ export default async function SpecialPicks() {
         <form action={submitSpecialPick} style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 8, flexWrap: 'wrap' }}>
           <input type="hidden" name="type" value="super_bowl_avant_playoffs" />
           <input type="hidden" name="saison_id" value={saison.id} />
-          <select name="choix" required defaultValue={avantPlayoffs?.choix ?? ''} style={{ padding: 8 }}>
+          <select key={avantPlayoffs?.choix ?? 'vide'} name="choix" required defaultValue={avantPlayoffs?.choix ?? ''} style={{ padding: 8 }}>
             <option value="" disabled>Choisir une équipe</option>
             {EQUIPES_NFL.map((eq) => (
               <option key={eq} value={eq}>{eq}</option>

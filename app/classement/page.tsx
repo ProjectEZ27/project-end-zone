@@ -45,14 +45,17 @@ export default async function Classement() {
             </tr>
           </thead>
           <tbody>
-            {classement.map((joueur, index) => (
+            {classement.map((joueur, index) => {
+              const medaille = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : null
+              return (
               <tr key={joueur.utilisateur_id} style={{ borderBottom: '1px solid #eee', fontWeight: joueur.utilisateur_id === user.id ? 'bold' : 'normal' }}>
-                <td style={{ padding: 8 }}>{index + 1}</td>
+                <td style={{ padding: 8 }}>{index + 1} {medaille ?? ''}</td>
                 <td style={{ padding: 8 }}>{joueur.pseudo}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{joueur.score_saison}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{joueur.meilleure_semaine}</td>
               </tr>
-            ))}
+              )
+            })}
           </tbody>
         </table>
       )}

@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect, notFound } from 'next/navigation'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { joinLeague } from './actions'
 
 export default async function JoinLeague({ params }: { params: Promise<{ code: string }> }) {
@@ -18,7 +19,28 @@ export default async function JoinLeague({ params }: { params: Promise<{ code: s
     .single()
 
   if (error || !league) {
-    notFound()
+    return (
+      <div style={{ maxWidth: 400, margin: '80px auto', padding: 24, textAlign: 'center' }}>
+        <h1>😕 Code invalide</h1>
+        <p style={{ color: '#999', marginTop: 8 }}>
+          Le code d'invitation « {code} » ne correspond à aucune ligue. Vérifie qu'il est bien copié sans espace, ou demande un nouveau lien au commissaire.
+        </p>
+        <Link
+          href="/"
+          style={{
+            display: 'inline-block',
+            marginTop: 24,
+            padding: '10px 20px',
+            backgroundColor: '#C8352E',
+            borderRadius: 6,
+            textDecoration: 'none',
+            color: 'white',
+          }}
+        >
+          Retour à l'accueil
+        </Link>
+      </div>
+    )
   }
 
   return (

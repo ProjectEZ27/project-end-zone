@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import RappelPerso from './RappelPerso'
+import { NOMS_EQUIPES } from '@/lib/teamBadge'
 
 export default async function Profile() {
   const supabase = await createClient()
@@ -89,7 +90,9 @@ export default async function Profile() {
   return (
     <div style={{ maxWidth: 500, margin: '40px auto', padding: 24, textAlign: 'center' }}>
       <h1>👤 {profile?.pseudo ?? 'Profil'}</h1>
-      {profile?.equipe_favorite && <p>Équipe favorite : {profile.equipe_favorite}</p>}
+      {profile?.equipe_favorite && (
+        <p>Équipe favorite : {NOMS_EQUIPES[profile.equipe_favorite] ?? profile.equipe_favorite}</p>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 24 }}>
         <div style={{ border: '1px solid #ccc', borderRadius: 8, padding: 12 }}>

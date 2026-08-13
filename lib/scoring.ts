@@ -120,3 +120,78 @@ export async function calculerClassementSaison(
 
   return resultat
 }
+type ScoreJoueurSemaine = {
+  utilisateur_id: string
+  pseudo: string
+  score_semaine: number
+}
+
+export async function calculerClassementSemaine(
+  supabase: SupabaseClient,
+  semaine_id: number
+): Promise<ScoreJoueurSemaine[]> {
+  const { data: semaine } = await supabase
+    .from('semaines')
+    .select('*')
+    .eq('id', semaine_id)
+    .single()
+
+  if (!semaine) return []
+
+  const { data: matchs } = await supabase
+    .from('matchs')
+    .select('*')
+    .eq('semaine_id', semaine_id)
+
+  if (!matchs || matchs.length === 0) return []
+
+  const matchIds = matchs.map((m) => m.id)
+  const matchsTermines = matchs.filter((m) => m.statut === 'termine')
+
+  const { data: pronostics } = await supabase
+    .from('pronostics')
+    .select('*')
+    .in('match_id', matchIds)
+
+  if (!pronostics || pronostics.length === 0) return []
+
+  const userIds = [...new Set(pronostics.map((p) => p.utilisateur_id))]
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, pseudo')
+    .in('id', userIds)
+
+  const pseudoMap = new Map((profiles ?? []).map((p) => [p.id, p.pseudo]))
+  const matchMap = new Map(matchs.map((m) => [m.id, m]))
+
+  const resultat: ScoreJoueurSemaine[] = []
+
+  for (const userId of userIds) {
+    const mesPronos = pronostics.filter((p) => p.utilisateur_id === userId)
+    const corrects = mesPronos.filter((p) => {
+      const match = matchMap.get(p.match_id)
+      return match && match.statut === 'termine' && p.equipe_choisie === match.equipe_gagnante
+    }).length
+
+    let score = corrects * (semaine.points_par_pronostic ?? 1)
+
+    if (matchsTermines.length === matchs.length && matchs.length > 0) {
+      if (corrects === matchs.length) {
+        score += semaine.bonus_perfect ?? 0
+      } else if (semaine.seuil_bonus_2 && corrects >= semaine.seuil_bonus_2) {
+        score += semaine.bonus_2 ?? 0
+      } else if (semaine.seuil_bonus_1 && corrects >= semaine.seuil_bonus_1) {
+        score += semaine.bonus_1 ?? 0
+      }
+    }
+
+    resultat.push({
+      utilisateur_id: userId,
+      pseudo: pseudoMap.get(userId) ?? 'Joueur inconnu',
+      score_semaine: score,
+    })
+  }
+
+  resultat.sort((a, b) => b.score_semaine - a.score_semaine)
+  return resultat
+}

@@ -153,7 +153,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
                       backgroundColor: monPronostic?.equipe_choisie === match.equipe_a ? '#C8352E' : '#16233F',
                     }}
                   >
-                    <TeamBadge code={match.equipe_a} size={28} />
+                    <TeamBadge code={match.equipe_a} size={44} />
                     {NOMS_EQUIPES[match.equipe_a] ?? match.equipe_a}
                   </button>
                 </form>
@@ -172,7 +172,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
                       backgroundColor: monPronostic?.equipe_choisie === match.equipe_b ? '#C8352E' : '#16233F',
                     }}
                   >
-                    <TeamBadge code={match.equipe_b} size={28} />
+                    <TeamBadge code={match.equipe_b} size={44} />
                     {NOMS_EQUIPES[match.equipe_b] ?? match.equipe_b}
                   </button>
                 </form>

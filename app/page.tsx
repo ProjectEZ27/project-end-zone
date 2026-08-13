@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import JoinLeagueForm from './JoinLeagueForm'
+import { genererJournalSemaine } from '@/lib/journal'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -35,6 +36,19 @@ export default async function Home() {
   new Map(liguesBrutes.map((l: any) => [l.id, l])).values()
 )
 
+  // Journal du mardi : on cherche la dernière semaine clôturée (la plus récente terminée)
+  const { data: derniereSemaineCloturee } = await supabase
+    .from('semaines')
+    .select('id, nom')
+    .eq('statut', 'cloturee')
+    .order('id', { ascending: false })
+    .limit(1)
+    .single()
+
+  const journalPhrases = derniereSemaineCloturee
+    ? await genererJournalSemaine(supabase, derniereSemaineCloturee.id)
+    : []
+
   return (
     <div style={{ maxWidth: 500, margin: '40px auto', padding: 24, textAlign: 'center' }}>
       <img src="/logo-officiel.png" alt="Project End Zone" style={{ width: 160, margin: '0 auto', display: 'block' }} />
@@ -51,6 +65,15 @@ export default async function Home() {
           📊 Mon bilan de saison
         </Link>
       </div>
+
+      {journalPhrases.length > 0 && (
+        <div style={{ marginTop: 24, padding: 16, border: '1px solid #33415a', borderRadius: 8, textAlign: 'left' }}>
+          <h2 style={{ fontSize: 16, marginBottom: 8 }}>📰 Moment fort du mardi</h2>
+          {journalPhrases.map((phrase, i) => (
+            <p key={i} style={{ margin: '4px 0' }}>{phrase}</p>
+          ))}
+        </div>
+      )}
 
       <div style={{ marginTop: 32, textAlign: 'left' }}>
         <h2>Mes ligues</h2>

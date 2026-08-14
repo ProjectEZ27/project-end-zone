@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation'
 import { saveOnboarding } from './actions'
 import { NOMS_EQUIPES } from '@/lib/teamBadge'
 
-export default async function Onboarding() {
+export default async function Onboarding({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const { error: errorMessage } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -17,7 +18,9 @@ export default async function Onboarding() {
     <div style={{ maxWidth: 400, margin: '80px auto', padding: 24, textAlign: 'center' }}>
       <h1>🏈 Bienvenue !</h1>
       <p>Choisis ton pseudo pour commencer</p>
-
+      {errorMessage && (
+        <p style={{ color: '#e05252' }}>⚠️ {errorMessage}</p>
+      )}
       <form action={saveOnboarding} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 24 }}>
         <input
           type="text"

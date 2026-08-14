@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { calculerClassementSaison, calculerClassementSemaine } from '@/lib/scoring'
+import { calculerClassementSaison, calculerClassementSemaine, calculerHistoriqueSemaines } from '@/lib/scoring'
 
 export default async function ClassementLigue({
   params,
@@ -13,6 +13,7 @@ export default async function ClassementLigue({
   const { id } = await params
   const { mode, semaine: semaineParam } = await searchParams
   const vueSemaine = mode === 'semaine'
+  const vueHistorique = mode === 'historique'
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -73,8 +74,11 @@ export default async function ClassementLigue({
   }
 
   let lignes: { utilisateur_id: string; pseudo: string; score: number }[] = []
+  let historique: { semaines: { id: number; nom: string }[]; lignes: { utilisateur_id: string; pseudo: string; scores: number[] }[] } | null = null
 
-  if (vueSemaine && semaineActive) {
+  if (vueHistorique) {
+    historique = await calculerHistoriqueSemaines(supabase, saison.id, membresIds)
+  } else if (vueSemaine && semaineActive) {
     const classementSemaine = await calculerClassementSemaine(supabase, semaineActive.id)
     lignes = classementSemaine
       .filter((j) => membresIds.has(j.utilisateur_id))
@@ -86,35 +90,28 @@ export default async function ClassementLigue({
       .map((j) => ({ utilisateur_id: j.utilisateur_id, pseudo: j.pseudo, score: j.score_saison }))
   }
 
+  const boutonStyle = (actif: boolean) => ({
+    padding: '6px 14px',
+    borderRadius: 6,
+    textDecoration: 'none',
+    color: 'white',
+    backgroundColor: actif ? '#C8352E' : '#16233F',
+  })
+
   return (
-    <div style={{ maxWidth: 500, margin: '40px auto', padding: 24, textAlign: 'center' }}>
+    <div style={{ maxWidth: 600, margin: '40px auto', padding: 24, textAlign: 'center' }}>
       <h1>🏆 Classement — {league.nom}</h1>
       <p>Saison {saison.nom}</p>
 
-      <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 16 }}>
-        <Link
-          href={`/leagues/${id}/classement?mode=saison`}
-          style={{
-            padding: '6px 14px',
-            borderRadius: 6,
-            textDecoration: 'none',
-            color: 'white',
-            backgroundColor: !vueSemaine ? '#C8352E' : '#16233F',
-          }}
-        >
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>
+        <Link href={`/leagues/${id}/classement?mode=saison`} style={boutonStyle(!vueSemaine && !vueHistorique)}>
           Saison
         </Link>
-        <Link
-          href={`/leagues/${id}/classement?mode=semaine`}
-          style={{
-            padding: '6px 14px',
-            borderRadius: 6,
-            textDecoration: 'none',
-            color: 'white',
-            backgroundColor: vueSemaine ? '#C8352E' : '#16233F',
-          }}
-        >
+        <Link href={`/leagues/${id}/classement?mode=semaine`} style={boutonStyle(vueSemaine)}>
           Semaine
+        </Link>
+        <Link href={`/leagues/${id}/classement?mode=historique`} style={boutonStyle(vueHistorique)}>
+          Historique
         </Link>
       </div>
 
@@ -132,7 +129,40 @@ export default async function ClassementLigue({
         </form>
       )}
 
-      {lignes.length === 0 ? (
+      {vueHistorique ? (
+        !historique || historique.semaines.length === 0 ? (
+          <p style={{ marginTop: 24 }}>Aucune semaine clôturée pour le moment.</p>
+        ) : (
+          <div style={{ overflowX: 'auto', marginTop: 24 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid #ccc' }}>
+                  <th style={{ padding: 8, textAlign: 'left', position: 'sticky', left: 0, backgroundColor: '#0d1420' }}>Joueur</th>
+                  {historique.semaines.map((s) => (
+                    <th key={s.id} style={{ padding: '8px 6px', textAlign: 'right', whiteSpace: 'nowrap', fontSize: 12 }}>
+                      {s.nom.replace('Week ', 'S')}
+                    </th>
+                  ))}
+                  <th style={{ padding: 8, textAlign: 'right', fontWeight: 'bold' }}>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {historique.lignes.map((joueur) => (
+                  <tr key={joueur.utilisateur_id} style={{ borderBottom: '1px solid #eee', fontWeight: joueur.utilisateur_id === user.id ? 'bold' : 'normal' }}>
+                    <td style={{ padding: 8, textAlign: 'left', position: 'sticky', left: 0, backgroundColor: '#0d1420' }}>{joueur.pseudo}</td>
+                    {joueur.scores.map((score, i) => (
+                      <td key={i} style={{ padding: '8px 6px', textAlign: 'right' }}>{score}</td>
+                    ))}
+                    <td style={{ padding: 8, textAlign: 'right', fontWeight: 'bold' }}>
+                      {joueur.scores.reduce((a, b) => a + b, 0)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      ) : lignes.length === 0 ? (
         <p style={{ marginTop: 24 }}>Aucun résultat pour le moment.</p>
       ) : (
         <table style={{ width: '100%', marginTop: 24, borderCollapse: 'collapse' }}>

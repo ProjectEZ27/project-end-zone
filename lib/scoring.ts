@@ -195,3 +195,43 @@ export async function calculerClassementSemaine(
   resultat.sort((a, b) => b.score_semaine - a.score_semaine)
   return resultat
 }
+export async function calculerHistoriqueSemaines(
+  supabase: SupabaseClient,
+  saison_id: number,
+  membresIds: Set<string>
+) {
+  const { data: semaines } = await supabase
+    .from('semaines')
+    .select('id, nom, statut')
+    .eq('saison_id', saison_id)
+    .order('id', { ascending: true })
+
+  if (!semaines || semaines.length === 0) {
+    return { semaines: [], lignes: [] }
+  }
+
+  const semainesCloturees = semaines.filter((s) => s.statut === 'cloturee')
+
+  const scoresParSemaine = new Map<number, Map<string, number>>()
+  const pseudoMap = new Map<string, string>()
+
+  for (const semaine of semainesCloturees) {
+    const classement = await calculerClassementSemaine(supabase, semaine.id)
+    const map = new Map<string, number>()
+    for (const j of classement) {
+      map.set(j.utilisateur_id, j.score_semaine)
+      pseudoMap.set(j.utilisateur_id, j.pseudo)
+    }
+    scoresParSemaine.set(semaine.id, map)
+  }
+
+  const lignes = [...membresIds]
+    .filter((uid) => pseudoMap.has(uid))
+    .map((uid) => ({
+      utilisateur_id: uid,
+      pseudo: pseudoMap.get(uid) ?? 'Joueur inconnu',
+      scores: semainesCloturees.map((s) => scoresParSemaine.get(s.id)?.get(uid) ?? 0),
+    }))
+
+  return { semaines: semainesCloturees, lignes }
+}

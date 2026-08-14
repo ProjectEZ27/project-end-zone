@@ -1,4 +1,5 @@
 import { signup } from '../login/actions'
+import PasswordInput from '../PasswordInput'
 
 export default async function SignupPage({
   searchParams,
@@ -20,7 +21,7 @@ export default async function SignupPage({
         </div>
         <div style={{ marginBottom: 12 }}>
           <label htmlFor="password">Mot de passe</label>
-          <input id="password" name="password" type="password" required minLength={6} style={{ width: '100%', padding: 8 }} />
+          <PasswordInput id="password" name="password" required minLength={6} />
         </div>
         <button formAction={signup} style={{ padding: 10, width: '100%' }}>
           Créer mon compte

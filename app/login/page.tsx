@@ -1,4 +1,5 @@
 import { login } from './actions'
+import PasswordInput from '../PasswordInput'
 
 export default async function LoginPage({
   searchParams,
@@ -20,7 +21,7 @@ export default async function LoginPage({
         </div>
         <div style={{ marginBottom: 12 }}>
           <label htmlFor="password">Mot de passe</label>
-          <input id="password" name="password" type="password" required style={{ width: '100%', padding: 8 }} />
+          <PasswordInput id="password" name="password" required />
         </div>
         <button formAction={login} style={{ padding: 10, width: '100%' }}>
           Se connecter

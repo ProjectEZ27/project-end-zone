@@ -1,9 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import RappelPerso from './RappelPerso'
+import { changerPseudo } from './actions'
 import { NOMS_EQUIPES } from '@/lib/teamBadge'
 
-export default async function Profile() {
+export default async function Profile({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const { error: errorMessage } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -90,9 +92,25 @@ export default async function Profile() {
   return (
     <div style={{ maxWidth: 500, margin: '40px auto', padding: 24, textAlign: 'center' }}>
       <h1>👤 {profile?.pseudo ?? 'Profil'}</h1>
+      {errorMessage && (
+        <p style={{ color: '#e05252', marginTop: 8 }}>⚠️ {errorMessage}</p>
+      )}
       {profile?.equipe_favorite && (
         <p>Équipe favorite : {NOMS_EQUIPES[profile.equipe_favorite] ?? profile.equipe_favorite}</p>
       )}
+
+      <form action={changerPseudo} style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 12 }}>
+        <input
+          type="text"
+          name="pseudo"
+          placeholder="Nouveau pseudo"
+          defaultValue={profile?.pseudo ?? ''}
+          required
+          minLength={2}
+          style={{ padding: 8 }}
+        />
+        <button type="submit" style={{ padding: 8 }}>Changer</button>
+      </form>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 24 }}>
         <div style={{ border: '1px solid #ccc', borderRadius: 8, padding: 12 }}>

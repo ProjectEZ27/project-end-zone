@@ -24,7 +24,10 @@ export async function saveOnboarding(formData: FormData) {
     })
 
   if (error) {
-    redirect('/onboarding?error=' + encodeURIComponent(error.message))
+    const message = error.code === '23505'
+      ? 'Ce pseudo est déjà pris par un autre joueur'
+      : error.message
+    redirect('/onboarding?error=' + encodeURIComponent(message))
   }
 
   redirect('/')

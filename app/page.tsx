@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import JoinLeagueForm from './JoinLeagueForm'
+import AuthRecoveryListener from './AuthRecoveryListener'
 import { genererJournalSemaine } from '@/lib/journal'
 
 export default async function Home() {
@@ -51,6 +52,7 @@ export default async function Home() {
 
   return (
     <div style={{ maxWidth: 500, margin: '40px auto', padding: 24, textAlign: 'center' }}>
+      <AuthRecoveryListener />
       <img src="/logo-officiel.png" alt="Project End Zone" style={{ width: 160, margin: '0 auto', display: 'block' }} />
       <p>Connecté en tant que {profile.pseudo}</p>
 

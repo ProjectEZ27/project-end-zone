@@ -30,6 +30,9 @@ export default async function LoginPage({
       <p style={{ marginTop: 12 }}>
         Pas encore de compte ? <a href="/signup">Inscris-toi</a>
       </p>
+      <p style={{ marginTop: 8 }}>
+        <a href="/mot-de-passe-oublie">Mot de passe oublié ?</a>
+      </p>
     </div>
   )
 }

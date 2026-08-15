@@ -129,11 +129,21 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
 
               {termine ? (
                 <div>
-                  <p style={{ fontSize: 20, fontWeight: 'bold' }}>
-                    {match.equipe_a} {match.score_a} - {match.score_b} {match.equipe_b}
-                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, fontSize: 20, fontWeight: 'bold' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <TeamBadge code={match.equipe_a} size={32} />
+                      {NOMS_EQUIPES[match.equipe_a] ?? match.equipe_a} {match.score_a}
+                    </span>
+                    <span>-</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {match.score_b} {NOMS_EQUIPES[match.equipe_b] ?? match.equipe_b}
+                      <TeamBadge code={match.equipe_b} size={32} />
+                    </span>
+                  </div>
                   {monPronostic && (
-                    <p>{bonPronostic ? '✅ Bon pronostic' : '❌ Mauvais pronostic'} (tu avais mis {monPronostic.equipe_choisie})</p>
+                    <p>
+                      {bonPronostic ? '✅ Bon pronostic' : '❌ Mauvais pronostic'} (tu avais mis {NOMS_EQUIPES[monPronostic.equipe_choisie] ?? monPronostic.equipe_choisie})
+                    </p>
                   )}
                 </div>
               ) : (
@@ -183,7 +193,11 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
                 <div style={{ marginTop: 8, fontSize: 13, color: '#444', textAlign: 'left' }}>
                   <strong>Pronostics de la ligue :</strong>
                   {autresPronostics.map((p, i) => (
-                    <div key={i}>{p.pseudo} : {p.equipe_choisie}</div>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                      {p.pseudo} :
+                      <TeamBadge code={p.equipe_choisie} size={18} />
+                      {NOMS_EQUIPES[p.equipe_choisie] ?? p.equipe_choisie}
+                    </div>
                   ))}
                 </div>
               )}

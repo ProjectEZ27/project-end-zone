@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { calculerClassementSaison } from '@/lib/scoring'
+import BoutonPartage from './BoutonPartage'
 
 export default async function Bilan() {
   const supabase = await createClient()
@@ -61,6 +62,8 @@ export default async function Bilan() {
       <p style={{ marginTop: 24, color: '#666' }}>
         {classement.length} joueur{classement.length > 1 ? 's' : ''} au classement général cette saison.
       </p>
+
+      <BoutonPartage place={monClassement + 1} points={monResultat.score_saison} saison={saison.nom} />
     </div>
   )
 }

@@ -52,7 +52,6 @@ export default async function Home() {
 
   return (
     <div style={{ maxWidth: 500, margin: '40px auto', padding: 24, textAlign: 'center' }}>
-      <AuthRecoveryListener />
       <img src="/logo-officiel.png" alt="Project End Zone" style={{ width: 160, margin: '0 auto', display: 'block' }} />
       <p>Connecté en tant que {profile.pseudo}</p>
 

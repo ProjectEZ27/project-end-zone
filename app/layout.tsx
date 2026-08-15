@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Nav from "./nav";
+import AuthRecoveryListener from "./AuthRecoveryListener";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +42,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+          <AuthRecoveryListener />
           <div style={{ paddingBottom: 70 }}>{children}</div>
           <Nav />
         </body>

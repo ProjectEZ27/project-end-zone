@@ -2,6 +2,13 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
+  const code = request.nextUrl.searchParams.get('code')
+  if (code && request.nextUrl.pathname !== '/auth/callback') {
+    const callbackUrl = new URL('/auth/callback', request.url)
+    callbackUrl.searchParams.set('code', code)
+    return NextResponse.redirect(callbackUrl)
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(

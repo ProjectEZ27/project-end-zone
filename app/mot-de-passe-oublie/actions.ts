@@ -10,7 +10,7 @@ export async function demanderReinitialisation(formData: FormData) {
   const email = formData.get('email') as string
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm?type=recovery&next=/nouveau-mot-de-passe`,
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
   })
 
   if (error) {

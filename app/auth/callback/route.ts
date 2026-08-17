@@ -9,6 +9,22 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .single()
+
+        if (!profile) {
+          // Pas encore de profil : c'est une inscription qui vient d'être confirmée
+          return NextResponse.redirect(new URL('/onboarding', request.url))
+        }
+      }
+
+      // Profil déjà existant : c'est bien une récupération de mot de passe
       return NextResponse.redirect(new URL('/nouveau-mot-de-passe', request.url))
     }
   }

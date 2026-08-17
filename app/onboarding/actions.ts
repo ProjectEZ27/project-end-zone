@@ -14,6 +14,7 @@ export async function saveOnboarding(formData: FormData) {
 
   const pseudo = formData.get('pseudo') as string
   const equipe_favorite = formData.get('equipe_favorite') as string
+  const avatar_id = parseInt(formData.get('avatar_id') as string) || 1
 
   const { error } = await supabase
     .from('profiles')
@@ -21,6 +22,7 @@ export async function saveOnboarding(formData: FormData) {
       id: user.id,
       pseudo: pseudo,
       equipe_favorite: equipe_favorite || null,
+      avatar_id: avatar_id
     })
 
   if (error) {

@@ -52,3 +52,29 @@ export async function changerPseudo(formData: FormData) {
   revalidatePath('/')
   revalidatePath('/classement')
 }
+
+export async function changerAvatar(formData: FormData) {
+  const avatar_id = parseInt(formData.get('avatar_id') as string) || 1
+
+  if (avatar_id < 1 || avatar_id > 16) {
+    redirect('/profile?error=Avatar invalide')
+  }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ avatar_id })
+    .eq('id', user.id)
+
+  if (error) {
+    redirect('/profile?error=' + encodeURIComponent(error.message))
+  }
+
+  redirect('/profile')
+}

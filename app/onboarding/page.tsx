@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { saveOnboarding } from './actions'
+import OnboardingForm from '@/components/OnboardingForm'
 import { NOMS_EQUIPES } from '@/lib/teamBadge'
 
 export default async function Onboarding({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
@@ -14,31 +14,5 @@ export default async function Onboarding({ searchParams }: { searchParams: Promi
 
   const equipes = Object.entries(NOMS_EQUIPES).sort((a, b) => a[1].localeCompare(b[1]))
 
-  return (
-    <div style={{ maxWidth: 400, margin: '80px auto', padding: 24, textAlign: 'center' }}>
-      <h1>🏈 Bienvenue !</h1>
-      <p>Choisis ton pseudo pour commencer</p>
-      {errorMessage && (
-        <p style={{ color: '#e05252' }}>⚠️ {errorMessage}</p>
-      )}
-      <form action={saveOnboarding} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 24 }}>
-        <input
-          type="text"
-          name="pseudo"
-          placeholder="Ton pseudo"
-          required
-          style={{ padding: 10 }}
-        />
-        <select name="equipe_favorite" defaultValue="" style={{ padding: 10 }}>
-          <option value="">Ton équipe NFL favorite (facultatif)</option>
-          {equipes.map(([code, nom]) => (
-            <option key={code} value={code}>{nom}</option>
-          ))}
-        </select>
-        <button type="submit" style={{ padding: 10, marginTop: 8 }}>
-          C'est parti
-        </button>
-      </form>
-    </div>
-  )
+  return <OnboardingForm equipes={equipes} errorMessage={errorMessage} />
 }

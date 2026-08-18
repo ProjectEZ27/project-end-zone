@@ -15,17 +15,12 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
     redirect('/login')
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-
-  const { data: saison } = await supabase
-    .from('saisons')
-    .select('*')
-    .eq('statut', 'en_cours')
-    .single()
+  const [profileResult, saisonResult] = await Promise.all([
+  supabase.from('profiles').select('*').eq('id', user.id).single(),
+  supabase.from('saisons').select('*').eq('statut', 'en_cours').single()
+])
+const profile = profileResult.data
+const saison = saisonResult.data
 
   let totalPronostics = 0
   let totalCorrects = 0

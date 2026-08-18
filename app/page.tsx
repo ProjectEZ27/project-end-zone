@@ -13,42 +13,32 @@ export default async function Home() {
     redirect('/login')
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('pseudo')
-    .eq('id', user.id)
-    .single()
+  const [profileResult, adhesionsResult, semaineClotureeResult] = await Promise.all([
+  supabase.from('profiles').select('pseudo').eq('id', user.id).single(),
+  supabase.from('adhesions').select('ligue_id, ligues(id, nom)').eq('utilisateur_id', user.id).eq('statut', 'actif'),
+  supabase.from('semaines').select('id, nom').eq('statut', 'cloturee').order('id', { ascending: false }).limit(1).single()
+])
 
-  if (!profile) {
-    redirect('/onboarding')
-  }
+const profile = profileResult.data
+if (!profile) {
+  redirect('/onboarding')
+}
 
-  const { data: adhesions } = await supabase
-    .from('adhesions')
-    .select('ligue_id, ligues(id, nom)')
-    .eq('utilisateur_id', user.id)
-    .eq('statut', 'actif')
-
-  const liguesBrutes = (adhesions ?? [])
+const adhesions = adhesionsResult.data
+const liguesBrutes = (adhesions ?? [])
   .map((a: any) => a.ligues)
   .filter(Boolean)
 
-  const mesLigues = Array.from(
+const mesLigues = Array.from(
   new Map(liguesBrutes.map((l: any) => [l.id, l])).values()
 )
 
-  // Journal du mardi : on cherche la dernière semaine clôturée (la plus récente terminée)
-  const { data: derniereSemaineCloturee } = await supabase
-    .from('semaines')
-    .select('id, nom')
-    .eq('statut', 'cloturee')
-    .order('id', { ascending: false })
-    .limit(1)
-    .single()
+// Journal du mardi : on cherche la dernière semaine clôturée (la plus récente terminée)
+const derniereSemaineCloturee = semaineClotureeResult.data
 
-  const journalPhrases = derniereSemaineCloturee
-    ? await genererJournalSemaine(supabase, derniereSemaineCloturee.id)
-    : []
+const journalPhrases = derniereSemaineCloturee
+  ? await genererJournalSemaine(supabase, derniereSemaineCloturee.id)
+  : []
 
   return (
     <div style={{ maxWidth: 500, margin: '40px auto', padding: 24, textAlign: 'center' }}>

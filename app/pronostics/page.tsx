@@ -13,28 +13,14 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
     redirect('/login')
   }
 
-  const { data: toutesLesSemaines } = await supabase
-    .from('semaines')
-    .select('id, nom')
-    .order('id', { ascending: true })
-
-  let semaine
-  if (semaineParam) {
-    const { data } = await supabase
-      .from('semaines')
-      .select('*')
-      .eq('id', semaineParam)
-      .single()
-    semaine = data
-  } else {
-    const { data } = await supabase
-      .from('semaines')
-      .select('*')
-      .order('id', { ascending: false })
-      .limit(1)
-      .single()
-    semaine = data
-  }
+  const [toutesLesSemainesResult, semaineResult] = await Promise.all([
+  supabase.from('semaines').select('id, nom').order('id', { ascending: true }),
+  semaineParam
+    ? supabase.from('semaines').select('*').eq('id', semaineParam).single()
+    : supabase.from('semaines').select('*').order('id', { ascending: false }).limit(1).single()
+])
+const toutesLesSemaines = toutesLesSemainesResult.data
+let semaine = semaineResult.data
 
   if (!semaine) {
     return (
@@ -52,28 +38,25 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
     .order('coup_envoi', { ascending: true })
 
   const matchIds = (matchs ?? []).map((m) => m.id)
+  const matchsVerrouilles = (matchs ?? []).filter((m) => m.statut !== 'a_venir').map((m) => m.id)
 
-  const { data: mesPronostics } = await supabase
-    .from('pronostics')
-    .select('*')
-    .eq('utilisateur_id', user.id)
-    .in('match_id', matchIds)
+  const [mesPronosticsResult, pronosticsPublicsResult] = await Promise.all([
+    supabase.from('pronostics').select('*').eq('utilisateur_id', user.id).in('match_id', matchIds),
+    matchsVerrouilles.length > 0
+      ? supabase.from('pronostics').select('match_id, utilisateur_id, equipe_choisie').in('match_id', matchsVerrouilles)
+     : Promise.resolve({ data: null })
+  ])
+  const mesPronostics = mesPronosticsResult.data
 
   const mesPronosticsMap = new Map((mesPronostics ?? []).map((p) => [p.match_id, p]))
   const nombreFaits = mesPronostics?.length ?? 0
   const nombreTotal = matchs?.length ?? 0
 
   // Pronostics de TOUT LE MONDE sur les matchs déjà verrouillés (règle de visibilité)
-  const matchsVerrouilles = (matchs ?? []).filter((m) => m.statut !== 'a_venir').map((m) => m.id)
 
   let tousLesPronosticsMap = new Map<string, { pseudo: string; equipe_choisie: string }[]>()
-  if (matchsVerrouilles.length > 0) {
-    const { data: pronosticsPublics } = await supabase
-      .from('pronostics')
-      .select('match_id, utilisateur_id, equipe_choisie')
-      .in('match_id', matchsVerrouilles)
-
-    if (pronosticsPublics && pronosticsPublics.length > 0) {
+  const pronosticsPublics = pronosticsPublicsResult.data
+  if (pronosticsPublics && pronosticsPublics.length > 0) {
       const userIds = [...new Set(pronosticsPublics.map((p) => p.utilisateur_id))]
       const { data: profilesData } = await supabase
         .from('profiles')
@@ -87,7 +70,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
         tousLesPronosticsMap.set(p.match_id, liste)
       }
     }
-  }
+  
 
  const indexActuel = toutesLesSemaines?.findIndex((s) => s.id === semaine.id) ?? -1
   const semainePrecedente = indexActuel > 0 ? toutesLesSemaines?.[indexActuel - 1] : null

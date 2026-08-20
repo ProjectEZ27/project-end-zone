@@ -4,13 +4,14 @@ import Link from 'next/link'
 import JoinLeagueForm from './JoinLeagueForm'
 import AuthRecoveryListener from './AuthRecoveryListener'
 import { genererJournalSemaine } from '@/lib/journal'
+import LandingPage from '@/components/LandingPage'
 
 export default async function Home() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    return <LandingPage />
   }
 
   const [profileResult, adhesionsResult, semaineClotureeResult] = await Promise.all([

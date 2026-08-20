@@ -1,0 +1,202 @@
+import Link from 'next/link'
+import Image from 'next/image'
+
+export default function LandingPage() {
+  return (
+    <div style={{ backgroundColor: '#0F1419', color: 'white', minHeight: '100vh' }}>
+
+      {/* HEADER */}
+      <header
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '16px 24px',
+          backgroundColor: 'rgba(15, 20, 25, 0.92)',
+          backdropFilter: 'blur(8px)',
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
+        }}
+      >
+        <img src="/logo-officiel.png" alt="Project End Zone" style={{ height: 44 }} />
+
+        <div style={{ display: 'flex', gap: 10 }}>
+          <Link
+            href="/login"
+            style={{
+              padding: '10px 18px',
+              borderRadius: 6,
+              border: '1px solid rgba(255,255,255,0.25)',
+              color: 'white',
+              textDecoration: 'none',
+              fontWeight: 700,
+              fontSize: 13,
+              letterSpacing: 0.5,
+            }}
+          >
+            CONNEXION
+          </Link>
+          <Link
+            href="/signup"
+            style={{
+              padding: '10px 18px',
+              borderRadius: 6,
+              backgroundColor: '#C8352E',
+              color: 'white',
+              textDecoration: 'none',
+              fontWeight: 700,
+              fontSize: 13,
+              letterSpacing: 0.5,
+            }}
+          >
+            S'INSCRIRE
+          </Link>
+        </div>
+      </header>
+
+      {/* HERO */}
+      <section
+        style={{
+          maxWidth: 1200,
+          margin: '0 auto',
+          padding: '60px 24px',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 40,
+          alignItems: 'center',
+        }}
+      >
+        <div>
+          <h1
+            style={{
+              fontSize: 48,
+              lineHeight: 1.1,
+              fontWeight: 900,
+              margin: 0,
+              letterSpacing: -0.5,
+            }}
+          >
+            PRONOSTIQUE.<br />
+            DÉFIE TES AMIS.<br />
+            <span style={{ color: '#C8352E' }}>DEVIENS UNE LÉGENDE.</span>
+          </h1>
+
+          <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.7)', marginTop: 20, maxWidth: 480 }}>
+            Rejoins des milliers de fans NFL, participe à des ligues, fais tes pronostics chaque semaine et grimpe dans le classement.
+          </p>
+
+          <div style={{ display: 'flex', gap: 12, marginTop: 32 }}>
+            <Link
+              href="/signup"
+              style={{
+                padding: '14px 28px',
+                borderRadius: 6,
+                backgroundColor: '#C8352E',
+                color: 'white',
+                textDecoration: 'none',
+                fontWeight: 700,
+                fontSize: 14,
+                letterSpacing: 0.5,
+              }}
+            >
+              REJOINDRE
+            </Link>
+            <a
+              href="#features"
+              style={{
+                padding: '14px 28px',
+                borderRadius: 6,
+                border: '1px solid rgba(255,255,255,0.25)',
+                color: 'white',
+                textDecoration: 'none',
+                fontWeight: 700,
+                fontSize: 14,
+                letterSpacing: 0.5,
+              }}
+            >
+              EN SAVOIR PLUS
+            </a>
+          </div>
+        </div>
+
+        <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 10' }}>
+          <Image
+            src="/images/hero-landing.png"
+            alt="Joueur NFL"
+            fill
+            priority
+            style={{ objectFit: 'contain' }}
+          />
+        </div>
+      </section>
+
+      {/* FEATURES */}
+      <section
+        id="features"
+        style={{
+          maxWidth: 1200,
+          margin: '0 auto',
+          padding: '20px 24px 80px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: 24,
+        }}
+      >
+        {[
+          { icon: '/images-landing/Icone-prono.png', title: 'PRONOSTICS', text: 'Chaque match compte' },
+          { icon: '/images-landing/Icone-Ligue.png', title: 'LIGUES', text: 'Affronte tes amis' },
+          { icon: '/images-landing/Icone-Class.png', title: 'CLASSEMENTS', text: 'Grimpe au sommet' },
+          { icon: '/images-landing/Icone-Recomp.png', title: 'RÉCOMPENSES', text: 'Collectionne des badges' },
+        ].map((f) => (
+          <div key={f.title} style={{ textAlign: 'center' }}>
+            <div style={{ position: 'relative', width: 64, height: 64, margin: '0 auto 12px' }}>
+              <Image src={f.icon} alt={f.title} fill style={{ objectFit: 'contain' }} />
+            </div>
+            <h3 style={{ fontSize: 14, fontWeight: 800, letterSpacing: 1, margin: 0 }}>{f.title}</h3>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', marginTop: 4 }}>{f.text}</p>
+          </div>
+        ))}
+      </section>
+
+      {/* CTA FINAL */}
+      <section style={{ textAlign: 'center', padding: '0 24px 80px' }}>
+        <Link
+          href="/signup"
+          style={{
+            display: 'inline-block',
+            padding: '16px 40px',
+            borderRadius: 6,
+            backgroundColor: '#C8352E',
+            color: 'white',
+            textDecoration: 'none',
+            fontWeight: 800,
+            fontSize: 15,
+            letterSpacing: 0.5,
+          }}
+        >
+          S'INSCRIRE MAINTENANT
+        </Link>
+      </section>
+
+      {/* FOOTER */}
+      <footer
+        style={{
+          borderTop: '1px solid rgba(255,255,255,0.08)',
+          padding: '24px',
+          textAlign: 'center',
+          fontSize: 12,
+          color: 'rgba(255,255,255,0.4)',
+          display: 'flex',
+          gap: 16,
+          justifyContent: 'center',
+        }}
+      >
+        <Link href="/legal/mentions" style={{ color: 'rgba(255,255,255,0.4)' }}>Mentions légales</Link>
+        <Link href="/legal/confidentialite" style={{ color: 'rgba(255,255,255,0.4)' }}>Confidentialité</Link>
+        <Link href="/legal/cgu" style={{ color: 'rgba(255,255,255,0.4)' }}>CGU</Link>
+      </footer>
+    </div>
+  )
+}

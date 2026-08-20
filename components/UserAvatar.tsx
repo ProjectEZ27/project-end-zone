@@ -20,13 +20,12 @@ export default function UserAvatar({
   return (
     <div
       style={{
-        cursor: clickable ? 'pointer' : 'default',
-        transition: clickable ? 'transform 0.2s, box-shadow 0.2s' : 'none',
-        borderRadius: '50%',
-        overflow: 'hidden',
-        border: '1px solid rgba(200, 53, 46, 0.2)',
-        display: 'inline-block'
-      }}
+  cursor: clickable ? 'pointer' : 'default',
+  transition: clickable ? 'transform 0.2s, box-shadow 0.2s' : 'none',
+  borderRadius: '50%',
+  overflow: 'hidden',
+  display: 'inline-block'
+}}
       onClick={onClick}
     >
       <Image

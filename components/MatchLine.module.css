@@ -131,13 +131,13 @@
   position: absolute;
   z-index: 20;
   left: 50%;
-  top: 32%;
+  top: 50%;
   transform: translate(-50%, -50%);
-  font-size: 12px;
+  font-size: 18px;
   font-weight: 900;
-  letter-spacing: 2px;
-  color: rgba(255,255,255,0.5);
-  text-shadow: 0 2px 6px rgba(0,0,0,0.85);
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.45);
+  text-shadow: 0 2px 6px rgba(0,0,0,0.8);
   pointer-events: none;
 }
 
@@ -188,9 +188,9 @@
 .check {
   position: absolute;
   z-index: 40;
-  bottom: 14px;
-  width: 42px;
-  height: 42px;
+  bottom: 8px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -204,20 +204,20 @@
 }
 
 .teamLeft .check {
-  left: 6%;
+  left: 8px;
 }
 
 .teamRight .check {
-  right: 6%;
+  right: 8px;
 }
 
 .check::after {
   content: "";
-  width: 16px;
-  height: 8px;
-  border-left: 3px solid white;
-  border-bottom: 3px solid white;
-  transform: rotate(-45deg) translate(1px, -2px);
+  width: 12px;
+  height: 6px;
+  border-left: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: rotate(-45deg) translate(1px, -1px);
   filter: drop-shadow(0 0 4px white);
 }
 

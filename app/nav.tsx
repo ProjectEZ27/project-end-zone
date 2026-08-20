@@ -28,6 +28,9 @@ export default function Nav() {
       <Link href="/profile" style={{ textDecoration: 'none', fontSize: 13, textAlign: 'center' }}>
         👤<br />Profil
       </Link>
+      <Link href="/regles" style={{ textDecoration: 'none', fontSize: 13, textAlign: 'center' }}>
+        📖<br />Règles
+      </Link>
     </nav>
   )
 }

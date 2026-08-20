@@ -19,12 +19,13 @@ export default function AvatarSelector({ selectedId = 1, onSelect }: AvatarSelec
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
           gap: 12,
           padding: 16,
           backgroundColor: 'rgba(22, 35, 63, 0.3)',
           borderRadius: 8,
-          border: '1px solid rgba(200, 53, 46, 0.2)'
+          border: '1px solid rgba(200, 53, 46, 0.2)',
+          boxSizing: 'border-box'
         }}
       >
         {Array.from({ length: TOTAL_AVATARS }, (_, i) => {
@@ -47,26 +48,28 @@ export default function AvatarSelector({ selectedId = 1, onSelect }: AvatarSelec
                 transition: 'all 0.2s',
                 transform: isHovered ? 'scale(1.08)' : 'scale(1)',
                 opacity: isSelected || isHovered ? 1 : 0.8,
-                width: 80,
-                height: 80,
+                width: '100%',
+                aspectRatio: '1 / 1',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                boxSizing: 'border-box'
               }}
               title={`Avatar ${avatarId}`}
             >
-              <Image
-                src={`/avatars/avatar_${avatarId}.png`}
-                alt={`Avatar ${avatarId}`}
-                width={72}
-                height={72}
-                style={{
-                  width: 72,
-                  height: 72,
-                  borderRadius: '50%'
-                }}
-              />
+              <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                <Image
+                  src={`/avatars/avatar_${avatarId}.png`}
+                  alt={`Avatar ${avatarId}`}
+                  fill
+                  sizes="80px"
+                  style={{
+                    objectFit: 'cover',
+                    borderRadius: '50%'
+                  }}
+                />
+              </div>
             </button>
           )
         })}

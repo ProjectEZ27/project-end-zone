@@ -129,11 +129,11 @@ export default function LandingPage() {
           { icon: '/images-landing/Icone-Recomp.png', title: 'RÉCOMPENSES', text: 'Collectionne des badges' },
         ].map((f) => (
           <div key={f.title} style={{ textAlign: 'center' }}>
-            <div style={{ position: 'relative', width: 56, height: 56, margin: '0 auto 10px' }}>
+            <div style={{ position: 'relative', width: 72, height: 72, margin: '0 auto 12px' }}>
               <Image src={f.icon} alt={f.title} fill style={{ objectFit: 'contain' }} />
             </div>
-            <h3 style={{ fontSize: 15, fontWeight: 800, letterSpacing: 1, margin: 0 }}>{f.title}</h3>
-            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.55)', marginTop: 4 }}>{f.text}</p>
+            <h3 style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1, margin: 0 }}>{f.title}</h3>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 4 }}>{f.text}</p>
           </div>
         ))}
       </section>

@@ -5,42 +5,8 @@ export default function LandingPage() {
   return (
     <div style={{ backgroundColor: '#0F1419', color: 'white', minHeight: '100vh' }}>
 
-      {/* HEADER */}
-      <header
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '12px 24px',
-          backgroundColor: 'rgba(15, 20, 25, 0.92)',
-          backdropFilter: 'blur(8px)',
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
-        }}
-      >
-        <img src="/logo-officiel.png" alt="Project End Zone" style={{ height: 68 }} />
-
-        <Link
-          href="/login"
-          style={{
-            padding: '10px 18px',
-            borderRadius: 6,
-            border: '1px solid rgba(255,255,255,0.25)',
-            color: 'white',
-            textDecoration: 'none',
-            fontWeight: 700,
-            fontSize: 13,
-            letterSpacing: 0.5,
-          }}
-        >
-          CONNEXION
-        </Link>
-      </header>
-
-      {/* HERO */}
-      <section style={{ position: 'relative', width: '100%', height: 560, overflow: 'hidden' }}>
+      {/* HERO (logo intégré, pas de bandeau header séparé) */}
+      <section style={{ position: 'relative', width: '100%', height: 620, overflow: 'hidden' }}>
         {/* Image plein format à droite, bord à bord */}
         <div
           style={{
@@ -71,19 +37,26 @@ export default function LandingPage() {
           />
         </div>
 
-        {/* Texte par-dessus, aligné à gauche */}
+        {/* Texte + logo par-dessus, aligné à gauche */}
         <div
           style={{
             position: 'relative',
             maxWidth: 1200,
             margin: '0 auto',
-            padding: '0 24px',
+            padding: '32px 24px 0',
             height: '100%',
             display: 'flex',
-            alignItems: 'center',
+            flexDirection: 'column',
+            justifyContent: 'center',
           }}
         >
           <div style={{ maxWidth: 500 }}>
+            <img
+              src="/logo-officiel.png"
+              alt="Project End Zone"
+              style={{ height: 150, marginBottom: 8, marginLeft: -10 }}
+            />
+
             <h1
               style={{
                 fontSize: 42,
@@ -118,8 +91,8 @@ export default function LandingPage() {
               >
                 REJOINDRE
               </Link>
-              <a
-                href="#features"
+              <Link
+                href="/login"
                 style={{
                   padding: '14px 28px',
                   borderRadius: 6,
@@ -131,8 +104,8 @@ export default function LandingPage() {
                   letterSpacing: 0.5,
                 }}
               >
-                EN SAVOIR PLUS
-              </a>
+                CONNEXION
+              </Link>
             </div>
           </div>
         </div>
@@ -140,7 +113,6 @@ export default function LandingPage() {
 
       {/* FEATURES */}
       <section
-        id="features"
         style={{
           maxWidth: 1200,
           margin: '0 auto',

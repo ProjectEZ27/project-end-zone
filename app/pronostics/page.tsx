@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { selectPronostic } from './actions'
 import { TeamBadge, NOMS_EQUIPES } from '@/lib/teamBadge'
 import SelecteurSemaine from './SelecteurSemaine'
+import MatchLine from '@/components/MatchLine'
 
 export default async function Pronostics({ searchParams }: { searchParams: Promise<{ semaine?: string }> }) {
   const { semaine: semaineParam } = await searchParams
@@ -14,13 +15,13 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   }
 
   const [toutesLesSemainesResult, semaineResult] = await Promise.all([
-  supabase.from('semaines').select('id, nom').order('id', { ascending: true }),
-  semaineParam
-    ? supabase.from('semaines').select('*').eq('id', semaineParam).single()
-    : supabase.from('semaines').select('*').order('id', { ascending: false }).limit(1).single()
-])
-const toutesLesSemaines = toutesLesSemainesResult.data
-let semaine = semaineResult.data
+    supabase.from('semaines').select('id, nom').order('id', { ascending: true }),
+    semaineParam
+      ? supabase.from('semaines').select('*').eq('id', semaineParam).single()
+      : supabase.from('semaines').select('*').order('id', { ascending: false }).limit(1).single()
+  ])
+  const toutesLesSemaines = toutesLesSemainesResult.data
+  let semaine = semaineResult.data
 
   if (!semaine) {
     return (
@@ -44,7 +45,7 @@ let semaine = semaineResult.data
     supabase.from('pronostics').select('*').eq('utilisateur_id', user.id).in('match_id', matchIds),
     matchsVerrouilles.length > 0
       ? supabase.from('pronostics').select('match_id, utilisateur_id, equipe_choisie').in('match_id', matchsVerrouilles)
-     : Promise.resolve({ data: null })
+      : Promise.resolve({ data: null })
   ])
   const mesPronostics = mesPronosticsResult.data
 
@@ -57,22 +58,21 @@ let semaine = semaineResult.data
   let tousLesPronosticsMap = new Map<string, { pseudo: string; equipe_choisie: string }[]>()
   const pronosticsPublics = pronosticsPublicsResult.data
   if (pronosticsPublics && pronosticsPublics.length > 0) {
-      const userIds = [...new Set(pronosticsPublics.map((p) => p.utilisateur_id))]
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('id, pseudo')
-        .in('id', userIds)
+    const userIds = [...new Set(pronosticsPublics.map((p) => p.utilisateur_id))]
+    const { data: profilesData } = await supabase
+      .from('profiles')
+      .select('id, pseudo')
+      .in('id', userIds)
 
-      for (const p of pronosticsPublics) {
-        const pseudo = profilesData?.find((pr) => pr.id === p.utilisateur_id)?.pseudo ?? 'Joueur inconnu'
-        const liste = tousLesPronosticsMap.get(p.match_id) ?? []
-        liste.push({ pseudo, equipe_choisie: p.equipe_choisie })
-        tousLesPronosticsMap.set(p.match_id, liste)
-      }
+    for (const p of pronosticsPublics) {
+      const pseudo = profilesData?.find((pr) => pr.id === p.utilisateur_id)?.pseudo ?? 'Joueur inconnu'
+      const liste = tousLesPronosticsMap.get(p.match_id) ?? []
+      liste.push({ pseudo, equipe_choisie: p.equipe_choisie })
+      tousLesPronosticsMap.set(p.match_id, liste)
     }
-  
+  }
 
- const indexActuel = toutesLesSemaines?.findIndex((s) => s.id === semaine.id) ?? -1
+  const indexActuel = toutesLesSemaines?.findIndex((s) => s.id === semaine.id) ?? -1
   const semainePrecedente = indexActuel > 0 ? toutesLesSemaines?.[indexActuel - 1] : null
   const semaineSuivante = indexActuel !== -1 && indexActuel < (toutesLesSemaines?.length ?? 0) - 1 ? toutesLesSemaines?.[indexActuel + 1] : null
 
@@ -99,81 +99,24 @@ let semaine = semaineResult.data
           const monPronostic = mesPronosticsMap.get(match.id)
           const verrouille = match.statut !== 'a_venir'
           const termine = match.statut === 'termine'
-          const bonPronostic = termine && monPronostic?.equipe_choisie === match.equipe_gagnante
           const autresPronostics = tousLesPronosticsMap.get(match.id) ?? []
 
           return (
-            <div key={match.id} style={{ border: '1px solid #ccc', borderRadius: 8, padding: 12, opacity: verrouille && !termine ? 0.7 : 1 }}>
-              <p style={{ fontSize: 12, color: '#666' }}>
-                {new Date(match.coup_envoi).toLocaleString('fr-FR')}
-                {verrouille && !termine && ' · Verrouillé'}
-                {termine && ' · Terminé'}
-              </p>
-
-              {termine ? (
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, fontSize: 20, fontWeight: 'bold' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <TeamBadge code={match.equipe_a} size={32} />
-                      {NOMS_EQUIPES[match.equipe_a] ?? match.equipe_a} {match.score_a}
-                    </span>
-                    <span>-</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      {match.score_b} {NOMS_EQUIPES[match.equipe_b] ?? match.equipe_b}
-                      <TeamBadge code={match.equipe_b} size={32} />
-                    </span>
-                  </div>
-                  {monPronostic && (
-                    <p>
-                      {bonPronostic ? '✅ Bon pronostic' : '❌ Mauvais pronostic'} (tu avais mis {NOMS_EQUIPES[monPronostic.equipe_choisie] ?? monPronostic.equipe_choisie})
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-                  <form action={selectPronostic}>
-                  <input type="hidden" name="match_id" value={match.id} />
-                  <input type="hidden" name="equipe" value={match.equipe_a} />
-                  <button
-                    type="submit"
-                    disabled={verrouille}
-                    style={{
-                      padding: '10px 16px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      fontWeight: monPronostic?.equipe_choisie === match.equipe_a ? 'bold' : 'normal',
-                      backgroundColor: monPronostic?.equipe_choisie === match.equipe_a ? '#C8352E' : '#16233F',
-                    }}
-                  >
-                    <TeamBadge code={match.equipe_a} size={44} />
-                    {NOMS_EQUIPES[match.equipe_a] ?? match.equipe_a}
-                  </button>
-                </form>
-                  <form action={selectPronostic}>
-                  <input type="hidden" name="match_id" value={match.id} />
-                  <input type="hidden" name="equipe" value={match.equipe_b} />
-                  <button
-                    type="submit"
-                    disabled={verrouille}
-                    style={{
-                      padding: '10px 16px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      fontWeight: monPronostic?.equipe_choisie === match.equipe_b ? 'bold' : 'normal',
-                      backgroundColor: monPronostic?.equipe_choisie === match.equipe_b ? '#C8352E' : '#16233F',
-                    }}
-                  >
-                    <TeamBadge code={match.equipe_b} size={44} />
-                    {NOMS_EQUIPES[match.equipe_b] ?? match.equipe_b}
-                  </button>
-                </form>
-                </div>
-              )}
+            <div key={match.id}>
+              <MatchLine
+                matchId={match.id}
+                team1={{ code: match.equipe_a, name: NOMS_EQUIPES[match.equipe_a] ?? match.equipe_a }}
+                team2={{ code: match.equipe_b, name: NOMS_EQUIPES[match.equipe_b] ?? match.equipe_b }}
+                score1={match.score_a}
+                score2={match.score_b}
+                selectedTeam={monPronostic?.equipe_choisie ?? null}
+                locked={verrouille}
+                finished={termine}
+                equipeGagnante={match.equipe_gagnante}
+              />
 
               {verrouille && autresPronostics.length > 0 && (
-                <div style={{ marginTop: 8, fontSize: 13, color: '#444', textAlign: 'left' }}>
+                <div style={{ marginTop: 8, marginBottom: 16, fontSize: 13, color: '#444', textAlign: 'left' }}>
                   <strong>Pronostics de la ligue :</strong>
                   {autresPronostics.map((p, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>

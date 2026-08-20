@@ -90,7 +90,7 @@ const saison = saisonResult.data
     <div style={{ maxWidth: 500, margin: '40px auto', padding: 24, textAlign: 'center' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 16 }}>
         <UserAvatar avatarId={profile?.avatar_id ?? 1} size={80} userName={profile?.pseudo} />
-        <h1 style={{ margin: 0 }}>👤 {profile?.pseudo ?? 'Profil'}</h1>
+        <h1 style={{ margin: 0 }}>{profile?.pseudo ?? 'Profil'}</h1>
       </div>
 
       {errorMessage && (

@@ -168,10 +168,10 @@ export default function LandingPage() {
         }}
       >
         {[
-          { icon: '/images/landing/Icone prono.png', title: 'PRONOSTICS', text: 'Chaque match compte' },
-          { icon: '/images/landing/Icone Ligue.png', title: 'LIGUES', text: 'Affronte tes amis' },
-          { icon: '/images/landing/Icone Class.png', title: 'CLASSEMENTS', text: 'Grimpe au sommet' },
-          { icon: '/images/landing/Icone Recomp.png', title: 'RÉCOMPENSES', text: 'Collectionne des badges' },
+          { icon: '/images-landing/Icone-prono.png', title: 'PRONOSTICS', text: 'Chaque match compte' },
+          { icon: '/images-landing/Icone-Ligue.png', title: 'LIGUES', text: 'Affronte tes amis' },
+          { icon: '/images-landing/Icone-Class.png', title: 'CLASSEMENTS', text: 'Grimpe au sommet' },
+          { icon: '/images-landing/Icone-Recomp.png', title: 'RÉCOMPENSES', text: 'Collectionne des badges' },
         ].map((f) => (
           <div key={f.title} style={{ textAlign: 'center' }}>
             <div style={{ position: 'relative', width: 64, height: 64, margin: '0 auto 12px' }}>

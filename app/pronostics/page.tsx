@@ -4,6 +4,7 @@ import { selectPronostic } from './actions'
 import { TeamBadge, NOMS_EQUIPES } from '@/lib/teamBadge'
 import SelecteurSemaine from './SelecteurSemaine'
 import MatchLine from '@/components/MatchLine'
+import { SpecialPicksPreseason, SpecialPicksAvantPlayoffs } from '@/components/SpecialPicksCards'
 
 export default async function Pronostics({ searchParams }: { searchParams: Promise<{ semaine?: string }> }) {
   const { semaine: semaineParam } = await searchParams
@@ -32,22 +33,35 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
     )
   }
 
-  const { data: matchs } = await supabase
-    .from('matchs')
-    .select('*')
-    .eq('semaine_id', semaine.id)
-    .order('coup_envoi', { ascending: true })
+  const indexActuel = toutesLesSemaines?.findIndex((s) => s.id === semaine.id) ?? -1
+  const semainePrecedente = indexActuel > 0 ? toutesLesSemaines?.[indexActuel - 1] : null
+  const semaineSuivante = indexActuel !== -1 && indexActuel < (toutesLesSemaines?.length ?? 0) - 1 ? toutesLesSemaines?.[indexActuel + 1] : null
+  const estPremiereSemaine = semaine.nom?.toLowerCase().trim() === 'week 1'
+  const estSemaineWildCard = semaine.nom?.toLowerCase().trim() === 'wild card'
+
+  const [matchsResult, saisonResult] = await Promise.all([
+    supabase.from('matchs').select('*').eq('semaine_id', semaine.id).order('coup_envoi', { ascending: true }),
+    (estPremiereSemaine || estSemaineWildCard)
+      ? supabase.from('saisons').select('id, nom').eq('statut', 'en_cours').single()
+      : Promise.resolve({ data: null })
+  ])
+  const matchs = matchsResult.data
+  const saison = saisonResult.data
 
   const matchIds = (matchs ?? []).map((m) => m.id)
   const matchsVerrouilles = (matchs ?? []).filter((m) => m.statut !== 'a_venir').map((m) => m.id)
 
-  const [mesPronosticsResult, pronosticsPublicsResult] = await Promise.all([
+  const [mesPronosticsResult, pronosticsPublicsResult, pronosSpeciauxResult] = await Promise.all([
     supabase.from('pronostics').select('*').eq('utilisateur_id', user.id).in('match_id', matchIds),
     matchsVerrouilles.length > 0
       ? supabase.from('pronostics').select('match_id, utilisateur_id, equipe_choisie').in('match_id', matchsVerrouilles)
+      : Promise.resolve({ data: null }),
+    saison
+      ? supabase.from('pronostics_speciaux').select('type, choix').eq('utilisateur_id', user.id).eq('saison_id', saison.id)
       : Promise.resolve({ data: null })
   ])
   const mesPronostics = mesPronosticsResult.data
+  const mesPronosSpeciaux = pronosSpeciauxResult.data ?? []
 
   const mesPronosticsMap = new Map((mesPronostics ?? []).map((p) => [p.match_id, p]))
   const nombreFaits = mesPronostics?.length ?? 0
@@ -72,10 +86,6 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
     }
   }
 
-  const indexActuel = toutesLesSemaines?.findIndex((s) => s.id === semaine.id) ?? -1
-  const semainePrecedente = indexActuel > 0 ? toutesLesSemaines?.[indexActuel - 1] : null
-  const semaineSuivante = indexActuel !== -1 && indexActuel < (toutesLesSemaines?.length ?? 0) - 1 ? toutesLesSemaines?.[indexActuel + 1] : null
-
   return (
     <div style={{ maxWidth: 500, margin: '40px auto', padding: 24, textAlign: 'center' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -93,6 +103,14 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
         +{semaine.bonus_1} pt dès {semaine.seuil_bonus_1} bons pronos · +{semaine.bonus_2} pts dès {semaine.seuil_bonus_2} · Perfect week +{semaine.bonus_perfect}
       </p>
       <p><strong>{nombreFaits}/{nombreTotal} pronostics faits</strong></p>
+
+      {estPremiereSemaine && saison && (
+        <SpecialPicksPreseason saisonId={saison.id} mesPronosSpeciaux={mesPronosSpeciaux} />
+      )}
+
+      {estSemaineWildCard && saison && (
+        <SpecialPicksAvantPlayoffs saisonId={saison.id} mesPronosSpeciaux={mesPronosSpeciaux} />
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 24 }}>
         {matchs?.map((match) => {

@@ -50,9 +50,6 @@ const journalPhrases = derniereSemaineCloturee
         <Link href="/pronostics" style={{ padding: 12, backgroundColor: '#C8352E', borderRadius: 6, textDecoration: 'none', color: 'white' }}>
           🏈 Faire mes pronostics
         </Link>
-        <Link href="/pronostics/special" style={{ padding: 12, backgroundColor: '#16233F', borderRadius: 6, textDecoration: 'none', color: 'white' }}>
-          🏆 Pronostics bonus (Super Bowl, MVP)
-        </Link>
         <Link href="/bilan" style={{ padding: 12, backgroundColor: '#16233F', borderRadius: 6, textDecoration: 'none', color: 'white' }}>
           📊 Mon bilan de saison
         </Link>

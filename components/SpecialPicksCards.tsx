@@ -1,6 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import { submitSpecialPick } from './actions'
+import { submitSpecialPick } from '@/app/pronostics/actions'
 
 const EQUIPES_NFL = [
   'ARI','ATL','BAL','BUF','CAR','CHI','CIN','CLE','DAL','DEN','DET','GB',
@@ -9,7 +7,6 @@ const EQUIPES_NFL = [
 ]
 
 const JOUEURS_MVP = [
-  // Quarterbacks
   'Josh Allen', 'Malik Willis', 'Drake Maye', 'Geno Smith',
   'Lamar Jackson', 'Joe Burrow', 'Shedeur Sanders', 'Aaron Rodgers',
   'C.J. Stroud', 'Daniel Jones', 'Trevor Lawrence', 'Cam Ward',
@@ -18,7 +15,6 @@ const JOUEURS_MVP = [
   'Caleb Williams', 'Jared Goff', 'Jordan Love', 'Kyler Murray',
   'Michael Penix Jr.', 'Bryce Young', 'Tyler Shough', 'Baker Mayfield',
   'Jacoby Brissett', 'Matthew Stafford', 'Brock Purdy', 'Sam Darnold',
-  // Running backs
   'James Cook III', "De'Von Achane", 'Rhamondre Stevenson', 'Breece Hall',
   'Derrick Henry', 'Chase Brown', 'Quinshon Judkins', 'Jaylen Warren',
   'David Montgomery', 'Jonathan Taylor', 'Bhayshul Tuten', 'Tony Pollard',
@@ -27,7 +23,6 @@ const JOUEURS_MVP = [
   "D'Andre Swift", 'Jahmyr Gibbs', 'Josh Jacobs', 'Aaron Jones Sr.',
   'Bijan Robinson', 'Chuba Hubbard', 'Alvin Kamara', 'Bucky Irving',
   'Jeremiyah Love', 'Kyren Williams', 'Christian McCaffrey', 'Zach Charbonnet',
-  // Wide receivers
   'DJ Moore', 'Jalen Tolbert', 'A.J. Brown', 'Adonai Mitchell',
   'Rashod Bateman', "Ja'Marr Chase", 'Denzel Boston', 'DK Metcalf',
   'Nico Collins', 'Alec Pierce', 'Brian Thomas Jr.', 'Carnell Tate',
@@ -40,55 +35,36 @@ const JOUEURS_MVP = [
   'Mike Evans', "Deebo Samuel Sr.", 'Jaxon Smith-Njigba', 'Rashid Shaheed',
 ]
 
-export default async function SpecialPicks() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+interface SpecialPick {
+  type: string
+  choix: string
+}
 
-  if (!user) {
-    redirect('/login')
-  }
+const cardStyle: React.CSSProperties = {
+  border: '1px solid rgba(255,255,255,0.12)',
+  borderRadius: 8,
+  padding: 16,
+  marginBottom: 16,
+  textAlign: 'center',
+  backgroundColor: 'rgba(22, 35, 63, 0.4)',
+}
 
-  const { data: saison } = await supabase
-    .from('saisons')
-    .select('*')
-    .eq('statut', 'en_cours')
-    .single()
-
-  if (!saison) {
-    return (
-      <div style={{ maxWidth: 500, margin: '80px auto', padding: 24, textAlign: 'center' }}>
-        <h1>🏈 Pronostics spéciaux</h1>
-        <p>Aucune saison en cours pour le moment.</p>
-      </div>
-    )
-  }
-
-  const { data: mesPronosSpeciaux } = await supabase
-    .from('pronostics_speciaux')
-    .select('*')
-    .eq('utilisateur_id', user.id)
-    .eq('saison_id', saison.id)
-
+export function SpecialPicksPreseason({ saisonId, mesPronosSpeciaux }: { saisonId: string; mesPronosSpeciaux: SpecialPick[] }) {
   const trouve = (type: string) => mesPronosSpeciaux?.find((p) => p.type === type)
-
   const superBowlPreseason = trouve('super_bowl_preseason')
   const mvp = trouve('mvp')
-  const avantPlayoffs = trouve('super_bowl_avant_playoffs')
 
   return (
-    <div style={{ maxWidth: 500, margin: '40px auto', padding: 24, textAlign: 'center' }}>
-      <h1>🏈 Pronostics spéciaux</h1>
-      <p>Saison {saison.nom}</p>
-
-      <div style={{ border: '1px solid #ccc', borderRadius: 8, padding: 16, marginTop: 24 }}>
-        <h2 style={{ fontSize: 18 }}>🏆 Vainqueur du Super Bowl</h2>
-        <p style={{ fontSize: 13, color: '#666' }}>+8 points si bon pronostic · à faire avant le début de la saison</p>
+    <div style={{ marginBottom: 24 }}>
+      <div style={cardStyle}>
+        <h2 style={{ fontSize: 16 }}>🏆 Vainqueur du Super Bowl</h2>
+        <p style={{ fontSize: 12, color: '#999' }}>+8 points si bon pronostic · à faire avant le début de la saison</p>
         {superBowlPreseason && (
-          <p><strong>Ton choix actuel : {superBowlPreseason.choix}</strong></p>
+          <p style={{ fontSize: 13 }}><strong>Ton choix actuel : {superBowlPreseason.choix}</strong></p>
         )}
         <form action={submitSpecialPick} style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 8, flexWrap: 'wrap' }}>
           <input type="hidden" name="type" value="super_bowl_preseason" />
-          <input type="hidden" name="saison_id" value={saison.id} />
+          <input type="hidden" name="saison_id" value={saisonId} />
           <select key={superBowlPreseason?.choix ?? 'vide'} name="choix" required defaultValue={superBowlPreseason?.choix ?? ''} style={{ padding: 8 }}>
             <option value="" disabled>Choisir une équipe</option>
             {EQUIPES_NFL.map((eq) => (
@@ -99,15 +75,15 @@ export default async function SpecialPicks() {
         </form>
       </div>
 
-      <div style={{ border: '1px solid #ccc', borderRadius: 8, padding: 16, marginTop: 16 }}>
-        <h2 style={{ fontSize: 18 }}>⭐ MVP de la saison</h2>
-        <p style={{ fontSize: 13, color: '#666' }}>+8 points si bon pronostic · à faire avant le début de la saison</p>
+      <div style={cardStyle}>
+        <h2 style={{ fontSize: 16 }}>⭐ MVP de la saison</h2>
+        <p style={{ fontSize: 12, color: '#999' }}>+8 points si bon pronostic · à faire avant le début de la saison</p>
         {mvp && (
-          <p><strong>Ton choix actuel : {mvp.choix}</strong></p>
+          <p style={{ fontSize: 13 }}><strong>Ton choix actuel : {mvp.choix}</strong></p>
         )}
         <form action={submitSpecialPick} style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 8, flexWrap: 'wrap' }}>
           <input type="hidden" name="type" value="mvp" />
-          <input type="hidden" name="saison_id" value={saison.id} />
+          <input type="hidden" name="saison_id" value={saisonId} />
           <select key={mvp?.choix ?? 'vide'} name="choix" defaultValue={mvp?.choix ?? ''} style={{ padding: 8 }}>
             <option value="" disabled>Choisir un joueur</option>
             {JOUEURS_MVP.map((joueur) => (
@@ -122,20 +98,29 @@ export default async function SpecialPicks() {
           />
           <button type="submit" style={{ padding: 8 }}>Valider</button>
         </form>
-        <p style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+        <p style={{ fontSize: 11, color: '#999', marginTop: 4 }}>
           Si tu remplis le champ "Autre joueur", il sera pris en compte à la place du menu déroulant.
         </p>
       </div>
+    </div>
+  )
+}
 
-      <div style={{ border: '1px solid #ccc', borderRadius: 8, padding: 16, marginTop: 16 }}>
-        <h2 style={{ fontSize: 18 }}>🏆 Vainqueur du Super Bowl — avant playoffs</h2>
-        <p style={{ fontSize: 13, color: '#666' }}>+5 points si bon pronostic · à faire avant le début du Wild Card</p>
+export function SpecialPicksAvantPlayoffs({ saisonId, mesPronosSpeciaux }: { saisonId: string; mesPronosSpeciaux: SpecialPick[] }) {
+  const trouve = (type: string) => mesPronosSpeciaux?.find((p) => p.type === type)
+  const avantPlayoffs = trouve('super_bowl_avant_playoffs')
+
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div style={cardStyle}>
+        <h2 style={{ fontSize: 16 }}>🏆 Vainqueur du Super Bowl — avant playoffs</h2>
+        <p style={{ fontSize: 12, color: '#999' }}>+5 points si bon pronostic · à faire avant le début du Wild Card</p>
         {avantPlayoffs && (
-          <p><strong>Ton choix actuel : {avantPlayoffs.choix}</strong></p>
+          <p style={{ fontSize: 13 }}><strong>Ton choix actuel : {avantPlayoffs.choix}</strong></p>
         )}
         <form action={submitSpecialPick} style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 8, flexWrap: 'wrap' }}>
           <input type="hidden" name="type" value="super_bowl_avant_playoffs" />
-          <input type="hidden" name="saison_id" value={saison.id} />
+          <input type="hidden" name="saison_id" value={saisonId} />
           <select key={avantPlayoffs?.choix ?? 'vide'} name="choix" required defaultValue={avantPlayoffs?.choix ?? ''} style={{ padding: 8 }}>
             <option value="" disabled>Choisir une équipe</option>
             {EQUIPES_NFL.map((eq) => (

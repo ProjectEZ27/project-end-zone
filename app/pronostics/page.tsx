@@ -5,6 +5,8 @@ import { TeamBadge, NOMS_EQUIPES } from '@/lib/teamBadge'
 import SelecteurSemaine from './SelecteurSemaine'
 import MatchLine from '@/components/MatchLine'
 import { SpecialPicksPreseason, SpecialPicksAvantPlayoffs } from '@/components/SpecialPicksCards'
+import { grouperMatchsParCreneau } from '@/lib/groupMatchsByCreneau'
+import WeekGroupHeader from '@/components/WeekGroupHeader'
 
 export default async function Pronostics({ searchParams }: { searchParams: Promise<{ semaine?: string }> }) {
   const { semaine: semaineParam } = await searchParams
@@ -86,6 +88,8 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
     }
   }
 
+  const creneaux = grouperMatchsParCreneau(matchs ?? [])
+
   return (
     <div style={{ maxWidth: 500, margin: '40px auto', padding: 24, textAlign: 'center' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -112,42 +116,55 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
         <SpecialPicksAvantPlayoffs saisonId={saison.id} mesPronosSpeciaux={mesPronosSpeciaux} />
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 24 }}>
-        {matchs?.map((match) => {
-          const monPronostic = mesPronosticsMap.get(match.id)
-          const verrouille = match.statut !== 'a_venir'
-          const termine = match.statut === 'termine'
-          const autresPronostics = tousLesPronosticsMap.get(match.id) ?? []
+      <div>
+        {creneaux.map((creneau) => (
+          <div key={creneau.coupEnvoi}>
+            <WeekGroupHeader
+              coupEnvoi={creneau.coupEnvoi}
+              nombreMatchs={creneau.matchs.length}
+              estActif={creneau.estActif}
+              estVerrouille={creneau.estVerrouille}
+            />
 
-          return (
-            <div key={match.id}>
-              <MatchLine
-                matchId={match.id}
-                team1={{ code: match.equipe_a, name: NOMS_EQUIPES[match.equipe_a] ?? match.equipe_a }}
-                team2={{ code: match.equipe_b, name: NOMS_EQUIPES[match.equipe_b] ?? match.equipe_b }}
-                score1={match.score_a}
-                score2={match.score_b}
-                selectedTeam={monPronostic?.equipe_choisie ?? null}
-                locked={verrouille}
-                finished={termine}
-                equipeGagnante={match.equipe_gagnante}
-              />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {creneau.matchs.map((match) => {
+                const monPronostic = mesPronosticsMap.get(match.id)
+                const verrouille = match.statut !== 'a_venir'
+                const termine = match.statut === 'termine'
+                const autresPronostics = tousLesPronosticsMap.get(match.id) ?? []
 
-              {verrouille && autresPronostics.length > 0 && (
-                <div style={{ marginTop: 8, marginBottom: 16, fontSize: 13, color: '#444', textAlign: 'left' }}>
-                  <strong>Pronostics de la ligue :</strong>
-                  {autresPronostics.map((p, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                      {p.pseudo} :
-                      <TeamBadge code={p.equipe_choisie} size={18} />
-                      {NOMS_EQUIPES[p.equipe_choisie] ?? p.equipe_choisie}
-                    </div>
-                  ))}
-                </div>
-              )}
+                return (
+                  <div key={match.id}>
+                    <MatchLine
+                      matchId={match.id}
+                      team1={{ code: match.equipe_a, name: NOMS_EQUIPES[match.equipe_a] ?? match.equipe_a }}
+                      team2={{ code: match.equipe_b, name: NOMS_EQUIPES[match.equipe_b] ?? match.equipe_b }}
+                      score1={match.score_a}
+                      score2={match.score_b}
+                      selectedTeam={monPronostic?.equipe_choisie ?? null}
+                      locked={verrouille}
+                      finished={termine}
+                      equipeGagnante={match.equipe_gagnante}
+                    />
+
+                    {verrouille && autresPronostics.length > 0 && (
+                      <div style={{ marginTop: 8, marginBottom: 16, fontSize: 13, color: '#444', textAlign: 'left' }}>
+                        <strong>Pronostics de la ligue :</strong>
+                        {autresPronostics.map((p, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                            {p.pseudo} :
+                            <TeamBadge code={p.equipe_choisie} size={18} />
+                            {NOMS_EQUIPES[p.equipe_choisie] ?? p.equipe_choisie}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
-          )
-        })}
+          </div>
+        ))}
       </div>
     </div>
   )

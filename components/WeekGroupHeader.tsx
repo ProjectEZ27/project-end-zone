@@ -11,9 +11,9 @@ interface WeekGroupHeaderProps {
 
 function formatCreneau(dateStr: string) {
   const date = new Date(dateStr)
-  const jour = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
+  const jour = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Paris' })
   const jourCapitalise = jour.charAt(0).toUpperCase() + jour.slice(1)
-  const heure = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+  const heure = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' })
   return `${jourCapitalise} — ${heure}`
 }
 

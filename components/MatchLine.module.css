@@ -121,12 +121,6 @@
   text-shadow: 0 2px 5px rgba(0,0,0,0.6);
 }
 
-.score {
-  font-size: 13px;
-  color: rgba(255,255,255,0.65);
-  margin-top: 2px;
-}
-
 .vs {
   position: absolute;
   z-index: 20;
@@ -185,6 +179,7 @@
   opacity: 0;
 }
 
+/* ===== Checkmark de sélection (pré-verrouillage uniquement) ===== */
 .check {
   position: absolute;
   z-index: 40;
@@ -231,6 +226,11 @@
   box-shadow: 0 0 8px var(--t2-primary), 0 0 22px rgba(var(--t2-rgb), 0.75), 0 0 45px rgba(var(--t2-rgb), 0.4);
 }
 
+.match.finished .check {
+  display: none;
+}
+
+/* ===== Sélection : équipe choisie mise en avant, l'autre nettement assombrie ===== */
 .match.selectedLeft {
   border-color: rgba(var(--t1-rgb), 0.75);
   box-shadow: inset 0 0 30px rgba(var(--t1-rgb), 0.08), 0 0 8px rgba(var(--t1-rgb), 0.55), 0 0 25px rgba(var(--t1-rgb), 0.28), 0 0 55px rgba(var(--t1-rgb), 0.10);
@@ -252,8 +252,8 @@
 }
 
 .match.selectedLeft .teamRight {
-  opacity: 0.62;
-  filter: saturate(0.7);
+  opacity: 0.32;
+  filter: saturate(0.25) brightness(0.5);
 }
 
 .match.selectedLeft .teamLeft .check {
@@ -282,8 +282,8 @@
 }
 
 .match.selectedRight .teamLeft {
-  opacity: 0.62;
-  filter: saturate(0.7);
+  opacity: 0.32;
+  filter: saturate(0.25) brightness(0.5);
 }
 
 .match.selectedRight .teamRight .check {
@@ -291,93 +291,104 @@
   transform: scale(1);
 }
 
-.match.finished.won {
-  border-color: rgba(46, 204, 113, 0.55);
-  box-shadow: inset 0 0 30px rgba(46,204,113,0.08), 0 0 10px rgba(46,204,113,0.4), 0 0 30px rgba(46,204,113,0.15);
+/* ===== Pronostic pas encore fait : mise en évidence ===== */
+.match.pending {
+  border: 2px dashed rgba(245, 180, 60, 0.6);
 }
 
-.match.finished.won .teamLeft,
-.match.finished.won .teamRight {
-  background: linear-gradient(135deg, #1f8b4c 0%, #166238 28%, #0e4326 58%, rgba(6,25,15,0.85) 82%, rgba(10,14,26,0.2) 100%);
-  opacity: 1;
-  filter: none;
-  transform: none;
-}
-
-.match.finished.won .team::before {
-  opacity: 0.15;
-}
-
-.match.finished.won .check {
-  opacity: 1;
-  transform: scale(1);
-  background: #14532d;
-  border-color: #4ee892;
-  color: #4ee892;
-  box-shadow: 0 0 8px #4ee892, 0 0 22px rgba(78,232,146,0.6);
-}
-
-.match.finished.won .notChosen .teamCode {
-  opacity: 0.4;
-}
-
-.match.finished.lost {
-  border-color: rgba(255,255,255,0.14);
-  box-shadow: none;
-}
-
-.match.finished.lost .teamLeft,
-.match.finished.lost .teamRight {
-  background: linear-gradient(135deg, #3a3f4a 0%, #2b2f38 28%, #1d2027 58%, rgba(10,12,16,0.85) 82%, rgba(10,14,26,0.2) 100%);
-  opacity: 1;
-  filter: none;
-  transform: none;
-}
-
-.match.finished.lost .team::before {
-  opacity: 0;
-}
-
-.match.finished.lost .check {
-  opacity: 1;
-  transform: scale(1);
-  background: #1d2027;
-  border-color: rgba(255,255,255,0.4);
-  color: rgba(255,255,255,0.6);
-  box-shadow: none;
-}
-
-.match.finished.lost .check::after {
-  border-color: rgba(255,255,255,0.6);
-}
-
-.match.finished.lost .chosen .teamCode {
-  text-decoration: line-through;
-  opacity: 0.55;
-}
-
-.resultTag {
+.pendingBadge {
   position: absolute;
   top: 8px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 45;
+  z-index: 35;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 1px;
+  text-transform: uppercase;
   padding: 3px 10px;
   border-radius: 10px;
-  text-transform: uppercase;
+  background: rgba(245,180,60,0.18);
+  color: #f5b43c;
+  border: 1px solid rgba(245,180,60,0.5);
 }
 
-.match.finished.won .resultTag {
-  background: rgba(46,204,113,0.25);
-  color: #4ee892;
-  border: 1px solid rgba(46,204,113,0.5);
+/* ===== États terminé : simplifiés (couleur + marque centrale unique) ===== */
+.match.finished .teamLeft,
+.match.finished .teamRight {
+  opacity: 1;
+  filter: none;
+  transform: none;
 }
 
-.match.finished.lost .resultTag {
-  background: rgba(255,255,255,0.08);
-  color: rgba(255,255,255,0.6);
-  border: 1px solid rgba(255,255,255,0.18);
+.match.finished .team::before {
+  opacity: 0;
+}
+
+/* Par défaut (pronostic gagné, ou match non pronostiqué) : gagnant vert clair, perdant vert sombre */
+.match.finished .winner {
+  background: linear-gradient(135deg, #6fdc9a, #4ec97e) !important;
+}
+.match.finished .loser {
+  background: linear-gradient(135deg, #14532d, #0e3d21) !important;
+}
+
+/* Pronostic perdu : gagnant réel gris clair, perdant réel (= choix du joueur) gris sombre */
+.match.finished.lost .winner {
+  background: linear-gradient(135deg, #9ca3af, #6b7280) !important;
+}
+.match.finished.lost .loser {
+  background: linear-gradient(135deg, #2d3138, #1d2027) !important;
+}
+
+.centerMark {
+  position: absolute;
+  z-index: 30;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10,14,26,0.85);
+}
+
+.centerMark.check {
+  border: 3px solid #4ee892;
+  box-shadow: 0 0 10px #4ee892, 0 0 26px rgba(78,232,146,0.6);
+}
+
+.centerMark.check::after {
+  content: "";
+  width: 20px;
+  height: 11px;
+  border-left: 4px solid #4ee892;
+  border-bottom: 4px solid #4ee892;
+  transform: rotate(-45deg) translate(2px, -3px);
+}
+
+.centerMark.cross {
+  border: 3px solid #9ca3af;
+  box-shadow: 0 0 10px rgba(156,163,175,0.5), 0 0 26px rgba(156,163,175,0.3);
+}
+
+.centerMark.cross::before,
+.centerMark.cross::after {
+  content: "";
+  position: absolute;
+  width: 24px;
+  height: 4px;
+  background: #9ca3af;
+  border-radius: 2px;
+}
+
+.centerMark.cross::before {
+  transform: rotate(45deg);
+}
+
+.centerMark.cross::after {
+  transform: rotate(-45deg);
 }

@@ -61,6 +61,12 @@ export default function MatchLine({
   const won = finished && !!selectedTeam && selectedTeam === equipeGagnante
   const lost = finished && !!selectedTeam && selectedTeam !== equipeGagnante
 
+  const team1EstGagnant = finished && equipeGagnante === team1.code
+  const team2EstGagnant = finished && equipeGagnante === team2.code
+
+  const canClick = !locked && !finished
+  const isPending = canClick && !selectedTeam
+
   const matchClasses = [
     styles.match,
     !finished && chosenLeft ? styles.selectedLeft : '',
@@ -68,6 +74,7 @@ export default function MatchLine({
     finished ? styles.finished : '',
     finished && won ? styles.won : '',
     finished && lost ? styles.lost : '',
+    isPending ? styles.pending : '',
   ].filter(Boolean).join(' ')
 
   const cssVars = {
@@ -79,18 +86,32 @@ export default function MatchLine({
     '--t2-dark': color2.dark,
   } as React.CSSProperties
 
-  const canClick = !locked && !finished
+  const teamLeftClasses = [
+    styles.team,
+    styles.teamLeft,
+    team1EstGagnant ? styles.winner : '',
+    finished && team2EstGagnant ? styles.loser : '',
+  ].filter(Boolean).join(' ')
+
+  const teamRightClasses = [
+    styles.team,
+    styles.teamRight,
+    team2EstGagnant ? styles.winner : '',
+    finished && team1EstGagnant ? styles.loser : '',
+  ].filter(Boolean).join(' ')
 
   return (
     <div className={matchClasses} style={cssVars}>
       <Streaks side="left" />
       <Streaks side="right" />
 
-      {finished && (
-        <div className={styles.resultTag}>{won ? '✓ Gagné' : 'Perdu'}</div>
+      {isPending && <div className={styles.pendingBadge}>À pronostiquer</div>}
+
+      {finished && (won || lost) && (
+        <div className={`${styles.centerMark} ${won ? styles.check : styles.cross}`} />
       )}
 
-      <div className={`${styles.team} ${styles.teamLeft} ${finished && chosenLeft ? styles.chosen : ''} ${finished && chosenRight ? styles.notChosen : ''}`}>
+      <div className={teamLeftClasses}>
         {canClick ? (
           <form action={selectPronostic} style={{ width: '100%', height: '100%' }}>
             <input type="hidden" name="match_id" value={matchId} />
@@ -109,7 +130,6 @@ export default function MatchLine({
             <div>
               <div className={styles.teamCode}>{team1.code}</div>
               <div className={styles.teamName}>{team1.name}</div>
-              {finished && score1 != null && <div className={styles.score}>{score1}</div>}
             </div>
           </div>
         )}
@@ -118,7 +138,7 @@ export default function MatchLine({
 
       <div className={styles.vs}>VS</div>
 
-      <div className={`${styles.team} ${styles.teamRight} ${finished && chosenRight ? styles.chosen : ''} ${finished && chosenLeft ? styles.notChosen : ''}`}>
+      <div className={teamRightClasses}>
         {canClick ? (
           <form action={selectPronostic} style={{ width: '100%', height: '100%' }}>
             <input type="hidden" name="match_id" value={matchId} />
@@ -137,7 +157,6 @@ export default function MatchLine({
             <div>
               <div className={styles.teamCode}>{team2.code}</div>
               <div className={styles.teamName}>{team2.name}</div>
-              {finished && score2 != null && <div className={styles.score}>{score2}</div>}
             </div>
           </div>
         )}

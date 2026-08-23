@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { calculerClassementSaison } from '@/lib/scoring'
+import Link from 'next/link'
 
 export default async function Classement() {
   const supabase = await createClient()
@@ -50,7 +51,11 @@ export default async function Classement() {
               return (
               <tr key={joueur.utilisateur_id} style={{ borderBottom: '1px solid #eee', fontWeight: joueur.utilisateur_id === user.id ? 'bold' : 'normal' }}>
                 <td style={{ padding: 8 }}>{index + 1} {medaille ?? ''}</td>
-                <td style={{ padding: 8 }}>{joueur.pseudo}</td>
+                <td style={{ padding: 8 }}>
+                  <Link href={`/joueur/${joueur.utilisateur_id}`} style={{ color: 'inherit', textDecoration: 'underline' }}>
+                    {joueur.pseudo}
+                  </Link>
+                </td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{joueur.score_saison}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{joueur.meilleure_semaine}</td>
               </tr>

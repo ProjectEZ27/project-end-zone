@@ -154,6 +154,7 @@ export default function LandingPage() {
         <Link href="/legal/mentions" style={{ color: 'rgba(255,255,255,0.4)' }}>Mentions légales</Link>
         <Link href="/legal/confidentialite" style={{ color: 'rgba(255,255,255,0.4)' }}>Confidentialité</Link>
         <Link href="/legal/cgu" style={{ color: 'rgba(255,255,255,0.4)' }}>CGU</Link>
+        <Link href="/contact" style={{ color: '#666' }}>Nous contacter</Link>
       </footer>
     </div>
   )

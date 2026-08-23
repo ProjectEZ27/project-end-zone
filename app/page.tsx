@@ -96,11 +96,12 @@ const journalPhrases = derniereSemaineCloturee
         <button style={{ padding: 10 }}>Se déconnecter</button>
       </form>
 
-      <div style={{ marginTop: 40, fontSize: 12, color: '#666', display: 'flex', gap: 12, justifyContent: 'center' }}>
-        <Link href="/legal/mentions" style={{ color: '#666' }}>Mentions légales</Link>
-        <Link href="/legal/confidentialite" style={{ color: '#666' }}>Confidentialité</Link>
-        <Link href="/legal/cgu" style={{ color: '#666' }}>CGU</Link>
-      </div>
+<div style={{ marginTop: 40, fontSize: 12, color: '#666', display: 'flex', gap: 12, justifyContent: 'center' }}>
+  <Link href="/legal/mentions" style={{ color: '#666' }}>Mentions légales</Link>
+  <Link href="/legal/confidentialite" style={{ color: '#666' }}>Confidentialité</Link>
+  <Link href="/legal/cgu" style={{ color: '#666' }}>CGU</Link>
+  <Link href="/contact" style={{ color: '#666' }}>Nous contacter</Link>
+</div>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { createLeague } from './actions'
+import LeagueLogoField from '@/components/LeagueLogoField'
 
 export default async function CreateLeague() {
   const supabase = await createClient()
@@ -16,6 +17,8 @@ export default async function CreateLeague() {
       <p>Rassemble tes amis pour la saison NFL</p>
 
       <form action={createLeague} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 24 }}>
+        <LeagueLogoField />
+
         <input
           type="text"
           name="nom"

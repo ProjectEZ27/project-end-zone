@@ -23,6 +23,7 @@ export async function createLeague(formData: FormData) {
 
   const nom = formData.get('nom') as string
   const taille_max = Number(formData.get('taille_max'))
+  const logo_id = Number(formData.get('logo_id')) || 1
 
   const code_invitation = generateCode(8)
   const code_secours = generateCode(8)
@@ -33,6 +34,7 @@ export async function createLeague(formData: FormData) {
       nom: nom,
       commissaire_id: user.id,
       taille_max: taille_max,
+      logo_id: logo_id,
       code_invitation: code_invitation,
       code_secours: code_secours,
     })

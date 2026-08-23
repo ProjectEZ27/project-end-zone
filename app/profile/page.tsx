@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import RappelPerso from './RappelPerso'
-import ChangeAvatarForm from '@/components/ChangeAvatarForm'
-import UserAvatar from '@/components/UserAvatar'
+import AvatarEditor from '@/components/AvatarEditor'
 import PseudoEditor from '@/components/PseudoEditor'
 import { NOMS_EQUIPES } from '@/lib/teamBadge'
 
@@ -88,10 +87,9 @@ const saison = saisonResult.data
 
   return (
     <div style={{ maxWidth: 500, margin: '40px auto', padding: 24, textAlign: 'center' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 16 }}>
-        <UserAvatar avatarId={profile?.avatar_id ?? 1} size={80} userName={profile?.pseudo} />
+      <AvatarEditor currentAvatarId={profile?.avatar_id ?? 1}>
         <PseudoEditor currentPseudo={profile?.pseudo ?? 'Profil'} />
-      </div>
+      </AvatarEditor>
 
       {errorMessage && (
         <p style={{ color: '#e05252', marginTop: 8 }}>⚠️ {errorMessage}</p>
@@ -122,8 +120,6 @@ const saison = saisonResult.data
       <div style={{ marginTop: 24, padding: 16, border: '1px solid #33415a', borderRadius: 8, textAlign: 'left' }}>
         <RappelPerso actif={profile?.rappel_perso_actif ?? false} />
       </div>
-
-      <ChangeAvatarForm currentAvatarId={profile?.avatar_id ?? 1} errorMessage={errorMessage} />
     </div>
   )
 }

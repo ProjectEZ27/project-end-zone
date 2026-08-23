@@ -327,7 +327,7 @@
 
 /* Par défaut (pronostic gagné, ou match non pronostiqué) : gagnant vert clair, perdant vert sombre */
 .match.finished .winner {
-  background: linear-gradient(135deg, #5aab7d, #3f8a63) !important;
+  background: linear-gradient(135deg, #16d34a, #0da83a) !important;
 }
 .match.finished .loser {
   background: linear-gradient(135deg, #0d3a20, #071f11) !important;

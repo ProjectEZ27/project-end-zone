@@ -5,6 +5,7 @@ import JoinLeagueForm from './JoinLeagueForm'
 import AuthRecoveryListener from './AuthRecoveryListener'
 import { genererJournalSemaine } from '@/lib/journal'
 import LandingPage from '@/components/LandingPage'
+import LeagueLogo from '@/components/LeagueLogo'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -16,7 +17,7 @@ export default async function Home() {
 
   const [profileResult, adhesionsResult, semaineClotureeResult] = await Promise.all([
   supabase.from('profiles').select('pseudo').eq('id', user.id).single(),
-  supabase.from('adhesions').select('ligue_id, ligues(id, nom)').eq('utilisateur_id', user.id).eq('statut', 'actif'),
+  supabase.from('adhesions').select('ligue_id, ligues(id, nom, logo_id)').eq('utilisateur_id', user.id).eq('statut', 'actif'),
   supabase.from('semaines').select('id, nom').eq('statut', 'cloturee').order('id', { ascending: false }).limit(1).single()
 ])
 
@@ -73,9 +74,10 @@ const journalPhrases = derniereSemaineCloturee
             <Link
               key={ligue.id}
               href={`/leagues/${ligue.id}`}
-              style={{ display: 'block', padding: 12, marginBottom: 8, border: '1px solid #33415a', borderRadius: 6, textDecoration: 'none', color: 'white' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, marginBottom: 8, border: '1px solid #33415a', borderRadius: 6, textDecoration: 'none', color: 'white' }}
             >
-              🏟️ {ligue.nom}
+              <LeagueLogo logoId={ligue.logo_id ?? 1} size={40} leagueName={ligue.nom} />
+              {ligue.nom}
             </Link>
           ))
         )}

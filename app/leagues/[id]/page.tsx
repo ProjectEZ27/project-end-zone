@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { acceptMembership, rejectMembership } from './actions'
+import LeagueLogoEditor from '@/components/LeagueLogoEditor'
 
 export default async function LeagueDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -60,7 +61,13 @@ export default async function LeagueDetail({ params }: { params: Promise<{ id: s
 
   return (
     <div style={{ maxWidth: 500, margin: '80px auto', padding: 24, textAlign: 'center' }}>
-      <h1>🏈 {league.nom}</h1>
+      <LeagueLogoEditor
+        ligueId={id}
+        currentLogoId={league.logo_id ?? 1}
+        estCommissaire={estCommissaire}
+        leagueName={league.nom}
+      />
+      <h1>{league.nom}</h1>
       <p>{league.taille_max} joueurs max · Statut : {league.statut}</p>
 
       <div style={{ marginTop: 24, display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>

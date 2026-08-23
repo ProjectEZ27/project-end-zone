@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { Resend } from 'resend'
 
 export async function acceptMembership(formData: FormData) {
@@ -50,4 +51,43 @@ export async function rejectMembership(formData: FormData) {
       html: `<p>Ta demande pour rejoindre cette ligue n'a pas été acceptée par le commissaire.</p>`,
     })
   }
+}
+export async function changerLogoLigue(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  const ligue_id = formData.get('ligue_id') as string
+  const logo_id = parseInt(formData.get('logo_id') as string) || 1
+
+  if (logo_id < 1 || logo_id > 15) {
+    redirect(`/leagues/${ligue_id}?error=${encodeURIComponent('Logo invalide')}`)
+  }
+
+  // Vérification côté serveur : seul le commissaire peut modifier le logo
+  const { data: league } = await supabase
+    .from('ligues')
+    .select('commissaire_id')
+    .eq('id', ligue_id)
+    .single()
+
+  if (!league || league.commissaire_id !== user.id) {
+    redirect(`/leagues/${ligue_id}?error=${encodeURIComponent('Seul le commissaire peut modifier le logo')}`)
+  }
+
+  const { error } = await supabase
+    .from('ligues')
+    .update({ logo_id })
+    .eq('id', ligue_id)
+
+  if (error) {
+    redirect(`/leagues/${ligue_id}?error=${encodeURIComponent(error.message)}`)
+  }
+
+  revalidatePath('/leagues/' + ligue_id)
+  revalidatePath('/')
+  redirect('/leagues/' + ligue_id)
 }

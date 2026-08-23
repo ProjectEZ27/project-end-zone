@@ -12,6 +12,7 @@ interface MatchLineProps {
   locked: boolean
   finished: boolean
   equipeGagnante?: string | null
+  ouvert?: boolean
 }
 
 function Streaks({ side }: { side: 'left' | 'right' }) {
@@ -52,6 +53,7 @@ export default function MatchLine({
   locked,
   finished,
   equipeGagnante,
+  ouvert = true,
 }: MatchLineProps) {
   const color1 = getCouleurEquipe(team1.code)
   const color2 = getCouleurEquipe(team2.code)
@@ -64,8 +66,9 @@ export default function MatchLine({
   const team1EstGagnant = finished && equipeGagnante === team1.code
   const team2EstGagnant = finished && equipeGagnante === team2.code
 
-  const canClick = !locked && !finished
+  const canClick = ouvert && !locked && !finished
   const isPending = canClick && !selectedTeam
+  const notYetOpen = !ouvert && !locked && !finished
 
   const matchClasses = [
     styles.match,
@@ -75,6 +78,7 @@ export default function MatchLine({
     finished && won ? styles.won : '',
     finished && lost ? styles.lost : '',
     isPending ? styles.pending : '',
+    notYetOpen ? styles.notOpen : '',
   ].filter(Boolean).join(' ')
 
   const cssVars = {
@@ -106,6 +110,7 @@ export default function MatchLine({
       <Streaks side="right" />
 
       {isPending && <div className={styles.pendingBadge}>À pronostiquer</div>}
+      {notYetOpen && <div className={styles.notOpenBadge}>Pas encore ouvert</div>}
 
       {finished && (won || lost) && (
         <div className={`${styles.centerMark} ${won ? styles.check : styles.cross}`} />

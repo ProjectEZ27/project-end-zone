@@ -6,6 +6,7 @@ import MatchLine from '@/components/MatchLine'
 import { SpecialPicksPreseason, SpecialPicksAvantPlayoffs } from '@/components/SpecialPicksCards'
 import { grouperMatchsParCreneau } from '@/lib/groupMatchsByCreneau'
 import WeekGroupHeader from '@/components/WeekGroupHeader'
+import { estSemaineOuverte, calculerDateOuverture } from '@/lib/semaineOuverture'
 
 export default async function Pronostics({ searchParams }: { searchParams: Promise<{ semaine?: string }> }) {
   const { semaine: semaineParam } = await searchParams
@@ -64,6 +65,15 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   const nombreFaits = mesPronostics?.length ?? 0
   const nombreTotal = matchs?.length ?? 0
 
+  const premierMatch = matchs && matchs.length > 0 ? matchs[0] : null
+  const semaineOuverte = premierMatch ? estSemaineOuverte(premierMatch.coup_envoi) : true
+  const dateOuverture = premierMatch ? calculerDateOuverture(premierMatch.coup_envoi) : null
+
+  const formatDateOuverture = (date: Date) => {
+    const jour = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Paris' })
+    return jour.charAt(0).toUpperCase() + jour.slice(1)
+  }
+
   const creneaux = grouperMatchsParCreneau(matchs ?? [])
 
   return (
@@ -92,40 +102,81 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
         <SpecialPicksAvantPlayoffs saisonId={saison.id} mesPronosSpeciaux={mesPronosSpeciaux} />
       )}
 
-      <div>
-        {creneaux.map((creneau) => (
-          <div key={creneau.coupEnvoi}>
-            <WeekGroupHeader
-              coupEnvoi={creneau.coupEnvoi}
-              nombreMatchs={creneau.matchs.length}
-              estActif={creneau.estActif}
-              estVerrouille={creneau.estVerrouille}
-            />
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {creneau.matchs.map((match) => {
-                const monPronostic = mesPronosticsMap.get(match.id)
-                const verrouille = match.statut !== 'a_venir'
-                const termine = match.statut === 'termine'
-
-                return (
-                  <MatchLine
-                    key={match.id}
-                    matchId={match.id}
-                    team1={{ code: match.equipe_a, name: NOMS_EQUIPES[match.equipe_a] ?? match.equipe_a }}
-                    team2={{ code: match.equipe_b, name: NOMS_EQUIPES[match.equipe_b] ?? match.equipe_b }}
-                    score1={match.score_a}
-                    score2={match.score_b}
-                    selectedTeam={monPronostic?.equipe_choisie ?? null}
-                    locked={verrouille}
-                    finished={termine}
-                    equipeGagnante={match.equipe_gagnante}
-                  />
-                )
-              })}
-            </div>
+      {!semaineOuverte && dateOuverture && (
+        <div
+          style={{
+            position: 'relative',
+            borderRadius: 10,
+            padding: '16px 18px',
+            marginTop: 20,
+            marginBottom: 12,
+            textAlign: 'center',
+            backgroundColor: '#10141f',
+            border: '1.5px solid rgba(255,255,255,0.12)',
+          }}
+        >
+          <div style={{ fontSize: 22 }}>🔒</div>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 6 }}>
+            Ouverture des pronostics
           </div>
-        ))}
+          <div style={{ fontSize: 20, fontWeight: 900 }}>{formatDateOuverture(dateOuverture)}</div>
+        </div>
+      )}
+
+      <div>
+        {semaineOuverte ? (
+          creneaux.map((creneau) => (
+            <div key={creneau.coupEnvoi}>
+              <WeekGroupHeader
+                coupEnvoi={creneau.coupEnvoi}
+                nombreMatchs={creneau.matchs.length}
+                estActif={creneau.estActif}
+                estVerrouille={creneau.estVerrouille}
+              />
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {creneau.matchs.map((match) => {
+                  const monPronostic = mesPronosticsMap.get(match.id)
+                  const verrouille = match.statut !== 'a_venir'
+                  const termine = match.statut === 'termine'
+
+                  return (
+                    <MatchLine
+                      key={match.id}
+                      matchId={match.id}
+                      team1={{ code: match.equipe_a, name: NOMS_EQUIPES[match.equipe_a] ?? match.equipe_a }}
+                      team2={{ code: match.equipe_b, name: NOMS_EQUIPES[match.equipe_b] ?? match.equipe_b }}
+                      score1={match.score_a}
+                      score2={match.score_b}
+                      selectedTeam={monPronostic?.equipe_choisie ?? null}
+                      locked={verrouille}
+                      finished={termine}
+                      equipeGagnante={match.equipe_gagnante}
+                    />
+                  )
+                })}
+              </div>
+            </div>
+          ))
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+            {(matchs ?? []).map((match) => (
+              <MatchLine
+                key={match.id}
+                matchId={match.id}
+                team1={{ code: match.equipe_a, name: NOMS_EQUIPES[match.equipe_a] ?? match.equipe_a }}
+                team2={{ code: match.equipe_b, name: NOMS_EQUIPES[match.equipe_b] ?? match.equipe_b }}
+                score1={match.score_a}
+                score2={match.score_b}
+                selectedTeam={null}
+                locked={true}
+                finished={false}
+                equipeGagnante={null}
+                ouvert={false}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -9,14 +9,12 @@ function getEnvVar(name) {
 
 const bbsClient = new BigBallSportsClient(getEnvVar('BBS_API_KEY'))
 
-const SEMAINE_NFL = Number(process.argv[2]) || 5
-
 async function debug() {
   const result = await bbsClient.get('/v1/nfl/games', {
     season: 2026,
-    week: SEMAINE_NFL,
+    game_type: 'WC',
   })
-  console.log(JSON.stringify(result.data[0], null, 2))
+  console.log(JSON.stringify(result.data, null, 2))
 }
 
 debug()

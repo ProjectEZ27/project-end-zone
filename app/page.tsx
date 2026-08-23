@@ -70,16 +70,35 @@ const journalPhrases = derniereSemaineCloturee
         {mesLigues.length === 0 ? (
           <p style={{ color: '#999' }}>Tu ne fais partie d'aucune ligue pour le moment.</p>
         ) : (
-          mesLigues.map((ligue: any) => (
-            <Link
-              key={ligue.id}
-              href={`/leagues/${ligue.id}`}
-              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, marginBottom: 8, border: '1px solid #33415a', borderRadius: 6, textDecoration: 'none', color: 'white' }}
-            >
-              <LeagueLogo logoId={ligue.logo_id ?? 1} size={40} leagueName={ligue.nom} />
-              {ligue.nom}
-            </Link>
-          ))
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            {mesLigues.map((ligue: any) => (
+              <Link
+                key={ligue.id}
+                href={`/leagues/${ligue.id}`}
+                style={{
+                  aspectRatio: '1 / 1',
+                  backgroundColor: '#16233F',
+                  border: '1px solid #33415a',
+                  borderRadius: 10,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 10,
+                  padding: 12,
+                  textDecoration: 'none',
+                  color: 'white',
+                }}
+              >
+                <div style={{ position: 'relative', width: '62%', aspectRatio: '1 / 1' }}>
+                  <LeagueLogo logoId={ligue.logo_id ?? 1} size={200} leagueName={ligue.nom} />
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', lineHeight: 1.2 }}>
+                  {ligue.nom}
+                </div>
+              </Link>
+            ))}
+          </div>
         )}
       </div>
 

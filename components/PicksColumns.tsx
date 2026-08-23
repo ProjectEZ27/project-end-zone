@@ -1,4 +1,7 @@
+import Link from 'next/link'
+
 interface Pick {
+  userId: string
   pseudo: string
   correct: boolean
 }
@@ -15,30 +18,34 @@ export default function PicksColumns({ picksGauche, picksDroite, nOntPasPronosti
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 4px 0' }}>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
           {picksGauche.map((p, i) => (
-            <div
+            <Link
               key={i}
+              href={`/joueur/${p.userId}`}
               style={{
                 fontSize: 13,
                 fontWeight: 600,
                 color: p.correct ? '#4ee892' : 'rgba(255,255,255,0.75)',
+                textDecoration: 'none',
               }}
             >
               {p.pseudo}
-            </div>
+            </Link>
           ))}
         </div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
           {picksDroite.map((p, i) => (
-            <div
+            <Link
               key={i}
+              href={`/joueur/${p.userId}`}
               style={{
                 fontSize: 13,
                 fontWeight: 600,
                 color: p.correct ? '#4ee892' : 'rgba(255,255,255,0.75)',
+                textDecoration: 'none',
               }}
             >
               {p.pseudo}
-            </div>
+            </Link>
           ))}
         </div>
       </div>

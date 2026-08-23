@@ -148,6 +148,7 @@ export default async function LeaguePronostics({
           const picksGauche = pronosticsDuMatch
             .filter((p) => p.equipe_choisie === team1.code)
             .map((p) => ({
+              userId: p.utilisateur_id,
               pseudo: pseudoParId.get(p.utilisateur_id) ?? 'Joueur inconnu',
               correct: termine && match.equipe_gagnante === team1.code,
             }))
@@ -155,6 +156,7 @@ export default async function LeaguePronostics({
           const picksDroite = pronosticsDuMatch
             .filter((p) => p.equipe_choisie === team2.code)
             .map((p) => ({
+              userId: p.utilisateur_id,
               pseudo: pseudoParId.get(p.utilisateur_id) ?? 'Joueur inconnu',
               correct: termine && match.equipe_gagnante === team2.code,
             }))

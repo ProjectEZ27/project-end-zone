@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { selectPronostic } from './actions'
-import { TeamBadge, NOMS_EQUIPES } from '@/lib/teamBadge'
+import { NOMS_EQUIPES } from '@/lib/teamBadge'
 import SelecteurSemaine from './SelecteurSemaine'
 import MatchLine from '@/components/MatchLine'
 import { SpecialPicksPreseason, SpecialPicksAvantPlayoffs } from '@/components/SpecialPicksCards'
@@ -51,13 +50,9 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   const saison = saisonResult.data
 
   const matchIds = (matchs ?? []).map((m) => m.id)
-  const matchsVerrouilles = (matchs ?? []).filter((m) => m.statut !== 'a_venir').map((m) => m.id)
 
-  const [mesPronosticsResult, pronosticsPublicsResult, pronosSpeciauxResult] = await Promise.all([
+  const [mesPronosticsResult, pronosSpeciauxResult] = await Promise.all([
     supabase.from('pronostics').select('*').eq('utilisateur_id', user.id).in('match_id', matchIds),
-    matchsVerrouilles.length > 0
-      ? supabase.from('pronostics').select('match_id, utilisateur_id, equipe_choisie').in('match_id', matchsVerrouilles)
-      : Promise.resolve({ data: null }),
     saison
       ? supabase.from('pronostics_speciaux').select('type, choix').eq('utilisateur_id', user.id).eq('saison_id', saison.id)
       : Promise.resolve({ data: null })
@@ -68,25 +63,6 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   const mesPronosticsMap = new Map((mesPronostics ?? []).map((p) => [p.match_id, p]))
   const nombreFaits = mesPronostics?.length ?? 0
   const nombreTotal = matchs?.length ?? 0
-
-  // Pronostics de TOUT LE MONDE sur les matchs déjà verrouillés (règle de visibilité)
-
-  let tousLesPronosticsMap = new Map<string, { pseudo: string; equipe_choisie: string }[]>()
-  const pronosticsPublics = pronosticsPublicsResult.data
-  if (pronosticsPublics && pronosticsPublics.length > 0) {
-    const userIds = [...new Set(pronosticsPublics.map((p) => p.utilisateur_id))]
-    const { data: profilesData } = await supabase
-      .from('profiles')
-      .select('id, pseudo')
-      .in('id', userIds)
-
-    for (const p of pronosticsPublics) {
-      const pseudo = profilesData?.find((pr) => pr.id === p.utilisateur_id)?.pseudo ?? 'Joueur inconnu'
-      const liste = tousLesPronosticsMap.get(p.match_id) ?? []
-      liste.push({ pseudo, equipe_choisie: p.equipe_choisie })
-      tousLesPronosticsMap.set(p.match_id, liste)
-    }
-  }
 
   const creneaux = grouperMatchsParCreneau(matchs ?? [])
 
@@ -131,35 +107,20 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
                 const monPronostic = mesPronosticsMap.get(match.id)
                 const verrouille = match.statut !== 'a_venir'
                 const termine = match.statut === 'termine'
-                const autresPronostics = tousLesPronosticsMap.get(match.id) ?? []
 
                 return (
-                  <div key={match.id}>
-                    <MatchLine
-                      matchId={match.id}
-                      team1={{ code: match.equipe_a, name: NOMS_EQUIPES[match.equipe_a] ?? match.equipe_a }}
-                      team2={{ code: match.equipe_b, name: NOMS_EQUIPES[match.equipe_b] ?? match.equipe_b }}
-                      score1={match.score_a}
-                      score2={match.score_b}
-                      selectedTeam={monPronostic?.equipe_choisie ?? null}
-                      locked={verrouille}
-                      finished={termine}
-                      equipeGagnante={match.equipe_gagnante}
-                    />
-
-                    {verrouille && autresPronostics.length > 0 && (
-                      <div style={{ marginTop: 8, marginBottom: 16, fontSize: 13, color: '#444', textAlign: 'left' }}>
-                        <strong>Pronostics de la ligue :</strong>
-                        {autresPronostics.map((p, i) => (
-                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                            {p.pseudo} :
-                            <TeamBadge code={p.equipe_choisie} size={18} />
-                            {NOMS_EQUIPES[p.equipe_choisie] ?? p.equipe_choisie}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <MatchLine
+                    key={match.id}
+                    matchId={match.id}
+                    team1={{ code: match.equipe_a, name: NOMS_EQUIPES[match.equipe_a] ?? match.equipe_a }}
+                    team2={{ code: match.equipe_b, name: NOMS_EQUIPES[match.equipe_b] ?? match.equipe_b }}
+                    score1={match.score_a}
+                    score2={match.score_b}
+                    selectedTeam={monPronostic?.equipe_choisie ?? null}
+                    locked={verrouille}
+                    finished={termine}
+                    equipeGagnante={match.equipe_gagnante}
+                  />
                 )
               })}
             </div>

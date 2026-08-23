@@ -64,6 +64,9 @@ export default async function LeagueDetail({ params }: { params: Promise<{ id: s
       <p>{league.taille_max} joueurs max · Statut : {league.statut}</p>
 
       <div style={{ marginTop: 24, display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <Link href={`/leagues/${id}/pronostics`} style={{ padding: '8px 16px', border: '1px solid #33415a', borderRadius: 6, textDecoration: 'none', color: 'white' }}>
+         🏈 Pronostics
+        </Link>
         <Link href={`/leagues/${id}/classement`} style={{ padding: '8px 16px', border: '1px solid #33415a', borderRadius: 6, textDecoration: 'none', color: 'white' }}>
           🏆 Classement
         </Link>

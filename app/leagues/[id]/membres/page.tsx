@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
+import Link from 'next/link'
 
 export default async function MembresLigue({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -59,7 +60,12 @@ export default async function MembresLigue({ params }: { params: Promise<{ id: s
       <div style={{ marginTop: 24, textAlign: 'left' }}>
         {membres.map((membre) => (
           <div key={membre.id} style={{ borderBottom: '1px solid #eee', padding: 8, display: 'flex', justifyContent: 'space-between' }}>
-            <span>{membre.pseudo}{membre.id === league.commissaire_id ? ' 👑' : ''}</span>
+            <span>
+              <Link href={`/joueur/${membre.id}`} style={{ color: 'inherit', textDecoration: 'underline' }}>
+                {membre.pseudo}
+              </Link>
+              {membre.id === league.commissaire_id ? ' 👑' : ''}
+            </span>
             <span style={{ fontSize: 12, color: '#666' }}>
               Depuis le {new Date(membre.date_entree).toLocaleDateString('fr-FR')}
             </span>

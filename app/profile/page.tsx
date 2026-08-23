@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import RappelPerso from './RappelPerso'
 import ChangeAvatarForm from '@/components/ChangeAvatarForm'
 import UserAvatar from '@/components/UserAvatar'
-import { changerPseudo } from './actions'
+import PseudoEditor from '@/components/PseudoEditor'
 import { NOMS_EQUIPES } from '@/lib/teamBadge'
 
 export default async function Profile({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
@@ -90,7 +90,7 @@ const saison = saisonResult.data
     <div style={{ maxWidth: 500, margin: '40px auto', padding: 24, textAlign: 'center' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 16 }}>
         <UserAvatar avatarId={profile?.avatar_id ?? 1} size={80} userName={profile?.pseudo} />
-        <h1 style={{ margin: 0 }}>{profile?.pseudo ?? 'Profil'}</h1>
+        <PseudoEditor currentPseudo={profile?.pseudo ?? 'Profil'} />
       </div>
 
       {errorMessage && (
@@ -99,19 +99,6 @@ const saison = saisonResult.data
       {profile?.equipe_favorite && (
         <p>Équipe favorite : {NOMS_EQUIPES[profile.equipe_favorite] ?? profile.equipe_favorite}</p>
       )}
-
-      <form action={changerPseudo} style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 12 }}>
-        <input
-          type="text"
-          name="pseudo"
-          placeholder="Nouveau pseudo"
-          defaultValue={profile?.pseudo ?? ''}
-          required
-          minLength={2}
-          style={{ padding: 8 }}
-        />
-        <button type="submit" style={{ padding: 8 }}>Changer</button>
-      </form>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 24 }}>
         <div style={{ border: '1px solid #ccc', borderRadius: 8, padding: 12 }}>

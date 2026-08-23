@@ -169,7 +169,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
                 score1={match.score_a}
                 score2={match.score_b}
                 selectedTeam={null}
-                locked={true}
+                locked={false}
                 finished={false}
                 equipeGagnante={null}
                 ouvert={false}

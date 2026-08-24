@@ -66,7 +66,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   const nombreTotal = matchs?.length ?? 0
 
   const premierMatch = matchs && matchs.length > 0 ? matchs[0] : null
-  const semaineOuverte = premierMatch ? estSemaineOuverte(premierMatch.coup_envoi) : true
+  const semaineOuverte = true // 🚧 TEMPORAIRE POUR DÉMO — remettre : premierMatch ? estSemaineOuverte(premierMatch.coup_envoi) : true
   const dateOuverture = premierMatch ? calculerDateOuverture(premierMatch.coup_envoi) : null
 
   const formatDateOuverture = (date: Date) => {

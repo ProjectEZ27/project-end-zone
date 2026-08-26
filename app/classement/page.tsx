@@ -72,7 +72,7 @@ export default async function Classement() {
       <span style={{ fontSize: 13, fontWeight: 700, color: moi ? '#E8544C' : styleChiffre(rang), width: 20 }}>
         {rang}
       </span>
-      <UserAvatar avatarId={avatarMap.get(joueur.utilisateur_id) ?? 1} size={34} />
+      <UserAvatar avatarId={avatarMap.get(joueur.utilisateur_id) ?? 1} size={45} />
       <div style={{ flex: 1, textAlign: 'left' }}>
         <div style={{ fontSize: 13, fontWeight: 600 }}>
           {joueur.pseudo} {moi && <span style={{ color: '#E8544C', fontSize: 10, fontWeight: 700 }}>(TOI)</span>}

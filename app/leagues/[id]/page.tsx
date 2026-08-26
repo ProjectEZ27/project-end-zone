@@ -3,6 +3,20 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { acceptMembership, rejectMembership } from './actions'
 import LeagueLogoEditor from '@/components/LeagueLogoEditor'
+import {
+  TbBallAmericanFootball,
+  TbTrophy,
+  TbUsers,
+  TbHistory,
+  TbSettings,
+  TbCrown,
+  TbLink,
+  TbShieldCheck,
+  TbCopy,
+  TbShare,
+  TbCheck,
+  TbX,
+} from 'react-icons/tb'
 
 export default async function LeagueDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -24,7 +38,7 @@ export default async function LeagueDetail({ params }: { params: Promise<{ id: s
   }
 
   const estCommissaire = league.commissaire_id === user.id
-  
+
   let estMembreActif = estCommissaire
   if (!estCommissaire) {
     const { data: monAdhesion } = await supabase
@@ -36,7 +50,7 @@ export default async function LeagueDetail({ params }: { params: Promise<{ id: s
       .single()
     estMembreActif = !!monAdhesion
   }
-  
+
   let demandes: any[] = []
   if (estCommissaire) {
     const { data: adhesionsData } = await supabase
@@ -59,65 +73,173 @@ export default async function LeagueDetail({ params }: { params: Promise<{ id: s
     }
   }
 
-  return (
-    <div style={{ maxWidth: 500, margin: '80px auto', padding: 24, textAlign: 'center' }}>
-      <LeagueLogoEditor
-        ligueId={id}
-        currentLogoId={league.logo_id ?? 1}
-        estCommissaire={estCommissaire}
-        leagueName={league.nom}
-      />
-      <h1>{league.nom}</h1>
-      <p>{league.taille_max} joueurs max · Statut : {league.statut}</p>
+  const statutLabel: Record<string, { label: string; bg: string; color: string }> = {
+    en_cours: { label: 'EN COURS', bg: '#0F6E56', color: '#E1F5EE' },
+    a_venir: { label: 'À VENIR', bg: '#854F0B', color: '#FAEEDA' },
+    terminee: { label: 'TERMINÉE', bg: '#5F5E5A', color: '#F1EFE8' },
+  }
+  const badgeStatut = statutLabel[league.statut] ?? { label: league.statut, bg: '#33415a', color: 'white' }
 
-      <div style={{ marginTop: 24, display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
-        <Link href={`/leagues/${id}/pronostics`} style={{ padding: '8px 16px', border: '1px solid #33415a', borderRadius: 6, textDecoration: 'none', color: 'white' }}>
-         🏈 Pronostics
-        </Link>
-        <Link href={`/leagues/${id}/classement`} style={{ padding: '8px 16px', border: '1px solid #33415a', borderRadius: 6, textDecoration: 'none', color: 'white' }}>
-          🏆 Classement
-        </Link>
-        <Link href={`/leagues/${id}/membres`} style={{ padding: '8px 16px', border: '1px solid #33415a', borderRadius: 6, textDecoration: 'none', color: 'white' }}>
-          👥 Membres
-        </Link>
-        <Link href={`/leagues/${id}/historique`} style={{ padding: '8px 16px', border: '1px solid #33415a', borderRadius: 6, textDecoration: 'none', color: 'white' }}>
-          📜 Historique
-        </Link>
-        {estCommissaire && (
-          <Link href={`/leagues/${id}/parametres`} style={{ padding: '8px 16px', border: '1px solid #33415a', borderRadius: 6, textDecoration: 'none', color: 'white' }}>
-            ⚙️ Paramètres
-          </Link>
-        )}
+  const pastilles = [
+    { href: `/leagues/${id}/pronostics`, label: 'Pronostics', Icon: TbBallAmericanFootball },
+    { href: `/leagues/${id}/classement`, label: 'Classement', Icon: TbTrophy },
+    { href: `/leagues/${id}/membres`, label: 'Membres', Icon: TbUsers },
+    { href: `/leagues/${id}/historique`, label: 'Historique', Icon: TbHistory },
+  ]
+  if (estCommissaire) {
+    pastilles.push({ href: `/leagues/${id}/parametres`, label: 'Paramètres', Icon: TbSettings })
+  }
+
+  return (
+    <div style={{ position: 'relative', minHeight: '100vh' }}>
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: -1,
+        backgroundImage: 'url(/fonds/Fond-Ligue.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'left center',
+        backgroundRepeat: 'no-repeat',
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(180deg, rgba(11,18,32,0.72) 0%, rgba(11,18,32,0.92) 100%)',
+        }} />
       </div>
 
-      {estCommissaire && (
-        <div style={{ marginTop: 24, padding: 16, border: '1px solid #ccc', borderRadius: 8 }}>
-          <p><strong>Tu es le commissaire de cette ligue</strong></p>
-          <p>Code d'invitation : <strong>{league.code_invitation}</strong></p>
-          <p>Code de secours : <strong>{league.code_secours}</strong></p>
-        </div>
-      )}
+      <div style={{ maxWidth: 500, margin: '0 auto', padding: '24px 24px 100px', textAlign: 'center', color: 'white' }}>
+        <LeagueLogoEditor
+          ligueId={id}
+          currentLogoId={league.logo_id ?? 1}
+          estCommissaire={estCommissaire}
+          leagueName={league.nom}
+        />
+        <h1 style={{ fontSize: 20, fontWeight: 600, marginTop: 8 }}>{league.nom}</h1>
+        <p style={{ fontSize: 13, color: '#9fb0c9', marginTop: 4 }}>
+          {league.taille_max} joueurs max{' '}
+          <span style={{ margin: '0 4px' }}>·</span>
+          Statut :{' '}
+          <span style={{
+            display: 'inline-block',
+            background: badgeStatut.bg,
+            color: badgeStatut.color,
+            fontSize: 11,
+            fontWeight: 600,
+            padding: '2px 10px',
+            borderRadius: 20,
+            marginLeft: 4,
+          }}>
+            {badgeStatut.label}
+          </span>
+        </p>
 
-      {estCommissaire && demandes.length > 0 && (
-        <div style={{ marginTop: 24, padding: 16, border: '1px solid #ccc', borderRadius: 8 }}>
-          <p><strong>Demandes en attente ({demandes.length})</strong></p>
-          {demandes.map((demande) => (
-            <div key={demande.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-              <span>{demande.pseudo}</span>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <form action={acceptMembership}>
-                  <input type="hidden" name="adhesion_id" value={demande.id} />
-                  <button type="submit" style={{ padding: '4px 8px' }}>✅ Accepter</button>
-                </form>
-                <form action={rejectMembership}>
-                  <input type="hidden" name="adhesion_id" value={demande.id} />
-                  <button type="submit" style={{ padding: '4px 8px' }}>❌ Refuser</button>
-                </form>
-              </div>
-            </div>
+        <div style={{ marginTop: 20, display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+          {pastilles.map(({ href, label, Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              style={{
+                flex: '1 1 30%',
+                minWidth: 100,
+                background: '#16233F',
+                border: '0.5px solid #33415a',
+                borderRadius: 8,
+                padding: '10px 6px',
+                textDecoration: 'none',
+                color: 'white',
+                textAlign: 'center',
+              }}
+            >
+              <Icon size={16} style={{ display: 'block', margin: '0 auto 4px' }} />
+              <div style={{ fontSize: 11 }}>{label}</div>
+            </Link>
           ))}
         </div>
-      )}
+
+        {estCommissaire && (
+          <div style={{ marginTop: 20, background: '#16233F', border: '0.5px solid #33415a', borderRadius: 12, padding: 16 }}>
+            <TbCrown size={20} color="#EF9F27" style={{ display: 'block', margin: '0 auto 6px' }} />
+            <div style={{ fontSize: 14, fontWeight: 600 }}>Bienvenue dans la ligue</div>
+            <div style={{ fontSize: 11, color: '#7fa8e0', marginBottom: 12 }}>Tu es le commissaire de cette ligue</div>
+
+            <CodeRow icon={<TbLink size={15} />} label="Code d'invitation" code={league.code_invitation} />
+            <CodeRow icon={<TbShieldCheck size={15} />} label="Code de secours" code={league.code_secours} />
+
+            <button style={{
+              width: '100%',
+              background: 'transparent',
+              color: 'white',
+              border: '0.5px solid #33415a',
+              padding: 10,
+              borderRadius: 8,
+              fontSize: 13,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              cursor: 'pointer',
+            }}>
+              <TbShare size={15} /> Partager la ligue
+            </button>
+          </div>
+        )}
+
+        {!estCommissaire && estMembreActif && (
+          <div style={{ marginTop: 20, background: '#16233F', border: '0.5px solid #33415a', borderRadius: 12, padding: 16 }}>
+            <CodeRow icon={<TbLink size={15} />} label="Code d'invitation" code={league.code_invitation} />
+          </div>
+        )}
+
+        {estCommissaire && demandes.length > 0 && (
+          <div style={{ marginTop: 20, background: '#16233F', border: '0.5px solid #33415a', borderRadius: 12, padding: 16, textAlign: 'left' }}>
+            <p style={{ fontWeight: 600, marginBottom: 8 }}>Demandes en attente ({demandes.length})</p>
+            {demandes.map((demande) => (
+              <div key={demande.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+                <span>{demande.pseudo}</span>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <form action={acceptMembership}>
+                    <input type="hidden" name="adhesion_id" value={demande.id} />
+                    <button type="submit" style={{ padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 4, background: '#0F6E56', border: 'none', borderRadius: 6, color: 'white' }}>
+                      <TbCheck size={14} /> Accepter
+                    </button>
+                  </form>
+                  <form action={rejectMembership}>
+                    <input type="hidden" name="adhesion_id" value={demande.id} />
+                    <button type="submit" style={{ padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 4, background: '#791F1F', border: 'none', borderRadius: 6, color: 'white' }}>
+                      <TbX size={14} /> Refuser
+                    </button>
+                  </form>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function CodeRow({ icon, label, code }: { icon: React.ReactNode; label: string; code: string }) {
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      background: '#0b1220',
+      border: '0.5px solid #33415a',
+      borderRadius: 8,
+      padding: '8px 10px',
+      marginBottom: 8,
+      textAlign: 'left',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#9fb0c9', fontSize: 12 }}>
+        {icon} {label}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 12, letterSpacing: 1 }}>{code}</span>
+        <TbCopy size={14} color="#9fb0c9" style={{ cursor: 'pointer' }} />
+      </div>
     </div>
   )
 }

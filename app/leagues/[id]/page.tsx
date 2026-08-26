@@ -3,6 +3,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { acceptMembership, rejectMembership } from './actions'
 import LeagueLogoEditor from '@/components/LeagueLogoEditor'
+import ShareLeagueBox from '@/components/ShareLeagueBox'
 import {
   TbBallAmericanFootball,
   TbTrophy,
@@ -10,13 +11,10 @@ import {
   TbHistory,
   TbSettings,
   TbCrown,
-  TbLink,
-  TbShieldCheck,
-  TbCopy,
-  TbShare,
   TbCheck,
   TbX,
 } from 'react-icons/tb'
+
 
 export default async function LeagueDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -163,31 +161,20 @@ export default async function LeagueDetail({ params }: { params: Promise<{ id: s
             <div style={{ fontSize: 14, fontWeight: 600 }}>Bienvenue dans la ligue</div>
             <div style={{ fontSize: 11, color: '#7fa8e0', marginBottom: 12 }}>Tu es le commissaire de cette ligue</div>
 
-            <CodeRow icon={<TbLink size={15} />} label="Code d'invitation" code={league.code_invitation} />
-            <CodeRow icon={<TbShieldCheck size={15} />} label="Code de secours" code={league.code_secours} />
-
-            <button style={{
-              width: '100%',
-              background: 'transparent',
-              color: 'white',
-              border: '0.5px solid #33415a',
-              padding: 10,
-              borderRadius: 8,
-              fontSize: 13,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              cursor: 'pointer',
-            }}>
-              <TbShare size={15} /> Partager la ligue
-            </button>
+            <ShareLeagueBox
+              codeInvitation={league.code_invitation}
+              codeSecours={league.code_secours}
+              leagueName={league.nom}
+            />
           </div>
         )}
 
         {!estCommissaire && estMembreActif && (
           <div style={{ marginTop: 20, background: '#16233F', border: '0.5px solid #33415a', borderRadius: 12, padding: 16 }}>
-            <CodeRow icon={<TbLink size={15} />} label="Code d'invitation" code={league.code_invitation} />
+            <ShareLeagueBox
+              codeInvitation={league.code_invitation}
+              leagueName={league.nom}
+            />
           </div>
         )}
 
@@ -215,30 +202,6 @@ export default async function LeagueDetail({ params }: { params: Promise<{ id: s
             ))}
           </div>
         )}
-      </div>
-    </div>
-  )
-}
-
-function CodeRow({ icon, label, code }: { icon: React.ReactNode; label: string; code: string }) {
-  return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      background: '#0b1220',
-      border: '0.5px solid #33415a',
-      borderRadius: 8,
-      padding: '8px 10px',
-      marginBottom: 8,
-      textAlign: 'left',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#9fb0c9', fontSize: 12 }}>
-        {icon} {label}
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 12, letterSpacing: 1 }}>{code}</span>
-        <TbCopy size={14} color="#9fb0c9" style={{ cursor: 'pointer' }} />
       </div>
     </div>
   )

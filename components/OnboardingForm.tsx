@@ -14,7 +14,23 @@ export default function OnboardingForm({ equipes, errorMessage }: OnboardingForm
   const [selectedAvatar, setSelectedAvatar] = useState(1)
 
   return (
-    <div style={{ maxWidth: 400, margin: '80px auto', padding: 24, textAlign: 'center' }}>
+    <div style={{ position: 'relative', minHeight: '100vh' }}>
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: -1,
+        backgroundImage: 'url(/fonds/Fond-Acceuil.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'left center',
+        backgroundRepeat: 'no-repeat',
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(180deg, rgba(11,18,32,0.72) 0%, rgba(11,18,32,0.92) 100%)',
+        }} />
+      </div>
+      <div style={{ maxWidth: 400, margin: '0 auto', padding: '80px 24px 100px', textAlign: 'center', color: 'white' }}>
       <h1>🏈 Bienvenue !</h1>
       <p>Choisis ton pseudo, ton équipe et ton avatar pour commencer</p>
       {errorMessage && (
@@ -71,6 +87,7 @@ export default function OnboardingForm({ equipes, errorMessage }: OnboardingForm
           C'est parti
         </button>
       </form>
+      </div>
     </div>
   )
 }

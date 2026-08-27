@@ -83,7 +83,23 @@ export default async function PublicProfile({ params }: { params: Promise<{ id: 
   const tauxReussite = totalPronostics > 0 ? Math.round((totalCorrects / totalPronostics) * 100) : 0
 
   return (
-    <div style={{ maxWidth: 500, margin: '40px auto', padding: 24, textAlign: 'center' }}>
+    <div style={{ position: 'relative', minHeight: '100vh' }}>
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: -1,
+        backgroundImage: 'url(/fonds/Fond-Profil.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'right center',
+        backgroundRepeat: 'no-repeat',
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(180deg, rgba(11,18,32,0.72) 0%, rgba(11,18,32,0.92) 100%)',
+        }} />
+      </div>
+      <div style={{ maxWidth: 500, margin: '0 auto', padding: '40px 24px 100px', textAlign: 'center', color: 'white' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 16 }}>
         <UserAvatar avatarId={profile.avatar_id ?? 1} size={80} userName={profile.pseudo} />
         <h1 style={{ margin: 0 }}>{profile.pseudo}</h1>
@@ -94,22 +110,23 @@ export default async function PublicProfile({ params }: { params: Promise<{ id: 
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 24 }}>
-        <div style={{ border: '1px solid #ccc', borderRadius: 8, padding: 12 }}>
+        <div style={{ background: '#16233F', border: '0.5px solid #33415a', borderRadius: 8, padding: 12 }}>
           <p style={{ fontSize: 24, fontWeight: 'bold' }}>{tauxReussite}%</p>
-          <p style={{ fontSize: 12, color: '#666' }}>Taux de réussite</p>
+          <p style={{ fontSize: 12, color: '#9fb0c9' }}>Taux de réussite</p>
         </div>
-        <div style={{ border: '1px solid #ccc', borderRadius: 8, padding: 12 }}>
+        <div style={{ background: '#16233F', border: '0.5px solid #33415a', borderRadius: 8, padding: 12 }}>
           <p style={{ fontSize: 24, fontWeight: 'bold' }}>{meilleureSemaine}</p>
-          <p style={{ fontSize: 12, color: '#666' }}>Meilleure semaine</p>
+          <p style={{ fontSize: 12, color: '#9fb0c9' }}>Meilleure semaine</p>
         </div>
-        <div style={{ border: '1px solid #ccc', borderRadius: 8, padding: 12 }}>
+        <div style={{ background: '#16233F', border: '0.5px solid #33415a', borderRadius: 8, padding: 12 }}>
           <p style={{ fontSize: 24, fontWeight: 'bold' }}>{totalPronostics}</p>
-          <p style={{ fontSize: 12, color: '#666' }}>Pronostics faits</p>
+          <p style={{ fontSize: 12, color: '#9fb0c9' }}>Pronostics faits</p>
         </div>
-        <div style={{ border: '1px solid #ccc', borderRadius: 8, padding: 12 }}>
+        <div style={{ background: '#16233F', border: '0.5px solid #33415a', borderRadius: 8, padding: 12 }}>
           <p style={{ fontSize: 24, fontWeight: 'bold' }}>{semainesParfaites}</p>
-          <p style={{ fontSize: 12, color: '#666' }}>Semaines parfaites</p>
+          <p style={{ fontSize: 12, color: '#9fb0c9' }}>Semaines parfaites</p>
         </div>
+      </div>
       </div>
     </div>
   )

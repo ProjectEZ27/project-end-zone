@@ -12,7 +12,23 @@ export default async function CreateLeague() {
   }
 
   return (
-    <div style={{ maxWidth: 400, margin: '80px auto', padding: 24, textAlign: 'center' }}>
+    <div style={{ position: 'relative', minHeight: '100vh' }}>
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: -1,
+        backgroundImage: 'url(/fonds/Fond-Ligue.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'left center',
+        backgroundRepeat: 'no-repeat',
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(180deg, rgba(11,18,32,0.72) 0%, rgba(11,18,32,0.92) 100%)',
+        }} />
+      </div>
+      <div style={{ maxWidth: 400, margin: '0 auto', padding: '80px 24px 100px', textAlign: 'center', color: 'white' }}>
       <h1>🏈 Créer une ligue</h1>
       <p>Rassemble tes amis pour la saison NFL</p>
 
@@ -39,6 +55,7 @@ export default async function CreateLeague() {
           Créer la ligue
         </button>
       </form>
+      </div>
     </div>
   )
 }

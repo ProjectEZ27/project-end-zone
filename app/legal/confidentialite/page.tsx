@@ -1,6 +1,22 @@
 export default function Confidentialite() {
   return (
-    <div style={{ maxWidth: 600, margin: '40px auto', padding: 24 }}>
+    <div style={{ position: 'relative', minHeight: '100vh' }}>
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: -1,
+        backgroundImage: 'url(/fonds/Fond-Bilan.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'left center',
+        backgroundRepeat: 'no-repeat',
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(180deg, rgba(11,18,32,0.72) 0%, rgba(11,18,32,0.92) 100%)',
+        }} />
+      </div>
+      <div style={{ maxWidth: 600, margin: '0 auto', padding: '40px 24px 100px', position: 'relative' }}>
       <h1>Politique de confidentialité</h1>
 
       <h2>Données collectées</h2>
@@ -29,6 +45,7 @@ export default function Confidentialite() {
         Project End Zone n'utilise aucun cookie de tracking ni outil publicitaire. Aucun bandeau
         de consentement cookies n'est donc nécessaire.
       </p>
+      </div>
     </div>
   )
 }

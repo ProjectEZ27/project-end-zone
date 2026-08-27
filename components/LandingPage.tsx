@@ -4,74 +4,61 @@ import styles from './LandingPage.module.css'
 
 export default function LandingPage() {
   return (
-    <div style={{ backgroundColor: '#0F1419', color: 'white', minHeight: '100vh' }}>
+    <div style={{ position: 'relative', minHeight: '100vh', color: 'white' }}>
+      <div className={styles.pageBg}>
+        <div className={styles.pageOverlay} />
+      </div>
 
-      {/* HERO (logo intégré, pas de bandeau header séparé) */}
-      <section className={styles.heroSection}>
-        {/* Image plein format à droite, bord à bord */}
-        <div className={styles.heroImageWrap}>
-          <Image
-            src="/images/hero-landing.png"
-            alt="Joueur NFL"
-            fill
-            priority
-            style={{ objectFit: 'cover', objectPosition: 'center' }}
+      {/* HERO */}
+      <section className={styles.heroContent}>
+        <div style={{ maxWidth: 500 }}>
+          <img
+            src="/logo-officiel.png"
+            alt="Project End Zone"
+            style={{ height: 150, marginBottom: 8, marginLeft: -10 }}
           />
-          {/* Dégradé de fondu vers le fond sombre côté gauche */}
-          <div className={styles.heroFade} />
-        </div>
 
-        {/* Texte + logo par-dessus, aligné à gauche */}
-        <div className={styles.heroContent}>
-          <div style={{ maxWidth: 500 }}>
-            <img
-              src="/logo-officiel.png"
-              alt="Project End Zone"
-              style={{ height: 150, marginBottom: 8, marginLeft: -10 }}
-            />
+          <h1 className={styles.heroTitle}>
+            PRONOSTIQUE.<br />
+            DÉFIE TES AMIS.<br />
+            <span style={{ color: '#C8352E' }}>DEVIENS UNE LÉGENDE.</span>
+          </h1>
 
-            <h1 className={styles.heroTitle}>
-              PRONOSTIQUE.<br />
-              DÉFIE TES AMIS.<br />
-              <span style={{ color: '#C8352E' }}>DEVIENS UNE LÉGENDE.</span>
-            </h1>
+          <p className={styles.heroText}>
+            Rejoins des milliers de fans NFL, participe à des ligues, fais tes pronostics chaque semaine et grimpe dans le classement.
+          </p>
 
-            <p className={styles.heroText}>
-              Rejoins des milliers de fans NFL, participe à des ligues, fais tes pronostics chaque semaine et grimpe dans le classement.
-            </p>
-
-            <div style={{ display: 'flex', gap: 12, marginTop: 28 }}>
-              <Link
-                href="/signup"
-                style={{
-                  padding: '14px 28px',
-                  borderRadius: 6,
-                  backgroundColor: '#C8352E',
-                  color: 'white',
-                  textDecoration: 'none',
-                  fontWeight: 700,
-                  fontSize: 14,
-                  letterSpacing: 0.5,
-                }}
-              >
-                REJOINDRE
-              </Link>
-              <Link
-                href="/login"
-                style={{
-                  padding: '14px 28px',
-                  borderRadius: 6,
-                  border: '1px solid rgba(255,255,255,0.25)',
-                  color: 'white',
-                  textDecoration: 'none',
-                  fontWeight: 700,
-                  fontSize: 14,
-                  letterSpacing: 0.5,
-                }}
-              >
-                CONNEXION
-              </Link>
-            </div>
+          <div style={{ display: 'flex', gap: 12, marginTop: 28 }}>
+            <Link
+              href="/signup"
+              style={{
+                padding: '14px 28px',
+                borderRadius: 6,
+                backgroundColor: '#C8352E',
+                color: 'white',
+                textDecoration: 'none',
+                fontWeight: 700,
+                fontSize: 14,
+                letterSpacing: 0.5,
+              }}
+            >
+              REJOINDRE
+            </Link>
+            <Link
+              href="/login"
+              style={{
+                padding: '14px 28px',
+                borderRadius: 6,
+                border: '1px solid rgba(255,255,255,0.25)',
+                color: 'white',
+                textDecoration: 'none',
+                fontWeight: 700,
+                fontSize: 14,
+                letterSpacing: 0.5,
+              }}
+            >
+              CONNEXION
+            </Link>
           </div>
         </div>
       </section>
@@ -85,6 +72,7 @@ export default function LandingPage() {
           display: 'grid',
           gridTemplateColumns: 'repeat(4, 1fr)',
           gap: 24,
+          position: 'relative',
         }}
       >
         {[
@@ -114,6 +102,7 @@ export default function LandingPage() {
           display: 'flex',
           gap: 16,
           justifyContent: 'center',
+          position: 'relative',
         }}
       >
         <Link href="/legal/mentions" style={{ color: 'rgba(255,255,255,0.4)' }}>Mentions légales</Link>

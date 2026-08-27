@@ -50,11 +50,12 @@ button:disabled {
   opacity: 0.5;
 }
 
-input, select {
+input, select, textarea {
   background-color: var(--bleu-marine);
   color: var(--blanc-craie);
   border: 1px solid #33415a;
   border-radius: 6px;
+  font-size: 16px;
 }
 
 table {

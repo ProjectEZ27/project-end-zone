@@ -5,13 +5,12 @@ import styles from './LandingPage.module.css'
 export default function LandingPage() {
   return (
     <div style={{ position: 'relative', minHeight: '100vh', color: 'white' }}>
-      <div style={{
+      <div className="landingBg" style={{
         position: 'fixed',
         inset: 0,
         zIndex: -1,
         backgroundImage: 'url(/images/hero-landing.png)',
         backgroundSize: 'cover',
-        backgroundPosition: 'right 30%',
         backgroundRepeat: 'no-repeat',
       }}>
         <div style={{
@@ -122,6 +121,17 @@ export default function LandingPage() {
         <Link href="/legal/cgu" style={{ color: 'rgba(255,255,255,0.4)' }}>CGU</Link>
         <Link href="/contact" style={{ color: '#666' }}>Nous contacter</Link>
       </footer>
+
+      <style jsx global>{`
+        .landingBg {
+          background-position: right 30%;
+        }
+        @media (max-width: 640px) {
+          .landingBg {
+            background-position: 70% center;
+          }
+        }
+      `}</style>
     </div>
   )
 }

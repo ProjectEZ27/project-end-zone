@@ -32,9 +32,9 @@ export default function LandingPage() {
           />
 
           <h1 className={styles.heroTitle}>
-            PRONOSTIQUE.<br />
-            DÉFIE TES AMIS.<br />
-            <span style={{ color: '#C8352E' }}>DEVIENS UNE LÉGENDE.</span>
+            PRONOSTIQUE<br />
+            DÉFIE TES AMIS<br />
+            <span style={{ color: '#C8352E' }}>DEVIENS UNE LÉGENDE</span>
           </h1>
 
           <p className={styles.heroText}>

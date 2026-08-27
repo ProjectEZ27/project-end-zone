@@ -16,11 +16,12 @@ export default async function Home() {
     return <LandingPage />
   }
 
-  const [profileResult, adhesionsResult, semaineClotureeResult, saisonResult] = await Promise.all([
-    supabase.from('profiles').select('pseudo').eq('id', user.id).single(),
+  const [profileResult, adhesionsResult, semaineClotureeResult, saisonResult, derniereSemaineResult] = await Promise.all([
+    supabase.from('profiles').select('pseudo').eq('id', user.id).maybeSingle(),
     supabase.from('adhesions').select('ligue_id, ligues(id, nom, logo_id)').eq('utilisateur_id', user.id).eq('statut', 'actif'),
     supabase.from('semaines').select('id, nom').eq('statut', 'cloturee').order('id', { ascending: false }).limit(1).single(),
-    supabase.from('saisons').select('id').eq('statut', 'en_cours').single()
+    supabase.from('saisons').select('id').eq('statut', 'en_cours').single(),
+    supabase.from('semaines').select('id, nom').order('id', { ascending: false }).limit(1).single(),
   ])
 
   const profile = profileResult.data
@@ -64,6 +65,59 @@ export default async function Home() {
     }
   }
 
+  // Classement général (toutes ligues confondues, ou sans ligue = tous les joueurs de la saison)
+  const totalJoueursClassement = classementSaison.length
+  const monIndexClassement = classementSaison.findIndex(j => j.utilisateur_id === user.id)
+  const monRangGeneral = monIndexClassement >= 0 ? monIndexClassement + 1 : null
+  const mesPointsSaison = monIndexClassement >= 0 ? classementSaison[monIndexClassement].score_saison : 0
+
+  // Taux de réussite global de la saison (même logique que profile/page.tsx)
+  let totalPronostics = 0
+  let totalCorrects = 0
+  if (saisonActuelleId) {
+    const { data: semainesSaison } = await supabase
+      .from('semaines')
+      .select('id')
+      .eq('saison_id', saisonActuelleId)
+
+    const semaineIds = (semainesSaison ?? []).map((s) => s.id)
+    if (semaineIds.length > 0) {
+      const { data: matchsSaison } = await supabase
+        .from('matchs')
+        .select('id, statut, equipe_gagnante')
+        .in('semaine_id', semaineIds)
+
+      const matchIds = (matchsSaison ?? []).map((m) => m.id)
+      const matchMap = new Map((matchsSaison ?? []).map((m) => [m.id, m]))
+
+      if (matchIds.length > 0) {
+        const { data: mesPronostics } = await supabase
+          .from('pronostics')
+          .select('match_id, equipe_choisie')
+          .eq('utilisateur_id', user.id)
+          .in('match_id', matchIds)
+
+        totalPronostics = (mesPronostics ?? []).filter((p) => matchMap.get(p.match_id)?.statut === 'termine').length
+        totalCorrects = (mesPronostics ?? []).filter((p) => {
+          const m = matchMap.get(p.match_id)
+          return m && m.statut === 'termine' && p.equipe_choisie === m.equipe_gagnante
+        }).length
+      }
+    }
+  }
+  const tauxReussite = totalPronostics > 0 ? Math.round((totalCorrects / totalPronostics) * 100) : 0
+
+  // Bandeau "Pronostics de la semaine"
+  const semaineActuelle = derniereSemaineResult.data
+  let nombreMatchsSemaine = 0
+  if (semaineActuelle) {
+    const { count } = await supabase
+      .from('matchs')
+      .select('id', { count: 'exact', head: true })
+      .eq('semaine_id', semaineActuelle.id)
+    nombreMatchsSemaine = count ?? 0
+  }
+
   // Journal du mardi : on cherche la dernière semaine clôturée (la plus récente terminée)
   const derniereSemaineCloturee = semaineClotureeResult.data
 
@@ -94,15 +148,63 @@ export default async function Home() {
         <img src="/logo-officiel.png" alt="Project End Zone" style={{ width: 160, margin: '0 auto', display: 'block' }} />
         <p style={{ color: 'white', marginTop: 12 }}>Connecté en tant que {profile.pseudo}</p>
 
-        <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <Link href="/pronostics" style={{ padding: '14px 16px', backgroundColor: '#C8352E', borderRadius: 10, textDecoration: 'none', color: 'white', textAlign: 'left' }}>
-            <div style={{ fontSize: 15, fontWeight: 500 }}>🏈 Faire mes pronostics</div>
-            <div style={{ fontSize: 12, color: '#f6d3d1', marginTop: 2 }}>Pronostique les matchs de la semaine</div>
+        {semaineActuelle && (
+          <Link
+            href="/pronostics"
+            style={{
+              display: 'block',
+              background: 'linear-gradient(135deg, #7a1a15, #C8352E)',
+              border: '1px solid #ff6b5f',
+              borderRadius: 12,
+              padding: 16,
+              textDecoration: 'none',
+              color: 'white',
+              margin: '20px 0',
+              textAlign: 'left',
+              boxShadow: '0 0 20px rgba(200,53,46,0.35)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+              <div style={{ width: 3, height: 12, background: 'white' }} />
+              <span style={{ fontSize: 10, letterSpacing: 1, color: '#ffd9d5', textTransform: 'uppercase' }}>
+                {semaineActuelle.nom}
+              </span>
+            </div>
+            <div style={{ fontSize: 16, fontWeight: 700 }}>Pronostics de la semaine</div>
+            <div style={{ display: 'flex', gap: 12, marginTop: 8, fontSize: 11, color: '#ffd9d5' }}>
+              <span>📅 {nombreMatchsSemaine} match{nombreMatchsSemaine > 1 ? 's' : ''}</span>
+              <span>🕐 Clôture dans 2j</span>
+            </div>
+            <div style={{
+              marginTop: 12,
+              background: 'white',
+              color: '#C8352E',
+              fontSize: 13,
+              fontWeight: 700,
+              padding: 10,
+              borderRadius: 8,
+              textAlign: 'center',
+            }}>
+              Faire mes pronostics →
+            </div>
           </Link>
-          <Link href="/bilan" style={{ padding: '14px 16px', backgroundColor: '#16233F', border: '0.5px solid #33415a', borderRadius: 10, textDecoration: 'none', color: 'white', textAlign: 'left' }}>
-            <div style={{ fontSize: 15, fontWeight: 500 }}>📊 Mon bilan de saison</div>
-            <div style={{ fontSize: 12, color: '#9fb0c9', marginTop: 2 }}>Retrouve tes stats et tes performances</div>
-          </Link>
+        )}
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
+          <div style={{ background: '#16233F', border: '0.5px solid #33415a', borderRadius: 10, padding: '12px 8px', textAlign: 'center' }}>
+            <div style={{ fontSize: 18 }}>🏆</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: 'white', marginTop: 4 }}>
+              {monRangGeneral ? `${monRangGeneral}e` : '—'}
+            </div>
+            <div style={{ fontSize: 9, color: '#9fb0c9' }}>
+              {totalJoueursClassement > 0 ? `sur ${totalJoueursClassement} joueurs` : 'classement'}
+            </div>
+          </div>
+          <div style={{ background: '#16233F', border: '0.5px solid #33415a', borderRadius: 10, padding: '12px 8px', textAlign: 'center' }}>
+            <div style={{ fontSize: 18 }}>🎯</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: 'white', marginTop: 4 }}>{mesPointsSaison} pts</div>
+            <div style={{ fontSize: 9, color: '#9fb0c9' }}>{tauxReussite}% réussite</div>
+          </div>
         </div>
 
         {journalPhrases.length > 0 && (
@@ -184,15 +286,17 @@ export default async function Home() {
             <div style={{ width: 3, height: 14, background: '#C8352E' }} />
             <span style={{ fontSize: 13, color: '#9fb0c9', textTransform: 'uppercase', letterSpacing: 0.5 }}>Rejoindre une ligue</span>
           </div>
-          <JoinLeagueForm />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '14px 0' }}>
-            <div style={{ flex: 1, height: 0.5, background: '#33415a' }} />
-            <span style={{ fontSize: 11, color: '#7a8aa5' }}>ou</span>
-            <div style={{ flex: 1, height: 0.5, background: '#33415a' }} />
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid #33415a', borderRadius: 12, padding: 14 }}>
+            <JoinLeagueForm />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '14px 0' }}>
+              <div style={{ flex: 1, height: 0.5, background: '#33415a' }} />
+              <span style={{ fontSize: 11, color: '#7a8aa5' }}>ou</span>
+              <div style={{ flex: 1, height: 0.5, background: '#33415a' }} />
+            </div>
+            <Link href="/leagues/create" style={{ padding: 12, display: 'block', textAlign: 'center', border: '0.5px solid #33415a', borderRadius: 8, textDecoration: 'none', color: 'white' }}>
+              ➕ Créer une nouvelle ligue
+            </Link>
           </div>
-          <Link href="/leagues/create" style={{ padding: 12, display: 'block', textAlign: 'center', border: '0.5px solid #33415a', borderRadius: 8, textDecoration: 'none', color: 'white' }}>
-            ➕ Créer une nouvelle ligue
-          </Link>
         </div>
 
         <form action="/auth/logout" method="post" style={{ marginTop: 32 }}>

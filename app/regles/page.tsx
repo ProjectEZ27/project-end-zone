@@ -25,7 +25,23 @@ const tdPoints: React.CSSProperties = { ...tdStyle, color: '#4ee892', fontWeight
 
 export default function ReglesPage() {
   return (
-    <div style={{ maxWidth: 640, margin: '0 auto', padding: '40px 16px 100px' }}>
+    <div style={{ position: 'relative', minHeight: '100vh' }}>
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: -1,
+        backgroundImage: 'url(/fonds/Fond-Regles.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'right center',
+        backgroundRepeat: 'no-repeat',
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(180deg, rgba(11,18,32,0.72) 0%, rgba(11,18,32,0.92) 100%)',
+        }} />
+      </div>
+      <div style={{ maxWidth: 640, margin: '0 auto', padding: '40px 16px 100px', position: 'relative' }}>
       <h1 style={{ fontSize: 26, textAlign: 'center', marginBottom: 4 }}>📖 Règles du jeu</h1>
       <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)', fontSize: 14, marginBottom: 32 }}>
         Tout ce qu'il faut savoir pour pronostiquer
@@ -205,6 +221,7 @@ export default function ReglesPage() {
           multi-comptes.
         </p>
       </RulesAccordion>
+      </div>
     </div>
   )
 }

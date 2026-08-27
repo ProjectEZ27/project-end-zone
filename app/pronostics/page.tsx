@@ -77,7 +77,23 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   const creneaux = grouperMatchsParCreneau(matchs ?? [])
 
   return (
-    <div style={{ maxWidth: 500, margin: '40px auto', padding: 24, textAlign: 'center' }}>
+    <div style={{ position: 'relative', minHeight: '100vh' }}>
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: -1,
+        backgroundImage: 'url(/fonds/Fond-Pronostics.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'right center',
+        backgroundRepeat: 'no-repeat',
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(180deg, rgba(11,18,32,0.72) 0%, rgba(11,18,32,0.92) 100%)',
+        }} />
+      </div>
+      <div style={{ maxWidth: 500, margin: '0 auto', padding: '40px 24px 100px', textAlign: 'center', color: 'white' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         {semainePrecedente ? (
           <a href={`/pronostics?semaine=${semainePrecedente.id}`} style={{ padding: 8 }}>← {semainePrecedente.nom}</a>
@@ -177,6 +193,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
             ))}
           </div>
         )}
+      </div>
       </div>
     </div>
   )

@@ -9,7 +9,23 @@ export default async function LoginPage({
   const params = await searchParams
 
   return (
-    <div style={{ maxWidth: 400, margin: '80px auto', padding: 24 }}>
+    <div style={{ position: 'relative', minHeight: '100vh' }}>
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: -1,
+        backgroundImage: 'url(/fonds/Fond-Acceuil.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'left center',
+        backgroundRepeat: 'no-repeat',
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(180deg, rgba(11,18,32,0.72) 0%, rgba(11,18,32,0.92) 100%)',
+        }} />
+      </div>
+      <div style={{ maxWidth: 400, margin: '0 auto', padding: '80px 24px 100px', position: 'relative', color: 'white' }}>
       <h1>Connexion</h1>
       {params.error && (
         <p style={{ color: 'red' }}>{decodeURIComponent(params.error)}</p>
@@ -33,6 +49,7 @@ export default async function LoginPage({
       <p style={{ marginTop: 8 }}>
         <a href="/mot-de-passe-oublie">Mot de passe oublié ?</a>
       </p>
+      </div>
     </div>
   )
 }

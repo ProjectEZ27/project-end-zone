@@ -99,7 +99,23 @@ export default async function ClassementLigue({
   })
 
   return (
-    <div style={{ maxWidth: 600, margin: '40px auto', padding: 24, textAlign: 'center' }}>
+    <div style={{ position: 'relative', minHeight: '100vh' }}>
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: -1,
+        backgroundImage: 'url(/fonds/Fond-Ligue.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'left center',
+        backgroundRepeat: 'no-repeat',
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(180deg, rgba(11,18,32,0.72) 0%, rgba(11,18,32,0.92) 100%)',
+        }} />
+      </div>
+      <div style={{ maxWidth: 600, margin: '0 auto', padding: '40px 24px 100px', textAlign: 'center', color: 'white' }}>
       <h1>🏆 Classement — {league.nom}</h1>
       <p>Saison {saison.nom}</p>
 
@@ -187,6 +203,7 @@ export default async function ClassementLigue({
           </tbody>
         </table>
       )}
+      </div>
     </div>
   )
 }

@@ -158,9 +158,25 @@ export function SpecialPicksPreseason({ saisonId, mesPronosSpeciaux }: { saisonI
 export function SpecialPicksAvantPlayoffs({ saisonId, mesPronosSpeciaux }: { saisonId: string; mesPronosSpeciaux: SpecialPick[] }) {
   const trouve = (type: string) => mesPronosSpeciaux?.find((p) => p.type === type)
   const avantPlayoffs = trouve('super_bowl_avant_playoffs')
+  const superBowlPreseason = trouve('super_bowl_preseason')
+  const mvp = trouve('mvp')
 
   return (
     <div style={{ marginBottom: 24 }}>
+      {(superBowlPreseason || mvp) && (
+        <div style={{ ...cardStyle, textAlign: 'left', backgroundColor: 'rgba(22, 35, 63, 0.6)' }}>
+          <p style={{ fontSize: 12, color: '#999', margin: '0 0 8px', textAlign: 'center' }}>
+            📋 Tes pronostics de la Week 1
+          </p>
+          {superBowlPreseason && (
+            <p style={{ fontSize: 13, margin: '4px 0' }}>🏆 Vainqueur Super Bowl : <strong>{superBowlPreseason.choix}</strong></p>
+          )}
+          {mvp && (
+            <p style={{ fontSize: 13, margin: '4px 0' }}>⭐ MVP : <strong>{mvp.choix}</strong></p>
+          )}
+        </div>
+      )}
+
       <div style={cardStyle}>
         <h2 style={{ fontSize: 16 }}>
           🏆 Vainqueur du Super Bowl — avant playoffs
@@ -183,6 +199,38 @@ export function SpecialPicksAvantPlayoffs({ saisonId, mesPronosSpeciaux }: { sai
           </select>
           <button type="submit" style={{ padding: 8 }}>Valider</button>
         </form>
+      </div>
+    </div>
+  )
+}
+
+export function SpecialPicksRecap({ mesPronosSpeciaux }: { mesPronosSpeciaux: SpecialPick[] }) {
+  const trouve = (type: string) => mesPronosSpeciaux?.find((p) => p.type === type)
+  const superBowlPreseason = trouve('super_bowl_preseason')
+  const mvp = trouve('mvp')
+  const avantPlayoffs = trouve('super_bowl_avant_playoffs')
+
+  if (!superBowlPreseason && !mvp && !avantPlayoffs) return null
+
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ ...cardStyle, textAlign: 'left', backgroundColor: 'rgba(22, 35, 63, 0.6)' }}>
+        <h2 style={{ fontSize: 16, textAlign: 'center' }}>📋 Récap de tes pronostics spéciaux</h2>
+        {superBowlPreseason && (
+          <p style={{ fontSize: 13, margin: '6px 0' }}>
+            🏆 Vainqueur Super Bowl (avant saison) : <strong>{superBowlPreseason.choix}</strong>
+          </p>
+        )}
+        {avantPlayoffs && (
+          <p style={{ fontSize: 13, margin: '6px 0' }}>
+            🏆 Vainqueur Super Bowl (avant playoffs) : <strong>{avantPlayoffs.choix}</strong>
+          </p>
+        )}
+        {mvp && (
+          <p style={{ fontSize: 13, margin: '6px 0' }}>
+            ⭐ MVP de la saison : <strong>{mvp.choix}</strong>
+          </p>
+        )}
       </div>
     </div>
   )

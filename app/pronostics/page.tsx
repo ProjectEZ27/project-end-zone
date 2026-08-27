@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { NOMS_EQUIPES } from '@/lib/teamBadge'
 import SelecteurSemaine from './SelecteurSemaine'
 import MatchLine from '@/components/MatchLine'
-import { SpecialPicksPreseason, SpecialPicksAvantPlayoffs } from '@/components/SpecialPicksCards'
+import { SpecialPicksPreseason, SpecialPicksAvantPlayoffs, SpecialPicksRecap } from '@/components/SpecialPicksCards'
 import { grouperMatchsParCreneau } from '@/lib/groupMatchsByCreneau'
 import WeekGroupHeader from '@/components/WeekGroupHeader'
 import { estSemaineOuverte, calculerDateOuverture } from '@/lib/semaineOuverture'
@@ -40,10 +40,11 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   const semaineSuivante = indexActuel !== -1 && indexActuel < (toutesLesSemaines?.length ?? 0) - 1 ? toutesLesSemaines?.[indexActuel + 1] : null
   const estPremiereSemaine = semaine.nom?.toLowerCase().trim() === 'week 1'
   const estSemaineWildCard = semaine.nom?.toLowerCase().trim() === 'wild card'
+  const estSemaineSuperBowl = semaine.nom?.toLowerCase().trim() === 'super bowl'
 
   const [matchsResult, saisonResult] = await Promise.all([
     supabase.from('matchs').select('*').eq('semaine_id', semaine.id).order('coup_envoi', { ascending: true }),
-    (estPremiereSemaine || estSemaineWildCard)
+    (estPremiereSemaine || estSemaineWildCard || estSemaineSuperBowl)
       ? supabase.from('saisons').select('id, nom').eq('statut', 'en_cours').single()
       : Promise.resolve({ data: null })
   ])
@@ -116,6 +117,10 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
 
       {estSemaineWildCard && saison && (
         <SpecialPicksAvantPlayoffs saisonId={saison.id} mesPronosSpeciaux={mesPronosSpeciaux} />
+      )}
+
+      {estSemaineSuperBowl && saison && (
+        <SpecialPicksRecap mesPronosSpeciaux={mesPronosSpeciaux} />
       )}
 
       {!semaineOuverte && dateOuverture && (

@@ -1,0 +1,46 @@
+.heroSection {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  height: 620px;
+}
+
+.heroImageWrap {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 58%;
+}
+
+.heroFade {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 35%;
+  background: linear-gradient(90deg, #0F1419, transparent);
+}
+
+/* Écrans moyens (laptops, écrans PC plus étroits) */
+@media (max-width: 1300px) {
+  .heroSection {
+    height: 480px;
+  }
+  .heroImageWrap {
+    width: 68%;
+  }
+}
+
+/* Mobile : hero nettement plus bas, image quasi pleine largeur */
+@media (max-width: 640px) {
+  .heroSection {
+    height: 340px;
+  }
+  .heroImageWrap {
+    width: 85%;
+  }
+  .heroFade {
+    width: 50%;
+  }
+}

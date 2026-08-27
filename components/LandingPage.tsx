@@ -1,22 +1,15 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import styles from './LandingPage.module.css'
 
 export default function LandingPage() {
   return (
     <div style={{ backgroundColor: '#0F1419', color: 'white', minHeight: '100vh' }}>
 
       {/* HERO (logo intégré, pas de bandeau header séparé) */}
-      <section style={{ position: 'relative', width: '100%', height: 620, overflow: 'hidden' }}>
+      <section className={styles.heroSection}>
         {/* Image plein format à droite, bord à bord */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            bottom: 0,
-            width: '58%',
-          }}
-        >
+        <div className={styles.heroImageWrap}>
           <Image
             src="/images/hero-landing.png"
             alt="Joueur NFL"
@@ -25,16 +18,7 @@ export default function LandingPage() {
             style={{ objectFit: 'cover', objectPosition: 'center' }}
           />
           {/* Dégradé de fondu vers le fond sombre côté gauche */}
-          <div
-            style={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              bottom: 0,
-              width: '35%',
-              background: 'linear-gradient(90deg, #0F1419, transparent)',
-            }}
-          />
+          <div className={styles.heroFade} />
         </div>
 
         {/* Texte + logo par-dessus, aligné à gauche */}

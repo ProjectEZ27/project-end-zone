@@ -16,7 +16,6 @@
 html, body {
   margin: 0;
   padding: 0;
-  background-color: var(--encre);
   color: var(--blanc-craie);
   font-family: 'Manrope', sans-serif;
 }

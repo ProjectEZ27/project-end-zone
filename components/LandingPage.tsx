@@ -5,8 +5,20 @@ import styles from './LandingPage.module.css'
 export default function LandingPage() {
   return (
     <div style={{ position: 'relative', minHeight: '100vh', color: 'white' }}>
-      <div className={styles.pageBg}>
-        <div className={styles.pageOverlay} />
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: -1,
+        backgroundImage: 'url(/images/hero-landing.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'right 30%',
+        backgroundRepeat: 'no-repeat',
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(90deg, #0F1419 20%, rgba(15,20,25,0.55) 55%, rgba(15,20,25,0.75) 100%)',
+        }} />
       </div>
 
       {/* HERO */}

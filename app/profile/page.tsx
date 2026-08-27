@@ -59,7 +59,7 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
     const { data: pronostics } = await supabase
       .from('pronostics')
       .select('*')
-      .eq('utilisateur_id', user.id)
+      .eq('utilisateur_id', user!.id)
       .in('match_id', matchIds)
 
     if (!pronostics) return { totalPronostics, totalCorrects, meilleureSemaine, semainesParfaites, resultatsParSemaine }

@@ -22,18 +22,7 @@ export default function LandingPage() {
         </div>
 
         {/* Texte + logo par-dessus, aligné à gauche */}
-        <div
-          style={{
-            position: 'relative',
-            maxWidth: 1200,
-            margin: '0 auto',
-            padding: '32px 24px 0',
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-          }}
-        >
+        <div className={styles.heroContent}>
           <div style={{ maxWidth: 500 }}>
             <img
               src="/logo-officiel.png"
@@ -41,21 +30,13 @@ export default function LandingPage() {
               style={{ height: 150, marginBottom: 8, marginLeft: -10 }}
             />
 
-            <h1
-              style={{
-                fontSize: 42,
-                lineHeight: 1.1,
-                fontWeight: 900,
-                margin: 0,
-                letterSpacing: -0.5,
-              }}
-            >
+            <h1 className={styles.heroTitle}>
               PRONOSTIQUE.<br />
               DÉFIE TES AMIS.<br />
               <span style={{ color: '#C8352E' }}>DEVIENS UNE LÉGENDE.</span>
             </h1>
 
-            <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.7)', marginTop: 18, maxWidth: 460 }}>
+            <p className={styles.heroText}>
               Rejoins des milliers de fans NFL, participe à des ligues, fais tes pronostics chaque semaine et grimpe dans le classement.
             </p>
 

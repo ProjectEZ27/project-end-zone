@@ -17,17 +17,24 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
   }
 
   // ÉTAPE 1 : tout ce qui ne dépend de rien d'autre, en parallèle
-  const [profileResult, saisonResult, semaineActuelleResult, prochainMatchResult] = await Promise.all([
+  const [profileResult, saisonResult, prochainMatchResult] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).single(),
     supabase.from('saisons').select('*').eq('statut', 'en_cours').single(),
-    supabase.from('semaines').select('id, nom').order('id', { ascending: false }).limit(1).single(),
-    supabase.from('matchs').select('coup_envoi').eq('statut', 'a_venir').order('coup_envoi', { ascending: true }).limit(1).maybeSingle(),
+    supabase.from('matchs').select('coup_envoi, semaine_id').neq('statut', 'termine').order('coup_envoi', { ascending: true }).limit(1).maybeSingle(),
   ])
 
   const profile = profileResult.data
   const saison = saisonResult.data
-  const semaineActuelleData = semaineActuelleResult.data
   const prochainMatchData = prochainMatchResult.data
+
+  let semaineActuelleData: { id: number; nom: string } | null = null
+  if (prochainMatchData) {
+    const { data } = await supabase.from('semaines').select('id, nom').eq('id', prochainMatchData.semaine_id).single()
+    semaineActuelleData = data
+  } else {
+    const { data } = await supabase.from('semaines').select('id, nom').order('id', { ascending: false }).limit(1).single()
+    semaineActuelleData = data
+  }
 
   // ÉTAPE 2 : trois chaînes indépendantes entre elles, chacune en parallèle des autres
   async function calculerStatsSaison() {

@@ -70,6 +70,28 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   const estPremiereSemaine = semaine.nom?.toLowerCase().trim() === 'week 1'
   const estSemaineWildCard = semaine.nom?.toLowerCase().trim() === 'wild card'
   const estSemaineSuperBowl = semaine.nom?.toLowerCase().trim() === 'super bowl'
+  const estSemaineDivisionnaire = semaine.nom?.toLowerCase().trim() === 'divisionnaire'
+  const estSemaineFinaleConference = semaine.nom?.toLowerCase().trim() === 'finale de conférence'
+
+  const infosPlaceholderPlayoffs: Record<string, { titre: string; texte: string }> = {
+    'wild card': {
+      titre: 'Format Wild Card',
+      texte: "Les équipes classées 2e à 7e de chaque conférence (AFC et NFC) s'affrontent. Le 1er de chaque conférence est exempté ce tour-ci et attend directement le tour Divisionnaire.",
+    },
+    'divisionnaire': {
+      titre: 'Format Divisionnaire',
+      texte: "Le 1er de chaque conférence affronte le vainqueur du Wild Card le moins bien classé. Les deux autres vainqueurs du Wild Card s'affrontent entre eux.",
+    },
+    'finale de conférence': {
+      titre: 'Format Finale de Conférence',
+      texte: "Les 2 équipes restantes de l'AFC s'affrontent pour désigner le champion AFC, et pareil côté NFC pour désigner le champion NFC.",
+    },
+    'super bowl': {
+      titre: 'Format Super Bowl',
+      texte: "Le champion AFC affronte le champion NFC pour le titre de champion NFL.",
+    },
+  }
+
 
   const [matchsResult, saisonResult] = await Promise.all([
     supabase.from('matchs').select('*').eq('semaine_id', semaine.id).order('coup_envoi', { ascending: true }),
@@ -79,6 +101,10 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   ])
   const matchs = matchsResult.data
   const saison = saisonResult.data
+
+  const estSemainePlayoffsVide =
+    (!matchs || matchs.length === 0) &&
+    (estSemaineWildCard || estSemaineDivisionnaire || estSemaineFinaleConference || estSemaineSuperBowl)
 
   const matchIds = (matchs ?? []).map((m) => m.id)
 
@@ -175,8 +201,33 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
         </div>
       )}
 
+      {estSemainePlayoffsVide && (
+        <div
+          style={{
+            border: '1px solid rgba(200,53,46,0.35)',
+            borderRadius: 10,
+            padding: 20,
+            marginTop: 20,
+            marginBottom: 12,
+            textAlign: 'center',
+            background: 'linear-gradient(135deg, rgba(200,53,46,0.15), rgba(200,53,46,0.05))',
+          }}
+        >
+          <div style={{ fontSize: 22 }}>🏈</div>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 8 }}>
+            Matchs à venir
+          </div>
+          <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>
+            {infosPlaceholderPlayoffs[semaine.nom?.toLowerCase().trim() ?? '']?.titre}
+          </div>
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', lineHeight: 1.5, margin: 0 }}>
+            {infosPlaceholderPlayoffs[semaine.nom?.toLowerCase().trim() ?? '']?.texte}
+          </p>
+        </div>
+      )}
+
       <div>
-        {semaineOuverte ? (
+        {estSemainePlayoffsVide ? null : semaineOuverte ? (
           creneaux.map((creneau) => (
             <div key={creneau.coupEnvoi}>
               <WeekGroupHeader

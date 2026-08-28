@@ -54,7 +54,7 @@ export default function LeagueSubNav({
               key={key}
               href={href}
               style={{
-                flexShrink: 0,
+                flex: 1,
                 background: '#16233F',
                 border: estActif ? '1px solid #C8352E' : '0.5px solid #33415a',
                 borderRadius: 8,

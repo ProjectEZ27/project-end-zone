@@ -17,14 +17,43 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
     redirect('/login')
   }
 
-  const [toutesLesSemainesResult, semaineResult] = await Promise.all([
+  const [toutesLesSemainesResult, semaineParamResult] = await Promise.all([
     supabase.from('semaines').select('id, nom').order('id', { ascending: true }),
     semaineParam
       ? supabase.from('semaines').select('*').eq('id', semaineParam).single()
-      : supabase.from('semaines').select('*').order('id', { ascending: false }).limit(1).single()
+      : Promise.resolve({ data: null })
   ])
   const toutesLesSemaines = toutesLesSemainesResult.data
-  let semaine = semaineResult.data
+  let semaine = semaineParamResult.data
+
+  if (!semaine) {
+    // Semaine par défaut = celle du prochain match non terminé (chronologiquement),
+    // sinon la toute dernière semaine si tout est déjà joué.
+    const { data: prochainMatch } = await supabase
+      .from('matchs')
+      .select('semaine_id')
+      .neq('statut', 'termine')
+      .order('coup_envoi', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+
+    if (prochainMatch) {
+      const { data: semaineTrouvee } = await supabase
+        .from('semaines')
+        .select('*')
+        .eq('id', prochainMatch.semaine_id)
+        .single()
+      semaine = semaineTrouvee
+    } else {
+      const { data: derniereSemaine } = await supabase
+        .from('semaines')
+        .select('*')
+        .order('id', { ascending: false })
+        .limit(1)
+        .single()
+      semaine = derniereSemaine
+    }
+  }
 
   if (!semaine) {
     return (

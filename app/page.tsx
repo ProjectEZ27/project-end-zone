@@ -245,7 +245,7 @@ export default async function Home() {
           {mesLigues.length === 0 ? (
             <p style={{ color: '#999' }}>Tu ne fais partie d'aucune ligue pour le moment.</p>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)', gap: 10 }}>
               {mesLigues.map((ligue: any) => {
                 const { nombreJoueurs, rang } = getInfosLigue(ligue.id)
                 const couleurBadge =

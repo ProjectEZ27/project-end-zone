@@ -11,7 +11,7 @@ export default async function LoginPage({
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <div style={{
-        position: 'fixed',
+        position: 'absolute',
         inset: 0,
         zIndex: -1,
         backgroundImage: 'url(/fonds/Fond-Acceuil.png)',

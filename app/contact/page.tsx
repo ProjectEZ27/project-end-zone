@@ -4,7 +4,7 @@ export default function ContactPage() {
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <div style={{
-        position: 'fixed',
+        position: 'absolute',
         inset: 0,
         zIndex: -1,
         backgroundImage: 'url(/fonds/Fond-Bilan.png)',

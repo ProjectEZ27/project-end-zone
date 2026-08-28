@@ -8,7 +8,7 @@ export default function LandingPage() {
   return (
     <div style={{ position: 'relative', minHeight: '100vh', color: 'white' }}>
       <div className="landingBg" style={{
-        position: 'fixed',
+        position: 'absolute',
         inset: 0,
         zIndex: -1,
         backgroundImage: 'url(/images/hero-landing.png)',

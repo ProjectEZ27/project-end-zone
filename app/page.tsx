@@ -150,7 +150,7 @@ export default async function Home() {
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       {/* Fond photo pleine hauteur, joueur à gauche, transparence sombre */}
       <div style={{
-        position: 'fixed',
+        position: 'absolute',
         inset: 0,
         zIndex: -1,
         backgroundImage: 'url(/fonds/Fond-Acceuil.png)',

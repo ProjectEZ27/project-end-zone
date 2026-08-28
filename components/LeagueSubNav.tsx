@@ -64,8 +64,8 @@ export default function LeagueSubNav({
                 color: 'white',
               }}
             >
-              <Icon size={20} color={estActif ? '#C8352E' : '#9fb0c9'} style={{ display: 'block', margin: '0 auto' }} />
-              <div style={{ fontSize: 9, marginTop: 3 }}>{label}</div>
+              <Icon size={24} color={estActif ? '#C8352E' : '#9fb0c9'} style={{ display: 'block', margin: '0 auto' }} />
+              <div style={{ fontSize: 9, marginTop: 4 }}>{label}</div>
             </Link>
           )
         })}

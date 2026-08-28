@@ -16,7 +16,7 @@ export default function OnboardingForm({ equipes, errorMessage }: OnboardingForm
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <div style={{
-        position: 'absolute',
+        position: 'fixed',
         inset: 0,
         zIndex: -1,
         backgroundImage: 'url(/fonds/Fond-Acceuil.png)',

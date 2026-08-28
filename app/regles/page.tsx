@@ -27,7 +27,7 @@ export default function ReglesPage() {
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <div style={{
-        position: 'absolute',
+        position: 'fixed',
         inset: 0,
         zIndex: -1,
         backgroundImage: 'url(/fonds/Fond-Regles.png)',

@@ -86,7 +86,7 @@ export default async function Classement() {
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <div style={{
-        position: 'absolute',
+        position: 'fixed',
         inset: 0,
         zIndex: -1,
         backgroundImage: 'url(/fonds/Fond-Classment.png)',

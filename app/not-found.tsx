@@ -2,10 +2,11 @@ import Link from 'next/link'
 
 export default function NotFound() {
   return (
-    <div style={{ maxWidth: 500, margin: '120px auto', padding: 24, textAlign: 'center' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#1A1D24', color: 'white' }}>
+    <div style={{ maxWidth: 500, margin: '0 auto', padding: '120px 24px', textAlign: 'center' }}>
       <div style={{ fontSize: 64 }}>🏈</div>
       <h1 style={{ marginTop: 16 }}>Hors-jeu !</h1>
-      <p style={{ color: '#999', marginTop: 8 }}>
+      <p style={{ color: '#9fb0c9', marginTop: 8 }}>
         Cette page n'existe pas, ou plus.
       </p>
       <Link
@@ -22,6 +23,7 @@ export default function NotFound() {
       >
         Retour à l'accueil
       </Link>
+    </div>
     </div>
   )
 }

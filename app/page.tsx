@@ -7,6 +7,7 @@ import { genererJournalSemaine } from '@/lib/journal'
 import LandingPage from '@/components/LandingPage'
 import LeagueLogo from '@/components/LeagueLogo'
 import { calculerClassementSaison } from '@/lib/scoring'
+import CountdownBadge from './CountdownBadge'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -110,12 +111,24 @@ export default async function Home() {
   // Bandeau "Pronostics de la semaine"
   const semaineActuelle = derniereSemaineResult.data
   let nombreMatchsSemaine = 0
+  let prochainVerrouillage: string | null = null
   if (semaineActuelle) {
     const { count } = await supabase
       .from('matchs')
       .select('id', { count: 'exact', head: true })
       .eq('semaine_id', semaineActuelle.id)
     nombreMatchsSemaine = count ?? 0
+
+    const { data: prochainMatchSemaine } = await supabase
+      .from('matchs')
+      .select('coup_envoi')
+      .eq('semaine_id', semaineActuelle.id)
+      .eq('statut', 'a_venir')
+      .order('coup_envoi', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+
+    prochainVerrouillage = prochainMatchSemaine?.coup_envoi ?? null
   }
 
   // Journal du mardi : on cherche la dernière semaine clôturée (la plus récente terminée)
@@ -173,7 +186,7 @@ export default async function Home() {
             <div style={{ fontSize: 16, fontWeight: 700 }}>Pronostics de la semaine</div>
             <div style={{ display: 'flex', gap: 12, marginTop: 8, fontSize: 11, color: '#ffd9d5' }}>
               <span>📅 {nombreMatchsSemaine} match{nombreMatchsSemaine > 1 ? 's' : ''}</span>
-              <span>🕐 Clôture dans 2j</span>
+              <CountdownBadge cible={prochainVerrouillage} />
             </div>
             <div style={{
               marginTop: 12,

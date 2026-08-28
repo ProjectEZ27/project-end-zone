@@ -17,12 +17,12 @@ export default async function Home() {
     return <LandingPage />
   }
 
-  const [profileResult, adhesionsResult, semaineClotureeResult, saisonResult, derniereSemaineResult] = await Promise.all([
+  const [profileResult, adhesionsResult, semaineClotureeResult, saisonResult, prochainMatchGlobalResult] = await Promise.all([
     supabase.from('profiles').select('pseudo').eq('id', user.id).maybeSingle(),
     supabase.from('adhesions').select('ligue_id, ligues(id, nom, logo_id)').eq('utilisateur_id', user.id).eq('statut', 'actif'),
     supabase.from('semaines').select('id, nom').eq('statut', 'cloturee').order('id', { ascending: false }).limit(1).single(),
     supabase.from('saisons').select('id').eq('statut', 'en_cours').single(),
-    supabase.from('semaines').select('id, nom').order('id', { ascending: false }).limit(1).single(),
+    supabase.from('matchs').select('semaine_id').neq('statut', 'termine').order('coup_envoi', { ascending: true }).limit(1).maybeSingle(),
   ])
 
   const profile = profileResult.data
@@ -108,8 +108,16 @@ export default async function Home() {
   }
   const tauxReussite = totalPronostics > 0 ? Math.round((totalCorrects / totalPronostics) * 100) : 0
 
-  // Bandeau "Pronostics de la semaine"
-  const semaineActuelle = derniereSemaineResult.data
+  // Bandeau "Pronostics de la semaine" — semaine dérivée du prochain match non terminé (même logique que Pronostics/Profil)
+  let semaineActuelle: { id: number; nom: string } | null = null
+  if (prochainMatchGlobalResult.data) {
+    const { data } = await supabase.from('semaines').select('id, nom').eq('id', prochainMatchGlobalResult.data.semaine_id).single()
+    semaineActuelle = data
+  } else {
+    const { data } = await supabase.from('semaines').select('id, nom').order('id', { ascending: false }).limit(1).single()
+    semaineActuelle = data
+  }
+
   let nombreMatchsSemaine = 0
   let prochainVerrouillage: string | null = null
   if (semaineActuelle) {

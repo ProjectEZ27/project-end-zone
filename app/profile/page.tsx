@@ -250,18 +250,35 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
                   Évolution de mon pourcentage de réussite
                 </div>
                 {(() => {
+                  const pourcentages = resultatsParSemaine.map((r) => r.total > 0 ? (r.corrects / r.total) * 100 : 0)
+                  const minReel = Math.min(...pourcentages)
+                  const maxReel = Math.max(...pourcentages)
+
+                  // Axe ajusté à la fourchette réelle, avec un peu de marge, arrondi aux 10 les plus proches
+                  let axisMin = Math.max(0, Math.floor((minReel - 10) / 10) * 10)
+                  let axisMax = Math.min(100, Math.ceil((maxReel + 10) / 10) * 10)
+                  if (axisMax - axisMin < 20) {
+                    axisMin = Math.max(0, axisMin - 10)
+                    axisMax = Math.min(100, axisMax + 10)
+                  }
+                  const axisMid = Math.round((axisMin + axisMax) / 2)
+
                   const points = resultatsParSemaine.map((r, i) => {
                     const pct = r.total > 0 ? (r.corrects / r.total) * 100 : 0
-                    const x = 10 + (i * (300 / Math.max(resultatsParSemaine.length - 1, 1)))
-                    const y = 90 - (pct / 100) * 80
+                    const x = 26 + (i * (280 / Math.max(resultatsParSemaine.length - 1, 1)))
+                    const y = 90 - ((pct - axisMin) / (axisMax - axisMin)) * 80
                     return { x, y }
                   })
                   const polyline = points.map((p) => `${p.x},${p.y}`).join(' ')
+
                   return (
                     <svg viewBox="0 0 320 100" style={{ width: '100%', height: 'auto' }}>
-                      <line x1="10" y1="20" x2="310" y2="20" stroke="#1c2942" strokeWidth="1" />
-                      <line x1="10" y1="50" x2="310" y2="50" stroke="#1c2942" strokeWidth="1" />
-                      <line x1="10" y1="80" x2="310" y2="80" stroke="#1c2942" strokeWidth="1" />
+                      <line x1="24" y1="10" x2="310" y2="10" stroke="#1c2942" strokeWidth="1" />
+                      <line x1="24" y1="50" x2="310" y2="50" stroke="#1c2942" strokeWidth="1" />
+                      <line x1="24" y1="90" x2="310" y2="90" stroke="#1c2942" strokeWidth="1" />
+                      <text x="0" y="13" fontSize="7" fill="#5a6b85">{axisMax}%</text>
+                      <text x="4" y="53" fontSize="7" fill="#5a6b85">{axisMid}%</text>
+                      <text x="6" y="93" fontSize="7" fill="#5a6b85">{axisMin}%</text>
                       <polyline points={polyline} fill="none" stroke="#C8352E" strokeWidth="2.5" />
                       {points.map((p, i) => (
                         <circle key={i} cx={p.x} cy={p.y} r={i === points.length - 1 ? 4 : 3} fill={i === points.length - 1 ? '#EF9F27' : '#C8352E'} />
@@ -269,7 +286,7 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
                     </svg>
                   )
                 })()}
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 8, color: '#5a6b85', marginTop: 2, padding: '0 2px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 8, color: '#5a6b85', marginTop: 2, padding: '0 24px 0 26px' }}>
                   {resultatsParSemaine.map((r, i) => (
                     <span key={i}>{r.nom.replace('Week ', 'S')}</span>
                   ))}

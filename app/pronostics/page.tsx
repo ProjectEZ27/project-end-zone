@@ -140,6 +140,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
         position: 'fixed',
         inset: 0,
         zIndex: -1,
+        transform: 'translateZ(0)',
         backgroundImage: 'url(/fonds/Fond-Pronostics.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'right center',

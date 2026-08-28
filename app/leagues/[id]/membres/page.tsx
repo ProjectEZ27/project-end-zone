@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
+import LeagueSubNav from '@/components/LeagueSubNav'
 
 export default async function MembresLigue({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -70,7 +71,7 @@ export default async function MembresLigue({ params }: { params: Promise<{ id: s
         }} />
       </div>
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '40px 24px 100px', textAlign: 'center', color: 'white' }}>
-      <h1>👥 Membres — {league.nom}</h1>
+      <LeagueSubNav ligueId={id} ligueNom={league.nom} actif="membres" />
       <p>{membres.length} joueur{membres.length > 1 ? 's' : ''} actif{membres.length > 1 ? 's' : ''}</p>
 
       <div style={{ marginTop: 24, textAlign: 'left' }}>

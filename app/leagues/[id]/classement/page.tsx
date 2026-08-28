@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { calculerClassementSaison, calculerClassementSemaine, calculerHistoriqueSemaines } from '@/lib/scoring'
+import LeagueSubNav from '@/components/LeagueSubNav'
 
 export default async function ClassementLigue({
   params,
@@ -116,7 +117,7 @@ export default async function ClassementLigue({
         }} />
       </div>
       <div style={{ maxWidth: 600, margin: '0 auto', padding: '40px 24px 100px', textAlign: 'center', color: 'white' }}>
-      <h1>🏆 Classement — {league.nom}</h1>
+      <LeagueSubNav ligueId={id} ligueNom={league.nom} actif="classement" />
       <p>Saison {saison.nom}</p>
 
       <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>

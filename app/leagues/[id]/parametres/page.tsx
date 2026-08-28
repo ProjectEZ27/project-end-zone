@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { modifierLigue, relancerRetardataires } from './actions'
+import LeagueSubNav from '@/components/LeagueSubNav'
 
 export default async function ParametresLigue({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -104,7 +105,7 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
         }} />
       </div>
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '40px 24px 100px', textAlign: 'center', color: 'white' }}>
-      <h1>⚙️ Paramètres — {league.nom}</h1>
+      <LeagueSubNav ligueId={id} ligueNom={league.nom} actif="parametres" estCommissaire={true} />
 
       <div style={{ marginTop: 24, padding: 16, border: '1px solid #ccc', borderRadius: 8, textAlign: 'left' }}>
         <p><strong>Pronostics de la semaine en cours</strong></p>

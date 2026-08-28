@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { NOMS_EQUIPES } from '@/lib/teamBadge'
 import MatchHeaderReadOnly from '@/components/MatchHeaderReadOnly'
 import PicksColumns from '@/components/PicksColumns'
+import LeagueSubNav from '@/components/LeagueSubNav'
 
 export default async function LeaguePronostics({
   params,
@@ -126,7 +127,7 @@ export default async function LeaguePronostics({
         }} />
       </div>
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '40px 24px 100px', textAlign: 'center', color: 'white' }}>
-      <h1>🏟️ {league.nom}</h1>
+      <LeagueSubNav ligueId={id} ligueNom={league.nom} actif="pronostics" />
       <p style={{ color: '#999', fontSize: 13, marginBottom: 20 }}>Pronostics de tous les membres</p>
 
       <div style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 24, paddingBottom: 4 }}>

@@ -91,3 +91,37 @@ export async function changerLogoLigue(formData: FormData) {
   revalidatePath('/')
   redirect('/leagues/' + ligue_id)
 }
+
+export async function supprimerLigue(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  const ligue_id = formData.get('ligue_id') as string
+
+  // Vérification côté serveur : seul le commissaire peut supprimer la ligue
+  const { data: league } = await supabase
+    .from('ligues')
+    .select('commissaire_id')
+    .eq('id', ligue_id)
+    .single()
+
+  if (!league || league.commissaire_id !== user.id) {
+    redirect(`/leagues/${ligue_id}?error=${encodeURIComponent('Seul le commissaire peut supprimer la ligue')}`)
+  }
+
+  // Nettoyage des adhésions liées avant de supprimer la ligue elle-même
+  await supabase.from('adhesions').delete().eq('ligue_id', ligue_id)
+
+  const { error } = await supabase.from('ligues').delete().eq('id', ligue_id)
+
+  if (error) {
+    redirect(`/leagues/${ligue_id}?error=${encodeURIComponent(error.message)}`)
+  }
+
+  revalidatePath('/')
+  redirect('/')
+}

@@ -30,7 +30,6 @@ export default function ReglesPage() {
         position: 'fixed',
         inset: 0,
         zIndex: -1,
-        transform: 'translateZ(0)',
         backgroundImage: 'url(/fonds/Fond-Regles.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'right center',

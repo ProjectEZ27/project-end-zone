@@ -27,7 +27,6 @@ export default async function HistoriqueLigue({ params }: { params: Promise<{ id
         position: 'fixed',
         inset: 0,
         zIndex: -1,
-        transform: 'translateZ(0)',
         backgroundImage: 'url(/fonds/Fond-Ligue.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'left center',

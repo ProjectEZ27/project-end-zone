@@ -5,7 +5,6 @@ export default function Confidentialite() {
         position: 'fixed',
         inset: 0,
         zIndex: -1,
-        transform: 'translateZ(0)',
         backgroundImage: 'url(/fonds/Fond-Bilan.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'left center',

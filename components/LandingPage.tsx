@@ -11,7 +11,6 @@ export default function LandingPage() {
         position: 'fixed',
         inset: 0,
         zIndex: -1,
-        transform: 'translateZ(0)',
         backgroundImage: 'url(/images/hero-landing.png)',
         backgroundSize: 'cover',
         backgroundRepeat: 'no-repeat',

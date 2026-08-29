@@ -115,7 +115,6 @@ export default async function LeaguePronostics({
         position: 'fixed',
         inset: 0,
         zIndex: -1,
-        transform: 'translateZ(0)',
         backgroundImage: 'url(/fonds/Fond-Ligue.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'left center',

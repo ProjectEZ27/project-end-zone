@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { modifierLigue, relancerRetardataires } from './actions'
 import LeagueSubNav from '@/components/LeagueSubNav'
+import DeleteLeagueButton from '@/components/DeleteLeagueButton'
 
 export default async function ParametresLigue({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -93,7 +94,6 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
         position: 'fixed',
         inset: 0,
         zIndex: -1,
-        transform: 'translateZ(0)',
         backgroundImage: 'url(/fonds/Fond-Ligue.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'left center',
@@ -172,6 +172,7 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
           Enregistrer les modifications
         </button>
       </form>
+       <DeleteLeagueButton ligueId={id} ligueNom={league.nom} />
       </div>
     </div>
   )

@@ -167,9 +167,8 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
       <div style={{
         position: 'fixed',
         inset: 0,
-         zIndex: -1,
-        transform: 'translateZ(0)',
-        transform: 'translateZ(0)',
+        zIndex: -1,
+        
         backgroundImage: 'url(/fonds/Fond-Profil.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'right center',

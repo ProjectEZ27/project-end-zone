@@ -16,9 +16,8 @@ export default async function CreateLeague() {
       <div style={{
         position: 'fixed',
         inset: 0,
-         zIndex: -1,
-        transform: 'translateZ(0)',
-        transform: 'translateZ(0)',
+        zIndex: -1,
+        
         backgroundImage: 'url(/fonds/Fond-Ligue.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'left center',

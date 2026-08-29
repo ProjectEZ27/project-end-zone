@@ -10,9 +10,8 @@ export default function LandingPage() {
       <div className="landingBg" style={{
         position: 'fixed',
         inset: 0,
-         zIndex: -1,
-        transform: 'translateZ(0)',
-        transform: 'translateZ(0)',
+        zIndex: -1,
+        
         backgroundImage: 'url(/images/hero-landing.png)',
         backgroundSize: 'cover',
         backgroundRepeat: 'no-repeat',

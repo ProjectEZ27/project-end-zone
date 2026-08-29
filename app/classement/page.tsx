@@ -88,9 +88,7 @@ export default async function Classement() {
       <div style={{
         position: 'fixed',
         inset: 0,
-         zIndex: -1,
-        transform: 'translateZ(0)',
-        transform: 'translateZ(0)',
+        zIndex: -1,
         backgroundImage: 'url(/fonds/Fond-Classment.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'right center',

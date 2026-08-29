@@ -93,7 +93,9 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
       <div style={{
         position: 'fixed',
         inset: 0,
-        zIndex: -1,
+         zIndex: -1,
+        transform: 'translateZ(0)',
+        transform: 'translateZ(0)',
         backgroundImage: 'url(/fonds/Fond-Ligue.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'left center',

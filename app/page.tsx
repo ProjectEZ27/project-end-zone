@@ -147,26 +147,23 @@ export default async function Home() {
     : []
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh' }}>
-      {/* Fond photo pleine hauteur, joueur à gauche, transparence sombre */}
+    <div style={{
+      position: 'relative',
+      minHeight: '100vh',
+      backgroundImage: 'url(/fonds/Fond-Acceuil.png)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'left center',
+      backgroundRepeat: 'no-repeat',
+      backgroundAttachment: 'fixed',
+    }}>
+      {/* Dégradé sombre par-dessus le fond */}
       <div style={{
-        position: 'fixed',
+        position: 'absolute',
         inset: 0,
-        zIndex: -1,
-        
-        backgroundImage: 'url(/fonds/Fond-Acceuil.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'left center',
-        backgroundRepeat: 'no-repeat',
-      }}>
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(180deg, rgba(11,18,32,0.72) 0%, rgba(11,18,32,0.92) 100%)',
-        }} />
-      </div>
+        background: 'linear-gradient(180deg, rgba(11,18,32,0.72) 0%, rgba(11,18,32,0.92) 100%)',
+      }} />
 
-      <div style={{ maxWidth: 500, margin: '0 auto', padding: '24px 24px 100px', textAlign: 'center' }}>
+      <div style={{ position: 'relative', maxWidth: 500, margin: '0 auto', padding: '24px 24px 100px', textAlign: 'center' }}>
         <img src="/logo-officiel.png" alt="Project End Zone" style={{ width: 160, margin: '0 auto', display: 'block' }} />
         <p style={{ color: 'white', marginTop: 12 }}>Connecté en tant que {profile.pseudo}</p>
 

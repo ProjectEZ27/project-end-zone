@@ -210,8 +210,8 @@ export default function ReglesPage() {
         <p>Le classement se départage dans cet ordre :</p>
         <ul style={{ margin: '6px 0', paddingLeft: 20 }}>
           <li style={{ marginBottom: 4 }}>Score total</li>
-          <li style={{ marginBottom: 4 }}>Nombre de semaines gagnées</li>
           <li style={{ marginBottom: 4 }}>Nombre de semaines parfaites</li>
+          <li style={{ marginBottom: 4 }}>Meilleur pourcentage de réussite réalisé sur une semaine</li>
         </ul>
       </RulesAccordion>
 

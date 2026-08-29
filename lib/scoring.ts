@@ -6,13 +6,14 @@ type ScoreJoueur = {
   score_saison: number
   meilleure_semaine: number
   semaines_parfaites: number
+  meilleur_pourcentage_semaine: number
 }
 
 export async function calculerClassementSaison(
   supabase: SupabaseClient,
   saison_id: number
 ): Promise<ScoreJoueur[]> {
-  // 1. Toutes les semaines de cette saison
+  // 1. Toutes les semaines de cette saison (régulière ET playoffs, aucune distinction)
   const { data: semaines } = await supabase
     .from('semaines')
     .select('*')
@@ -54,10 +55,13 @@ export async function calculerClassementSaison(
 
   // Regrouper les scores par utilisateur, puis par semaine
   const scoresParUtilisateur = new Map<string, Map<number, number>>()
+  // Détail par semaine pour le départage : complète ? parfaite ? % de réussite ?
+  const detailParUtilisateur = new Map<string, Map<number, { complete: boolean; parfaite: boolean; pourcentage: number }>>()
 
   for (const semaine of semaines) {
     const matchsDeLaSemaine = matchs.filter((m) => m.semaine_id === semaine.id)
     const matchsTermines = matchsDeLaSemaine.filter((m) => m.statut === 'termine')
+    const semaineComplete = matchsDeLaSemaine.length > 0 && matchsTermines.length === matchsDeLaSemaine.length
 
     // Pour chaque utilisateur ayant pronostiqué cette semaine
     for (const userId of userIds) {
@@ -76,7 +80,7 @@ export async function calculerClassementSaison(
       let scoreSemaine = corrects * (semaine.points_par_pronostic ?? 1)
 
       // Bonus, seulement si tous les matchs de la semaine sont terminés
-      if (matchsTermines.length === matchsDeLaSemaine.length && matchsDeLaSemaine.length > 0) {
+      if (semaineComplete) {
         if (corrects === matchsDeLaSemaine.length) {
           scoreSemaine += semaine.bonus_perfect ?? 0
         } else if (semaine.seuil_bonus_2 && corrects >= semaine.seuil_bonus_2) {
@@ -90,6 +94,16 @@ export async function calculerClassementSaison(
         scoresParUtilisateur.set(userId, new Map())
       }
       scoresParUtilisateur.get(userId)!.set(semaine.id, scoreSemaine)
+
+      if (!detailParUtilisateur.has(userId)) {
+        detailParUtilisateur.set(userId, new Map())
+      }
+      detailParUtilisateur.get(userId)!.set(semaine.id, {
+        complete: semaineComplete,
+        // Vraiment parfaite = semaine complète ET tous les pronostics corrects
+        parfaite: semaineComplete && matchsDeLaSemaine.length > 0 && corrects === matchsDeLaSemaine.length,
+        pourcentage: matchsDeLaSemaine.length > 0 ? (corrects / matchsDeLaSemaine.length) * 100 : 0,
+      })
     }
   }
 
@@ -99,24 +113,31 @@ export async function calculerClassementSaison(
     const scores = [...scoresSemaines.values()]
     const scoreSaison = scores.reduce((a, b) => a + b, 0)
     const meilleureSemaine = scores.length > 0 ? Math.max(...scores) : 0
-    const semainesParfaites = semaines.filter((s) => {
-      const matchsSemaine = matchs.filter((m) => m.semaine_id === s.id)
-      return scoresSemaines.get(s.id) !== undefined &&
-        matchsSemaine.length > 0 &&
-        matchsSemaine.every((m) => m.statut === 'termine')
-    }).length
+
+    const details = [...(detailParUtilisateur.get(userId)?.values() ?? [])]
+    const semainesTermineesDetails = details.filter((d) => d.complete)
+
+    const semainesParfaites = semainesTermineesDetails.filter((d) => d.parfaite).length
+    const meilleurPourcentageSemaine = semainesTermineesDetails.length > 0
+      ? Math.max(...semainesTermineesDetails.map((d) => d.pourcentage))
+      : 0
 
     resultat.push({
       utilisateur_id: userId,
       pseudo: pseudoMap.get(userId) ?? 'Joueur inconnu',
       score_saison: scoreSaison,
       meilleure_semaine: meilleureSemaine,
-      semaines_parfaites: semainesParfaites, // simplifié pour l'instant, à affiner plus tard
+      semaines_parfaites: semainesParfaites,
+      meilleur_pourcentage_semaine: meilleurPourcentageSemaine,
     })
   }
 
-  // Tri par score décroissant
-  resultat.sort((a, b) => b.score_saison - a.score_saison)
+  // Tri : 1) score total, 2) semaines parfaites, 3) meilleur % réalisé sur une semaine
+  resultat.sort((a, b) => {
+    if (b.score_saison !== a.score_saison) return b.score_saison - a.score_saison
+    if (b.semaines_parfaites !== a.semaines_parfaites) return b.semaines_parfaites - a.semaines_parfaites
+    return b.meilleur_pourcentage_semaine - a.meilleur_pourcentage_semaine
+  })
 
   return resultat
 }

@@ -79,13 +79,11 @@ export default function LandingPage() {
 
       {/* FEATURES */}
       <section
+        className="featuresGrid"
         style={{
           maxWidth: 1200,
           margin: '0 auto',
           padding: '40px 24px',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: 24,
           position: 'relative',
         }}
       >
@@ -129,9 +127,18 @@ export default function LandingPage() {
         .landingBg {
           background-position: right 30%;
         }
+        .featuresGrid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 24px;
+        }
         @media (max-width: 640px) {
           .landingBg {
             background-position: 70% center;
+          }
+          .featuresGrid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
           }
         }
       `}</style>

@@ -55,7 +55,7 @@ export default function ShareLeagueBox({
   const lienInvitation = `https://projectendzone.fr/leagues/join/${codeInvitation}`
 
   const partager = async () => {
-    const texte = `Rejoins ma ligue "${leagueName}" sur Project End Zone !`
+    const texte = `Rejoins ma ligue "${leagueName}" sur Project End Zone !\nCode d'invitation : ${codeInvitation}`
     if (navigator.share) {
       try {
         await navigator.share({ title: 'Project End Zone', text: texte, url: lienInvitation })

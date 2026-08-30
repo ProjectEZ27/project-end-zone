@@ -39,7 +39,7 @@ export async function signup(formData: FormData) {
   const { data: signUpData, error } = await supabase.auth.signUp({
     ...data,
     options: {
-      emailRedirectTo: `https://projectendzone.fr/auth/confirm${next ? `?next=${encodeURIComponent(next)}` : ''}`,
+      emailRedirectTo: `https://projectendzone.fr/onboarding${next ? `?next=${encodeURIComponent(next)}` : ''}`,
     },
   })
 

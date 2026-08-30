@@ -94,11 +94,11 @@ export default function LandingPage() {
           { icon: '/images-landing/Icone-Recomp.png', title: 'RÉCOMPENSES', text: 'Collectionne des badges' },
         ].map((f) => (
           <div key={f.title} style={{ textAlign: 'center' }}>
-            <div style={{ position: 'relative', width: 72, height: 72, margin: '0 auto 12px' }}>
+            <div className="featureIcon" style={{ position: 'relative', width: 72, height: 72, margin: '0 auto 12px' }}>
               <Image src={f.icon} alt={f.title} fill style={{ objectFit: 'contain' }} />
             </div>
-            <h3 style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1, margin: 0 }}>{f.title}</h3>
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 4 }}>{f.text}</p>
+            <h3 className="featureTitle" style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1, margin: 0 }}>{f.title}</h3>
+            <p className="featureText" style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 4 }}>{f.text}</p>
           </div>
         ))}
       </section>
@@ -137,8 +137,19 @@ export default function LandingPage() {
             background-position: 70% center;
           }
           .featuresGrid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+            gap: 6px;
+            padding: 24px 8px !important;
+          }
+          .featureIcon {
+            width: 44px !important;
+            height: 44px !important;
+          }
+          .featureTitle {
+            font-size: 9px !important;
+            letter-spacing: 0.3px !important;
+          }
+          .featureText {
+            display: none;
           }
         }
       `}</style>

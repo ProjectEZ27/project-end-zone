@@ -20,7 +20,22 @@ export default async function JoinLeague({ params }: { params: Promise<{ code: s
 
   if (error || !league) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#1A1D24' }}>
+      <div style={{ position: 'relative', minHeight: '100vh' }}>
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: -1,
+          backgroundImage: 'url(/fonds/Fond-Acceuil.webp)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'left center',
+          backgroundRepeat: 'no-repeat',
+        }}>
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(180deg, rgba(11,18,32,0.72) 0%, rgba(11,18,32,0.92) 100%)',
+          }} />
+        </div>
         <div style={{ maxWidth: 400, margin: '0 auto', padding: '80px 24px 24px', textAlign: 'center', color: 'white' }}>
           <h1>😕 Code invalide</h1>
           <p style={{ color: '#999', marginTop: 8 }}>
@@ -46,7 +61,22 @@ export default async function JoinLeague({ params }: { params: Promise<{ code: s
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#1A1D24' }}>
+    <div style={{ position: 'relative', minHeight: '100vh' }}>
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: -1,
+        backgroundImage: 'url(/fonds/Fond-Acceuil.webp)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'left center',
+        backgroundRepeat: 'no-repeat',
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(180deg, rgba(11,18,32,0.72) 0%, rgba(11,18,32,0.92) 100%)',
+        }} />
+      </div>
       <div style={{ maxWidth: 400, margin: '0 auto', padding: '80px 24px 24px', textAlign: 'center', color: 'white' }}>
         <h1>🏈 Tu rejoins {league.nom}</h1>
         <p>{league.taille_max} joueurs max</p>

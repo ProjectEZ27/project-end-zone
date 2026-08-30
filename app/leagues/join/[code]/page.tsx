@@ -20,7 +20,7 @@ export default async function JoinLeague({ params }: { params: Promise<{ code: s
 
   if (error || !league) {
     return (
-      <div style={{ position: 'relative', minHeight: '100vh' }}>
+      <div style={{ position: 'relative', minHeight: '100dvh' }}>
         <div style={{
           position: 'fixed',
           inset: 0,
@@ -61,7 +61,7 @@ export default async function JoinLeague({ params }: { params: Promise<{ code: s
   }
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh' }}>
+    <div style={{ position: 'relative', minHeight: '100dvh' }}>
       <div style={{
         position: 'fixed',
         inset: 0,

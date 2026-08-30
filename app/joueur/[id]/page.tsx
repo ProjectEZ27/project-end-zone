@@ -83,7 +83,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ id: 
   const tauxReussite = totalPronostics > 0 ? Math.round((totalCorrects / totalPronostics) * 100) : 0
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh' }}>
+    <div style={{ position: 'relative', minHeight: '100dvh' }}>
       <div style={{
         position: 'fixed',
         inset: 0,

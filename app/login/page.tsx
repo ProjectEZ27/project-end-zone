@@ -9,7 +9,7 @@ export default async function LoginPage({
   const params = await searchParams
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh' }}>
+    <div style={{ position: 'relative', minHeight: '100dvh' }}>
       <div style={{
         position: 'fixed',
         inset: 0,

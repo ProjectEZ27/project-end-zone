@@ -135,7 +135,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   const creneaux = grouperMatchsParCreneau(matchs ?? [])
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh' }}>
+    <div style={{ position: 'relative', minHeight: '100dvh' }}>
       <div style={{
         position: 'fixed',
         inset: 0,

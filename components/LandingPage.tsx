@@ -6,7 +6,7 @@ import styles from './LandingPage.module.css'
 
 export default function LandingPage() {
   return (
-    <div style={{ position: 'relative', minHeight: '100vh', color: 'white' }}>
+    <div style={{ position: 'relative', minHeight: '100dvh', color: 'white' }}>
       <div className="landingBg" style={{
         position: 'fixed',
         inset: 0,

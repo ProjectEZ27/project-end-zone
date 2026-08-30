@@ -15,7 +15,7 @@ export default function OnboardingForm({ equipes, errorMessage, next }: Onboardi
   const [selectedAvatar, setSelectedAvatar] = useState(1)
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh' }}>
+    <div style={{ position: 'relative', minHeight: '100dvh' }}>
       <div style={{
         position: 'fixed',
         inset: 0,

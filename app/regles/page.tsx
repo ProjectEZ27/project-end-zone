@@ -25,7 +25,7 @@ const tdPoints: React.CSSProperties = { ...tdStyle, color: '#4ee892', fontWeight
 
 export default function ReglesPage() {
   return (
-    <div style={{ position: 'relative', minHeight: '100vh' }}>
+    <div style={{ position: 'relative', minHeight: '100dvh' }}>
       <div style={{
         position: 'fixed',
         inset: 0,

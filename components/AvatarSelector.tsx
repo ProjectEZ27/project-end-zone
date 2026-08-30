@@ -36,6 +36,7 @@ export default function AvatarSelector({ selectedId = 1, onSelect }: AvatarSelec
           return (
             <button
               key={avatarId}
+              type="button"
               onClick={() => onSelect(avatarId)}
               onMouseEnter={() => setHovered(avatarId)}
               onMouseLeave={() => setHovered(null)}

@@ -4,7 +4,7 @@ import PasswordInput from '../PasswordInput'
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>
+  searchParams: Promise<{ error?: string; next?: string }>
 }) {
   const params = await searchParams
 
@@ -32,6 +32,7 @@ export default async function LoginPage({
         <p style={{ color: 'red' }}>{decodeURIComponent(params.error)}</p>
       )}
       <form>
+        {params.next && <input type="hidden" name="next" value={params.next} />}
         <div style={{ marginBottom: 12 }}>
           <label htmlFor="email">Email</label>
           <input id="email" name="email" type="email" required style={{ width: '100%', padding: 8 }} />
@@ -45,7 +46,7 @@ export default async function LoginPage({
         </button>
       </form>
       <p style={{ marginTop: 12 }}>
-        Pas encore de compte ? <a href="/signup">Inscris-toi</a>
+        Pas encore de compte ? <a href={params.next ? `/signup?next=${encodeURIComponent(params.next)}` : '/signup'}>Inscris-toi</a>
       </p>
       <p style={{ marginTop: 8 }}>
         <a href="/mot-de-passe-oublie">Mot de passe oublié ?</a>

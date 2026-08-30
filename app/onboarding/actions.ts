@@ -15,6 +15,7 @@ export async function saveOnboarding(formData: FormData) {
   const pseudo = formData.get('pseudo') as string
   const equipe_favorite = formData.get('equipe_favorite') as string
   const avatar_id = parseInt(formData.get('avatar_id') as string) || 1
+  const next = formData.get('next') as string | null
 
   const { error } = await supabase
     .from('profiles')
@@ -29,8 +30,11 @@ export async function saveOnboarding(formData: FormData) {
     const message = error.code === '23505'
       ? 'Ce pseudo est déjà pris par un autre joueur'
       : error.message
-    redirect('/onboarding?error=' + encodeURIComponent(message))
+    const errorUrl = next
+      ? `/onboarding?next=${encodeURIComponent(next)}&error=${encodeURIComponent(message)}`
+      : '/onboarding?error=' + encodeURIComponent(message)
+    redirect(errorUrl)
   }
 
-  redirect('/')
+  redirect(next || '/')
 }

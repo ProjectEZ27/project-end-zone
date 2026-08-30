@@ -8,9 +8,10 @@ import UserAvatar from './UserAvatar'
 interface OnboardingFormProps {
   equipes: [string, string][]
   errorMessage?: string
+  next?: string
 }
 
-export default function OnboardingForm({ equipes, errorMessage }: OnboardingFormProps) {
+export default function OnboardingForm({ equipes, errorMessage, next }: OnboardingFormProps) {
   const [selectedAvatar, setSelectedAvatar] = useState(1)
 
   return (
@@ -19,7 +20,6 @@ export default function OnboardingForm({ equipes, errorMessage }: OnboardingForm
         position: 'fixed',
         inset: 0,
         zIndex: -1,
-        
         backgroundImage: 'url(/fonds/Fond-Acceuil.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'left center',
@@ -39,6 +39,7 @@ export default function OnboardingForm({ equipes, errorMessage }: OnboardingForm
       )}
 
       <form action={saveOnboarding} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 24 }}>
+        {next && <input type="hidden" name="next" value={next} />}
         {/* PSEUDO */}
         <input
           type="text"

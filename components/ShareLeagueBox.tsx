@@ -52,17 +52,19 @@ export default function ShareLeagueBox({
   codeSecours?: string
   leagueName: string
 }) {
+  const lienInvitation = `https://projectendzone.fr/leagues/join/${codeInvitation}`
+
   const partager = async () => {
-    const texte = `Rejoins ma ligue "${leagueName}" sur Project End Zone avec le code : ${codeInvitation}`
+    const texte = `Rejoins ma ligue "${leagueName}" sur Project End Zone !`
     if (navigator.share) {
       try {
-        await navigator.share({ title: 'Project End Zone', text: texte })
+        await navigator.share({ title: 'Project End Zone', text: texte, url: lienInvitation })
       } catch {
         // l'utilisateur a annulé le partage, rien à faire
       }
     } else {
       try {
-        await navigator.clipboard.writeText(texte)
+        await navigator.clipboard.writeText(`${texte}\n${lienInvitation}`)
         alert('Message de partage copié dans le presse-papier !')
       } catch {
         // navigateur sans clipboard : on ignore silencieusement

@@ -12,15 +12,19 @@ export async function login(formData: FormData) {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
   }
+  const next = formData.get('next') as string | null
 
   const { error } = await supabase.auth.signInWithPassword(data)
 
   if (error) {
-    redirect('/login?error=' + encodeURIComponent(traduireErreurAuth(error.message)))
+    const errorUrl = next
+      ? `/login?next=${encodeURIComponent(next)}&error=${encodeURIComponent(traduireErreurAuth(error.message))}`
+      : '/login?error=' + encodeURIComponent(traduireErreurAuth(error.message))
+    redirect(errorUrl)
   }
 
   revalidatePath('/', 'layout')
-  redirect('/')
+  redirect(next || '/')
 }
 
 export async function signup(formData: FormData) {
@@ -30,17 +34,28 @@ export async function signup(formData: FormData) {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
   }
+  const next = formData.get('next') as string | null
 
-  const { data: signUpData, error } = await supabase.auth.signUp(data)
+  const { data: signUpData, error } = await supabase.auth.signUp({
+    ...data,
+    options: {
+      emailRedirectTo: `https://projectendzone.fr/auth/confirm${next ? `?next=${encodeURIComponent(next)}` : ''}`,
+    },
+  })
 
   if (error) {
-    redirect('/signup?error=' + encodeURIComponent(traduireErreurAuth(error.message)))
+    const errorUrl = next
+      ? `/signup?next=${encodeURIComponent(next)}&error=${encodeURIComponent(traduireErreurAuth(error.message))}`
+      : '/signup?error=' + encodeURIComponent(traduireErreurAuth(error.message))
+    redirect(errorUrl)
   }
+
+  const onboardingUrl = next ? `/onboarding?next=${encodeURIComponent(next)}` : '/onboarding'
 
   if (signUpData.session) {
     revalidatePath('/', 'layout')
-    redirect('/')
+    redirect(onboardingUrl)
   }
 
-  redirect('/signup/confirmation')
+  redirect('/signup/confirmation' + (next ? `?next=${encodeURIComponent(next)}` : ''))
 }

@@ -25,6 +25,19 @@ export async function joinLeague(formData: FormData) {
     redirect('/leagues/' + ligue_id + '?error=' + encodeURIComponent('Aucune saison en cours'))
   }
 
+  // Vérifie si une demande est déjà en attente pour cette ligue
+  const { data: demandeExistante } = await supabase
+    .from('adhesions')
+    .select('id')
+    .eq('utilisateur_id', user.id)
+    .eq('ligue_id', Number(ligue_id))
+    .eq('statut', 'en_attente')
+    .maybeSingle()
+
+  if (demandeExistante) {
+    redirect('/?demande=deja_envoyee')
+  }
+
   const { error } = await supabase
     .from('adhesions')
     .insert({
@@ -47,5 +60,5 @@ export async function joinLeague(formData: FormData) {
     html: `<p>Un joueur souhaite rejoindre une de tes ligues. Va sur ton tableau de bord pour valider ou refuser la demande.</p>`,
   })
 
-  redirect('/')
+  redirect('/?demande=envoyee')
 }

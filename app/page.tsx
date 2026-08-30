@@ -9,7 +9,12 @@ import LeagueLogo from '@/components/LeagueLogo'
 import { calculerClassementSaison } from '@/lib/scoring'
 import CountdownBadge from './CountdownBadge'
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ demande?: string }>
+}) {
+  const params = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -166,6 +171,33 @@ export default async function Home() {
 
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '24px 24px 100px', textAlign: 'center' }}>
         <img src="/logo-officiel.png" alt="Project End Zone" style={{ width: 160, margin: '0 auto', display: 'block' }} />
+
+        {params.demande === 'envoyee' && (
+          <div style={{
+            background: 'rgba(78,232,146,0.15)',
+            border: '1px solid rgba(78,232,146,0.4)',
+            borderRadius: 8,
+            padding: 12,
+            marginTop: 16,
+            fontSize: 14,
+            color: '#4ee892',
+          }}>
+            ✅ Ta demande a bien été envoyée ! Elle est en attente de validation du commissaire.
+          </div>
+        )}
+        {params.demande === 'deja_envoyee' && (
+          <div style={{
+            background: 'rgba(255,193,7,0.15)',
+            border: '1px solid rgba(255,193,7,0.4)',
+            borderRadius: 8,
+            padding: 12,
+            marginTop: 16,
+            fontSize: 14,
+            color: '#ffc107',
+          }}>
+            ⏳ Tu as déjà une demande en attente pour cette ligue — pas besoin de la refaire.
+          </div>
+        )}
         <p style={{ color: 'white', marginTop: 12 }}>Connecté en tant que {profile.pseudo}</p>
 
         {semaineActuelle && (

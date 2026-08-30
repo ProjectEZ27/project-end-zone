@@ -12,7 +12,7 @@ export default function LandingPage() {
         inset: 0,
         zIndex: -1,
         
-        backgroundImage: 'url(/images/hero-landing.png)',
+        backgroundImage: 'url(/images/hero-landing.webp)',
         backgroundSize: 'cover',
         backgroundRepeat: 'no-repeat',
       }}>

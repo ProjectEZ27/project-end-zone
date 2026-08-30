@@ -31,7 +31,7 @@ export default function ReglesPage() {
         inset: 0,
         zIndex: -1,
         
-        backgroundImage: 'url(/fonds/Fond-Regles.png)',
+        backgroundImage: 'url(/fonds/Fond-Regles.webp)',
         backgroundSize: 'cover',
         backgroundPosition: 'right center',
         backgroundRepeat: 'no-repeat',

@@ -141,7 +141,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
         inset: 0,
         zIndex: -1,
         
-        backgroundImage: 'url(/fonds/Fond-Pronostics.png)',
+        backgroundImage: 'url(/fonds/Fond-Pronostics.webp)',
         backgroundSize: 'cover',
         backgroundPosition: 'right center',
         backgroundRepeat: 'no-repeat',

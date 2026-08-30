@@ -7,7 +7,7 @@ export default function ContactPage() {
         position: 'fixed',
         inset: 0,
         zIndex: -1,
-        backgroundImage: 'url(/fonds/Fond-Bilan.png)',
+        backgroundImage: 'url(/fonds/Fond-Bilan.webp)',
         backgroundSize: 'cover',
         backgroundPosition: 'left center',
         backgroundRepeat: 'no-repeat',

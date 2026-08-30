@@ -89,7 +89,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ id: 
         inset: 0,
         zIndex: -1,
         
-        backgroundImage: 'url(/fonds/Fond-Profil.png)',
+        backgroundImage: 'url(/fonds/Fond-Profil.webp)',
         backgroundSize: 'cover',
         backgroundPosition: 'right center',
         backgroundRepeat: 'no-repeat',

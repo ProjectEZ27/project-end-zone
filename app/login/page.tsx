@@ -15,7 +15,7 @@ export default async function LoginPage({
         inset: 0,
         zIndex: -1,
         
-        backgroundImage: 'url(/fonds/Fond-Acceuil.png)',
+        backgroundImage: 'url(/fonds/Fond-Acceuil.webp)',
         backgroundSize: 'cover',
         backgroundPosition: 'left center',
         backgroundRepeat: 'no-repeat',

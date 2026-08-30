@@ -60,7 +60,7 @@ export default async function MembresLigue({ params }: { params: Promise<{ id: s
         inset: 0,
         zIndex: -1,
         
-        backgroundImage: 'url(/fonds/Fond-Ligue.png)',
+        backgroundImage: 'url(/fonds/Fond-Ligue.webp)',
         backgroundSize: 'cover',
         backgroundPosition: 'left center',
         backgroundRepeat: 'no-repeat',

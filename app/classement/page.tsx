@@ -89,7 +89,7 @@ export default async function Classement() {
         position: 'fixed',
         inset: 0,
         zIndex: -1,
-        backgroundImage: 'url(/fonds/Fond-Classment.png)',
+        backgroundImage: 'url(/fonds/Fond-Classment.webp)',
         backgroundSize: 'cover',
         backgroundPosition: 'right center',
         backgroundRepeat: 'no-repeat',

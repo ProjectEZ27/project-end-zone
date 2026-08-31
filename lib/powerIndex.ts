@@ -24,42 +24,20 @@ export async function getPowerIndexRanking(annee: number): Promise<EquipePower[]
       return []
     }
     const dataSaison = await resSaison.json()
-    console.log('powerIndex: nombre items reçus', dataSaison.items?.length)
-
-    const refs: string[] = (dataSaison.items ?? [])
-      .map((item: any) => item?.$ref)
-      .filter(Boolean)
-
-    if (refs.length === 0) {
-      console.error('powerIndex: aucun ref trouvé, dataSaison =', JSON.stringify(dataSaison).slice(0, 500))
-      return []
-    }
-
-    let debugFait = false
+    const items: any[] = dataSaison.items ?? []
+    console.log('powerIndex: nombre items reçus', items.length)
 
     const equipes = await Promise.all(
-      refs.map(async (ref) => {
+      items.map(async (item) => {
         try {
-          const res = await fetch(ref, { next: { revalidate: 60 * 60 * 24 * 7 } })
-          if (!res.ok) {
-            console.error('powerIndex: fetch équipe pas ok', res.status, ref)
-            return null
-          }
-          const data = await res.json()
-
-          if (!debugFait) {
-            debugFait = true
-            console.log('powerIndex: exemple data =', JSON.stringify(data).slice(0, 1500))
-          }
-
-          const stats: any[] = data?.stats ?? []
-          const rangStat = stats.find((s) => s.name === 'fpirank')
-          const fpiStat = stats.find((s) => s.name === 'fpi')
+          const predictives: any[] = item?.predictives ?? []
+          const rangStat = predictives.find((s) => s.name === 'fpirank')
+          const fpiStat = predictives.find((s) => s.name === 'fpi')
           const rang = rangStat?.value ?? null
 
-          const teamRef = data?.team?.$ref as string | undefined
+          const teamRef = item?.team?.$ref as string | undefined
           if (!teamRef || !rang) {
-            console.error('powerIndex: teamRef ou rang manquant', { teamRef, rang, ref })
+            console.error('powerIndex: teamRef ou rang manquant', { teamRef, rang })
             return null
           }
 

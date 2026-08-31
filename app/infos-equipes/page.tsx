@@ -9,165 +9,163 @@ interface ResumeEquipe {
   texte: string
   forces?: string[]
   faiblesses?: string[]
+  historique?: string
 }
 
 const RESUMES_EQUIPES: Record<string, ResumeEquipe> = {
+  SEA: {
+    texte: "Une défense qui a fait un vrai bond, difficile à percer sur l'ensemble d'une saison. L'attaque a gagné en efficacité dans les moments clés.",
+    forces: ['Défense', 'Fin de saison'],
+    faiblesses: ['Régularité en début de saison'],
+    historique: "🏆 Vainqueur du Super Bowl LX (saison 2025), leur 2e titre après celui de 2013.",
+  },
   LA: {
-    texte: "Une équipe équilibrée, solide des deux côtés du ballon, sans faiblesse évidente pour l'instant.",
-    forces: ['Régularité', 'Défense'],
+    texte: "Une équipe équilibrée, solide des deux côtés du ballon, portée par un quarterback d'expérience en pleine forme.",
+    forces: ['Régularité', 'Défense', 'Expérience au poste de quarterback'],
+    historique: "⭐ Matthew Stafford, élu MVP de la ligue pour la saison 2025.",
   },
   BUF: {
-    texte: "Un quarterback qui peut gagner un match à lui seul, portée par un jeu aérien redoutable.",
-    forces: ['Quarterback', 'Jeu aérien'],
+    texte: "Un quarterback capable de gagner un match à lui seul, portée par un jeu aérien redoutable et une grosse capacité à marquer vite.",
+    forces: ['Quarterback', 'Jeu aérien', 'Rythme offensif'],
     faiblesses: ['Défense sur les gros matchs'],
+    historique: "⭐ Josh Allen, élu MVP de la ligue pour la saison 2024.",
   },
   BAL: {
-    texte: "Une attaque au sol parmi les plus dangereuses de la ligue, sur un jeu très physique.",
-    forces: ['Attaque au sol'],
-    faiblesses: ['Régularité'],
-  },
-  SEA: {
-    texte: "Une défense qui a fait un vrai bond cette saison, difficile à percer.",
-    forces: ['Défense'],
-    faiblesses: ['Efficacité offensive'],
-  },
-  SF: {
-    texte: "Un effectif taillé pour les longues saisons, avec de la profondeur à tous les postes.",
-    forces: ["Profondeur d'effectif"],
-    faiblesses: ['Historique blessures'],
-  },
-  GB: {
-    texte: "Une équipe jeune et prometteuse, en progression constante.",
-    forces: ['Progression', 'Jeunesse'],
-    faiblesses: ['Fin de match'],
+    texte: "Une attaque au sol parmi les plus dangereuses de la ligue, portée par un quarterback capable de casser les défenses à lui seul dans la course.",
+    forces: ['Attaque au sol', 'Quarterback mobile'],
+    faiblesses: ['Régularité en playoffs'],
+    historique: "⭐ Lamar Jackson, élu MVP de la ligue pour la saison 2023 (son 2e titre de MVP).",
   },
   KC: {
-    texte: "Le grand habitué des moments décisifs — personne ne gère mieux les fins de match serrées.",
-    forces: ['Fin de match', 'Expérience'],
+    texte: "Le grand habitué des moments décisifs — personne ne gère mieux les fins de match serrées, saison après saison.",
+    forces: ['Fin de match', 'Expérience', 'Régularité en playoffs'],
     faiblesses: ['Ligne offensive'],
-  },
-  DET: {
-    texte: "L'attaque la plus créative de la ligue sur les dernières saisons, portée par un jeu au sol excellent.",
-    forces: ['Attaque au sol', 'Créativité offensive'],
-    faiblesses: ['Matchs à l\'extérieur'],
+    historique: "🏆 Vainqueur du Super Bowl à l'issue de la saison 2023, l'une des équipes les plus titrées de la décennie.",
   },
   PHI: {
-    texte: "Un groupe complet avec du talent à tous les postes, capable de dominer sur un seul gros match.",
+    texte: "Un groupe complet avec du talent à tous les postes, une ligne offensive dominante et une capacité à hausser le niveau sur les gros matchs.",
     forces: ['Ligne offensive', 'Talent individuel'],
     faiblesses: ['Régularité défensive'],
+    historique: "🏆 Vainqueur du Super Bowl à l'issue de la saison 2024, leur 2e titre après celui de 2017.",
+  },
+  NE: {
+    texte: "Un collectif retrouvé au sommet, avec une défense solide et un jeu plus mature qu'il y a quelques saisons.",
+    forces: ['Défense', 'Expérience collective'],
+    faiblesses: ['Fin de match sur les tout gros matchs'],
+    historique: "🥈 Finaliste du Super Bowl LX à l'issue de la saison 2025, battus par les Seahawks.",
+  },
+  DET: {
+    texte: "L'attaque la plus créative de la ligue ces dernières saisons, portée par un jeu au sol excellent et une ligne offensive de premier plan.",
+    forces: ['Attaque au sol', 'Créativité offensive', 'Ligne offensive'],
+    faiblesses: ["Matchs à l'extérieur"],
   },
   DAL: {
-    texte: "Une attaque explosive et spectaculaire, mais une défense qui manque encore de constance.",
+    texte: "Une attaque explosive et spectaculaire capable de scorer vite, mais une défense qui manque encore de constance sur la durée d'une saison.",
     forces: ['Attaque explosive'],
-    faiblesses: ['Défense'],
+    faiblesses: ['Défense', 'Constance'],
   },
   CIN: {
-    texte: "Un duo quarterback-receveur parmi les plus dangereux de la ligue quand tout le monde est en bonne santé.",
-    forces: ['Jeu aérien'],
-    faiblesses: ['Fragilité (blessures)'],
+    texte: "Un duo quarterback-receveur parmi les plus dangereux de la ligue quand tout le monde est en bonne santé, capable de rattraper n'importe quel retard.",
+    forces: ['Jeu aérien', 'Capacité à revenir au score'],
+    faiblesses: ['Fragilité (blessures récurrentes)'],
   },
   MIA: {
-    texte: "Une attaque rapide et verticale, redoutable quand les conditions météo sont clémentes.",
+    texte: "Une attaque rapide et verticale, redoutable dans de bonnes conditions, mais qui perd en efficacité par temps froid ou humide.",
     forces: ['Vitesse', 'Jeu vertical'],
     faiblesses: ['Jeu par mauvais temps/froid'],
   },
   HOU: {
-    texte: "Un jeune noyau en pleine ascension, avec un quarterback capable de rattraper les matchs à lui seul.",
-    forces: ['Quarterback', 'Progression'],
+    texte: "Un jeune noyau en pleine ascension, avec un quarterback athlétique capable de créer des points en dehors du plan de jeu initial.",
+    forces: ['Quarterback', 'Progression rapide'],
     faiblesses: ['Expérience en playoffs'],
   },
   PIT: {
-    texte: "Une défense solide et disciplinée comme toujours, sur une attaque plus limitée.",
-    forces: ['Défense', 'Discipline'],
+    texte: "Une défense solide et disciplinée comme toujours sous cette organisation, avec une attaque plus limitée mais efficace dans les moments importants.",
+    forces: ['Défense', 'Discipline tactique'],
     faiblesses: ['Créativité offensive'],
   },
   LAC: {
-    texte: "Un jeu équilibré avec un vrai potentiel, encore un cran en dessous des toutes meilleures équipes.",
-    forces: ['Équilibre'],
+    texte: "Un jeu équilibré avec un vrai potentiel des deux côtés du ballon, encore un cran en dessous des toutes meilleures équipes sur la régularité.",
+    forces: ['Équilibre offense/défense'],
     faiblesses: ['Manque de régularité'],
   },
   MIN: {
-    texte: "Une défense agressive qui crée beaucoup de turnovers, sur une attaque parfois inconsistante.",
-    forces: ['Défense agressive'],
+    texte: "Une défense agressive qui crée beaucoup de turnovers et change le cours des matchs, sur une attaque parfois inconsistante d'une semaine à l'autre.",
+    forces: ['Défense agressive', 'Turnovers créés'],
     faiblesses: ['Régularité offensive'],
   },
   DEN: {
-    texte: "Une défense en net progrès, portée par une ligne défensive très physique.",
+    texte: "Une défense en net progrès ces dernières saisons, portée par une ligne défensive très physique qui perturbe les attaques adverses.",
     forces: ['Ligne défensive'],
     faiblesses: ['Expérience au poste de quarterback'],
   },
   ARI: {
-    texte: "Une attaque qui peut surprendre par séquences, encore irrégulière sur l'ensemble d'un match.",
-    forces: ['Coups d\'éclat offensifs'],
+    texte: "Une attaque qui peut surprendre par séquences grâce à des joueurs athlétiques, encore irrégulière sur l'ensemble d'un match complet.",
+    forces: ["Coups d'éclat offensifs"],
     faiblesses: ['Régularité'],
   },
   TB: {
-    texte: "Un jeu aérien précis et bien rodé, sur une défense qui reste à confirmer sur la durée.",
+    texte: "Un jeu aérien précis et bien rodé avec un quarterback expérimenté, sur une défense qui reste à confirmer sur la durée d'une saison.",
     forces: ['Jeu aérien précis'],
     faiblesses: ['Défense'],
   },
   ATL: {
-    texte: "Une attaque au sol costaude, avec un jeune quarterback encore en phase d'apprentissage.",
+    texte: "Une attaque au sol costaude qui use les défenses adverses, avec un jeune quarterback encore en phase d'apprentissage à ce niveau.",
     forces: ['Attaque au sol'],
     faiblesses: ['Expérience au poste de quarterback'],
   },
   IND: {
-    texte: "Une équipe rapide et dynamique, qui manque encore de constance sur l'ensemble d'une saison.",
+    texte: "Une équipe rapide et dynamique capable de belles séquences, qui manque encore de constance sur l'ensemble d'une saison complète.",
     forces: ['Vitesse'],
     faiblesses: ['Constance'],
   },
   CHI: {
-    texte: "Un jeune quarterback prometteur, entouré d'une défense encore en reconstruction.",
+    texte: "Un jeune quarterback prometteur qui monte en puissance, entouré d'une défense encore en reconstruction après plusieurs saisons difficiles.",
     forces: ['Potentiel au poste de quarterback'],
     faiblesses: ['Défense'],
   },
   NYJ: {
-    texte: "Une défense qui peut faire mal sur son jour, une attaque qui cherche encore sa régularité.",
+    texte: "Une défense qui peut faire mal à n'importe qui sur son jour, une attaque qui cherche encore sa régularité d'une semaine à l'autre.",
     forces: ['Ligne défensive'],
     faiblesses: ['Régularité offensive'],
   },
   WAS: {
-    texte: "Un collectif jeune et audacieux, qui n'a pas peur de prendre des risques offensifs.",
-    forces: ['Audace offensive'],
+    texte: "Un collectif jeune et audacieux qui n'a pas peur de prendre des risques offensifs, en pleine progression depuis deux saisons.",
+    forces: ['Audace offensive', 'Progression'],
     faiblesses: ['Expérience défensive'],
   },
   NO: {
-    texte: "Une équipe disciplinée sur le plan tactique, avec un effectif offensif plus limité que la moyenne.",
+    texte: "Une équipe disciplinée sur le plan tactique qui ne se met pas en danger, avec un effectif offensif plus limité que la moyenne de la ligue.",
     forces: ['Discipline tactique'],
     faiblesses: ['Profondeur offensive'],
   },
   NYG: {
-    texte: "Une ligne défensive qui peut poser des problèmes à n'importe qui, sur une attaque en reconstruction.",
-    forces: ['Ligne défensive'],
+    texte: "Une ligne défensive qui peut poser des problèmes à n'importe qui grâce à sa pression sur le quarterback adverse, sur une attaque en reconstruction.",
+    forces: ['Ligne défensive', 'Pression sur le QB'],
     faiblesses: ['Attaque'],
   },
-  NE: {
-    texte: "Un groupe en reconstruction, avec une base défensive solide sur laquelle s'appuyer.",
-    forces: ['Défense'],
-    faiblesses: ['Expérience offensive globale'],
-  },
   CAR: {
-    texte: "Une attaque en progrès avec un jeune quarterback qui gagne en assurance semaine après semaine.",
+    texte: "Une attaque en progrès avec un jeune quarterback qui gagne en assurance semaine après semaine, sur une défense encore perfectible.",
     forces: ['Progression offensive'],
     faiblesses: ['Défense'],
   },
   JAX: {
-    texte: "Du talent individuel réel, encore desservi par un manque de régularité collective.",
+    texte: "Du talent individuel réel à plusieurs postes clés, encore desservi par un manque de régularité collective sur l'ensemble d'une saison.",
     forces: ['Talent individuel'],
     faiblesses: ['Régularité collective'],
   },
   LV: {
-    texte: "Une équipe en reconstruction, qui cherche encore son identité de jeu cette saison.",
+    texte: "Une équipe en reconstruction qui cherche encore son identité de jeu cette saison, avec quelques individualités intéressantes à suivre.",
     forces: ['Renouveau'],
     faiblesses: ["Manque d'identité de jeu"],
   },
   TEN: {
-    texte: "Un jeu au sol qui reste une base solide, sur une attaque aérienne encore limitée.",
+    texte: "Un jeu au sol qui reste une base solide sur laquelle s'appuyer, sur une attaque aérienne encore limitée et prévisible.",
     forces: ['Attaque au sol'],
     faiblesses: ['Jeu aérien'],
   },
   CLE: {
-    texte: "Une défense qui a longtemps fait sa réputation, sur une attaque en pleine reconstruction.",
+    texte: "Une défense qui a longtemps fait la réputation de cette franchise, sur une attaque en pleine reconstruction après plusieurs changements.",
     forces: ['Historique défensif'],
     faiblesses: ['Attaque'],
   },
@@ -213,6 +211,11 @@ export default async function InfosEquipes() {
                 title={`${equipe.rang}. ${NOMS_EQUIPES[equipe.code] ?? equipe.code}`}
               >
                 <p>{resume?.texte ?? 'Résumé à venir pour cette équipe.'}</p>
+                {resume?.historique && (
+                  <p style={{ marginTop: 8, fontSize: 13, color: '#ffd9d5', fontWeight: 600 }}>
+                    {resume.historique}
+                  </p>
+                )}
                 {(resume?.forces?.length || resume?.faiblesses?.length) ? (
                   <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
                     {resume.forces?.map((f) => (

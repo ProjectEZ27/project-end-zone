@@ -22,7 +22,10 @@ export async function getPowerIndexRanking(annee: number): Promise<EquipePower[]
       `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/${annee}/powerindex?limit=40`,
       { next: { revalidate: 60 * 60 * 24 * 7 } }
     )
-    if (!resSaison.ok) return []
+    if (!resSaison.ok) {
+      console.error('powerIndex: erreur resSaison', resSaison.status)
+      return []
+    }
     const dataSaison = await resSaison.json()
 
     const refs: string[] = (dataSaison.items ?? [])
@@ -54,7 +57,8 @@ export async function getPowerIndexRanking(annee: number): Promise<EquipePower[]
 
           if (!code) return null
           return { code, rang, fpi: fpiStat?.value ?? null }
-        } catch {
+        } catch (e) {
+          console.error('powerIndex: erreur sur une équipe', e)
           return null
         }
       })
@@ -63,7 +67,8 @@ export async function getPowerIndexRanking(annee: number): Promise<EquipePower[]
     return equipes
       .filter((e): e is EquipePower => e !== null)
       .sort((a, b) => a.rang - b.rang)
-  } catch {
+  } catch (e) {
+    console.error('powerIndex: erreur générale', e)
     return []
   }
 }

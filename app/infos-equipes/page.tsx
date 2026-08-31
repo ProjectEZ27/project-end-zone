@@ -1,4 +1,5 @@
 import { NOMS_EQUIPES } from '@/lib/teamBadge'
+export const dynamic = 'force-dynamic'
 import { getPowerIndexRanking } from '@/lib/powerIndex'
 import RulesAccordion from '@/components/RulesAccordion'
 

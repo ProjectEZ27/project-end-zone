@@ -25,7 +25,6 @@ export async function getPowerIndexRanking(annee: number): Promise<EquipePower[]
     }
     const dataSaison = await resSaison.json()
     const items: any[] = dataSaison.items ?? []
-    console.log('powerIndex: nombre items reçus', items.length)
 
     const equipes = await Promise.all(
       items.map(async (item) => {

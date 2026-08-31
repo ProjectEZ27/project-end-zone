@@ -1,6 +1,3 @@
-// Récupère le classement Power Index (FPI, force des équipes) depuis l'API ESPN.
-// ⚠️ API non officielle, non documentée par ESPN.
-
 const ESPN_CODE_VERS_CODE_SITE: Record<string, string> = {
   ARI: 'ARI', ATL: 'ATL', BAL: 'BAL', BUF: 'BUF', CAR: 'CAR', CHI: 'CHI',
   CIN: 'CIN', CLE: 'CLE', DAL: 'DAL', DEN: 'DEN', DET: 'DET', GB: 'GB',
@@ -23,23 +20,37 @@ export async function getPowerIndexRanking(annee: number): Promise<EquipePower[]
       { next: { revalidate: 60 * 60 * 24 * 7 } }
     )
     if (!resSaison.ok) {
-      console.error('powerIndex: erreur resSaison', resSaison.status)
+      console.error('powerIndex: resSaison pas ok', resSaison.status)
       return []
     }
     const dataSaison = await resSaison.json()
+    console.log('powerIndex: nombre items reçus', dataSaison.items?.length)
 
     const refs: string[] = (dataSaison.items ?? [])
       .map((item: any) => item?.$ref)
       .filter(Boolean)
 
-    if (refs.length === 0) return []
+    if (refs.length === 0) {
+      console.error('powerIndex: aucun ref trouvé, dataSaison =', JSON.stringify(dataSaison).slice(0, 500))
+      return []
+    }
+
+    let debugFait = false
 
     const equipes = await Promise.all(
       refs.map(async (ref) => {
         try {
           const res = await fetch(ref, { next: { revalidate: 60 * 60 * 24 * 7 } })
-          if (!res.ok) return null
+          if (!res.ok) {
+            console.error('powerIndex: fetch équipe pas ok', res.status, ref)
+            return null
+          }
           const data = await res.json()
+
+          if (!debugFait) {
+            debugFait = true
+            console.log('powerIndex: exemple data =', JSON.stringify(data).slice(0, 1500))
+          }
 
           const stats: any[] = data?.stats ?? []
           const rangStat = stats.find((s) => s.name === 'fpirank')
@@ -47,26 +58,36 @@ export async function getPowerIndexRanking(annee: number): Promise<EquipePower[]
           const rang = rangStat?.value ?? null
 
           const teamRef = data?.team?.$ref as string | undefined
-          if (!teamRef || !rang) return null
+          if (!teamRef || !rang) {
+            console.error('powerIndex: teamRef ou rang manquant', { teamRef, rang, ref })
+            return null
+          }
 
           const resTeam = await fetch(teamRef, { next: { revalidate: 60 * 60 * 24 * 7 } })
-          if (!resTeam.ok) return null
+          if (!resTeam.ok) {
+            console.error('powerIndex: fetch team pas ok', resTeam.status, teamRef)
+            return null
+          }
           const dataTeam = await resTeam.json()
           const espnCode = dataTeam?.abbreviation as string | undefined
           const code = espnCode ? (ESPN_CODE_VERS_CODE_SITE[espnCode] ?? espnCode) : null
 
-          if (!code) return null
+          if (!code) {
+            console.error('powerIndex: code manquant', { espnCode, teamRef })
+            return null
+          }
           return { code, rang, fpi: fpiStat?.value ?? null }
         } catch (e) {
-          console.error('powerIndex: erreur sur une équipe', e)
+          console.error('powerIndex: exception sur une équipe', e)
           return null
         }
       })
     )
 
-    return equipes
-      .filter((e): e is EquipePower => e !== null)
-      .sort((a, b) => a.rang - b.rang)
+    const resultat = equipes.filter((e): e is EquipePower => e !== null)
+    console.log('powerIndex: équipes valides trouvées', resultat.length)
+
+    return resultat.sort((a, b) => a.rang - b.rang)
   } catch (e) {
     console.error('powerIndex: erreur générale', e)
     return []

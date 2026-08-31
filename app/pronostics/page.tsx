@@ -169,6 +169,25 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
       </p>
       <p><strong>{nombreFaits}/{nombreTotal} pronostics faits</strong></p>
 
+      <a href="/infos-equipes" style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        background: 'linear-gradient(135deg, rgba(200,53,46,0.18), rgba(200,53,46,0.06))',
+        border: '1px solid rgba(200,53,46,0.35)',
+        borderRadius: 10,
+        padding: '12px 14px',
+        margin: '16px 0',
+        textDecoration: 'none',
+        color: 'white',
+      }}>
+        <span style={{ fontSize: 20 }}>🏈</span>
+        <span style={{ flex: 1, textAlign: 'left', fontSize: 13, fontWeight: 700 }}>
+          Un doute sur un match ? Compare les deux équipes
+        </span>
+        <span style={{ fontSize: 16, color: '#ff9088' }}>→</span>
+      </a>
+
       {estPremiereSemaine && saison && (
         <SpecialPicksPreseason saisonId={saison.id} mesPronosSpeciaux={mesPronosSpeciaux} />
       )}

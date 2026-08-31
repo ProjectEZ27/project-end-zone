@@ -63,6 +63,24 @@ export default function ReglesPage() {
           Chaque semaine, tu pronostiques le vainqueur de chaque match NFL.{' '}
           <strong>1 bon pronostic = 1 point.</strong> C'est tout — simple à comprendre en 30 secondes.
         </p>
+        <a href="/infos-equipes" style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          background: 'rgba(255,255,255,0.06)',
+          border: '1px solid rgba(255,255,255,0.15)',
+          borderRadius: 8,
+          padding: '10px 12px',
+          marginTop: 12,
+          textDecoration: 'none',
+          color: 'white',
+        }}>
+          <span style={{ fontSize: 16 }}>🏈</span>
+          <span style={{ flex: 1, textAlign: 'left', fontSize: 12, fontWeight: 700 }}>
+            Tu débutes en NFL ? Découvre le classement des équipes
+          </span>
+          <span style={{ fontSize: 14, color: '#ff9088' }}>→</span>
+        </a>
       </div>
 
       {/* BONUS HEBDO */}

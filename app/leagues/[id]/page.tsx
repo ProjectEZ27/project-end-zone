@@ -80,7 +80,7 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
   const badgeStatut = statutLabel[league.statut] ?? { label: league.statut, bg: '#33415a', color: 'white' }
 
   const pastilles = [
-    { href: `/leagues/${id}/pronostics`, label: 'Pronostics', Icon: TbBallAmericanFootball },
+    { href: `/leagues/${id}/pronostics`, label: 'Résultats', Icon: TbBallAmericanFootball },
     { href: `/leagues/${id}/classement`, label: 'Classement', Icon: TbTrophy },
     { href: `/leagues/${id}/membres`, label: 'Membres', Icon: TbUsers },
     { href: `/leagues/${id}/historique`, label: 'Historique', Icon: TbHistory },

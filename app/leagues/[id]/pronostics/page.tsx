@@ -129,7 +129,25 @@ export default async function LeaguePronostics({
       </div>
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '40px 24px 100px', textAlign: 'center', color: 'white' }}>
       <LeagueSubNav ligueId={id} ligueNom={league.nom} actif="pronostics" />
-      <p style={{ color: '#999', fontSize: 13, marginBottom: 20 }}>Pronostics de tous les membres</p>
+      <p style={{ color: '#999', fontSize: 13, marginBottom: 12 }}>Résultats et pronostics de tous les membres</p>
+
+      <Link
+        href="/pronostics"
+        style={{
+          display: 'block',
+          background: 'linear-gradient(135deg, #7a1a15, #C8352E)',
+          borderRadius: 8,
+          padding: 12,
+          textDecoration: 'none',
+          color: 'white',
+          fontSize: 13,
+          fontWeight: 700,
+          textAlign: 'center',
+          marginBottom: 20,
+        }}
+      >
+        Faire mes pronostics de la semaine →
+      </Link>
 
       <div style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 24, paddingBottom: 4 }}>
         {toutesLesSemaines.map((s) => (

@@ -16,8 +16,9 @@ import {
 } from 'react-icons/tb'
 
 
-export default async function LeagueDetail({ params }: { params: Promise<{ id: string }> }) {
+export default async function LeagueDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string }> }) {
   const { id } = await params
+  const { error: errorMessage } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -108,6 +109,10 @@ export default async function LeagueDetail({ params }: { params: Promise<{ id: s
       </div>
 
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '24px 24px 100px', textAlign: 'center', color: 'white' }}>
+        {errorMessage && (
+          <p style={{ color: '#e05252', marginBottom: 12 }}>⚠️ {errorMessage}</p>
+        )}
+
         <LeagueLogoEditor
           ligueId={id}
           currentLogoId={league.logo_id ?? 1}

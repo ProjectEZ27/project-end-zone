@@ -25,16 +25,18 @@ export async function joinLeague(formData: FormData) {
     redirect('/leagues/' + ligue_id + '?error=' + encodeURIComponent('Aucune saison en cours'))
   }
 
-  // Vérifie si une demande est déjà en attente pour cette ligue
-  const { data: demandeExistante } = await supabase
+  // Vérifie si une adhésion existe déjà pour cette ligue (en attente OU déjà acceptée)
+  const { data: adhesionExistante } = await supabase
     .from('adhesions')
-    .select('id')
+    .select('id, statut')
     .eq('utilisateur_id', user.id)
     .eq('ligue_id', Number(ligue_id))
-    .eq('statut', 'en_attente')
     .maybeSingle()
 
-  if (demandeExistante) {
+  if (adhesionExistante) {
+    if (adhesionExistante.statut === 'actif') {
+      redirect('/leagues/' + ligue_id + '?error=' + encodeURIComponent('Tu es déjà membre de cette ligue'))
+    }
     redirect('/?demande=deja_envoyee')
   }
 
@@ -48,7 +50,10 @@ export async function joinLeague(formData: FormData) {
     })
 
   if (error) {
-    redirect('/leagues/' + ligue_id + '?error=' + encodeURIComponent(error.message))
+    const message = error.code === '23505'
+      ? 'Tu es déjà membre ou en attente pour cette ligue'
+      : error.message
+    redirect('/leagues/' + ligue_id + '?error=' + encodeURIComponent(message))
   }
 
   // Notifier le commissaire par e-mail

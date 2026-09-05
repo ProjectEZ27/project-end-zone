@@ -24,7 +24,7 @@ export default async function Home({
 
   const [profileResult, adhesionsResult, semaineClotureeResult, saisonResult, prochainMatchGlobalResult] = await Promise.all([
     supabase.from('profiles').select('pseudo').eq('id', user.id).maybeSingle(),
-    supabase.from('adhesions').select('ligue_id, ligues(id, nom, logo_id)').eq('utilisateur_id', user.id).eq('statut', 'actif'),
+    supabase.from('adhesions').select('ligue_id, ligues(id, nom, logo_id, commissaire_id)').eq('utilisateur_id', user.id).eq('statut', 'actif'),
     supabase.from('semaines').select('id, nom').eq('statut', 'cloturee').order('id', { ascending: false }).limit(1).single(),
     supabase.from('saisons').select('id').eq('statut', 'en_cours').single(),
     supabase.from('matchs').select('semaine_id').neq('statut', 'termine').order('coup_envoi', { ascending: true }).limit(1).maybeSingle(),
@@ -59,6 +59,17 @@ export default async function Home({
   for (const m of tousLesMembres ?? []) {
     if (!membresParLigue.has(m.ligue_id)) membresParLigue.set(m.ligue_id, [])
     membresParLigue.get(m.ligue_id)!.push(m.utilisateur_id)
+  }
+
+    // Demandes en attente sur les ligues dont je suis commissaire
+  const ligueIdsCommissaire = mesLigues.filter((l: any) => l.commissaire_id === user.id).map((l: any) => l.id)
+  const { data: demandesEnAttente } = ligueIdsCommissaire.length > 0
+    ? await supabase.from('adhesions').select('ligue_id').in('ligue_id', ligueIdsCommissaire).eq('statut', 'en_attente')
+    : { data: [] as any[] }
+
+  const demandesParLigue = new Map<number, number>()
+  for (const d of demandesEnAttente ?? []) {
+    demandesParLigue.set(d.ligue_id, (demandesParLigue.get(d.ligue_id) ?? 0) + 1)
   }
 
   function getInfosLigue(ligueId: number) {
@@ -319,6 +330,26 @@ export default async function Home({
                         borderRadius: 20,
                       }}>
                         {couleurBadge.label}
+                      </div>
+                    )}
+                    {(demandesParLigue.get(ligue.id) ?? 0) > 0 && (
+                      <div style={{
+                        position: 'absolute',
+                        top: 6,
+                        left: 6,
+                        background: '#C8352E',
+                        color: 'white',
+                        fontSize: 10,
+                        fontWeight: 700,
+                        width: 18,
+                        height: 18,
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 0 6px rgba(200,53,46,0.6)',
+                      }}>
+                        {demandesParLigue.get(ligue.id)}
                       </div>
                     )}
                     <LeagueLogo logoId={ligue.logo_id ?? 1} size={56} leagueName={ligue.nom} />

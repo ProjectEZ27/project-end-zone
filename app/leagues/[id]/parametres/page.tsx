@@ -40,15 +40,28 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
   if (adhesions && adhesions.length > 0) {
     const saisonId = adhesions[0].saison_id
 
-    // 2. Semaine actuellement ouverte pour cette saison
-    const { data: semainesOuvertes } = await supabase
-      .from('semaines')
-      .select('id')
-      .eq('saison_id', saisonId)
-      .eq('statut', 'ouverte')
-      .order('id', { ascending: false })
+    // 2. Semaine actuellement en cours = celle du premier match non terminé
+    const { data: prochainMatch } = await supabase
+      .from('matchs')
+      .select('semaine_id')
+      .neq('statut', 'termine')
+      .order('coup_envoi', { ascending: true })
+      .limit(1)
+      .maybeSingle()
 
-    const semaineOuverte = semainesOuvertes?.[0] ?? null
+    let semaineOuverte: { id: number } | null = null
+    if (prochainMatch) {
+      semaineOuverte = { id: prochainMatch.semaine_id }
+    } else {
+      const { data: derniereSemaine } = await supabase
+        .from('semaines')
+        .select('id')
+        .eq('saison_id', saisonId)
+        .order('id', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      semaineOuverte = derniereSemaine
+    }
 
     if (semaineOuverte) {
       // 3. Matchs de cette semaine

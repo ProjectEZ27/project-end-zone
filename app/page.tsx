@@ -9,6 +9,7 @@ import LeagueLogo from '@/components/LeagueLogo'
 import { calculerClassementSaison } from '@/lib/scoring'
 import CountdownBadge from './CountdownBadge'
 
+export const dynamic = 'force-dynamic'
 export default async function Home({
   searchParams,
 }: {

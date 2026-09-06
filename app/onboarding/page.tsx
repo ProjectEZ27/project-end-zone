@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import OnboardingForm from '@/components/OnboardingForm'
 import { NOMS_EQUIPES } from '@/lib/teamBadge'
 
+export const dynamic = 'force-dynamic'
 export default async function Onboarding({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
   const { error: errorMessage, next } = await searchParams
   const supabase = await createClient()

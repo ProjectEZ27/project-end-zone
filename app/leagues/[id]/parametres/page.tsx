@@ -4,6 +4,7 @@ import { modifierLigue, relancerRetardataires } from './actions'
 import LeagueSubNav from '@/components/LeagueSubNav'
 import DeleteLeagueButton from '@/components/DeleteLeagueButton'
 
+export const dynamic = 'force-dynamic'
 export default async function ParametresLigue({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()

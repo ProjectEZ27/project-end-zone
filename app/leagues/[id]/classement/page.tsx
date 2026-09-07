@@ -118,7 +118,7 @@ export default async function ClassementLigue({
         }} />
       </div>
       <div style={{ maxWidth: 600, margin: '0 auto', padding: '40px 24px 100px', textAlign: 'center', color: 'white' }}>
-      <LeagueSubNav ligueId={id} ligueNom={league.nom} actif="classement" />
+<LeagueSubNav ligueId={id} ligueNom={league.nom} actif="classement" estCommissaire={league.commissaire_id === user.id} />
       <p>Saison {saison.nom}</p>
 
       <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>

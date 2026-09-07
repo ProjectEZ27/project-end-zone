@@ -128,8 +128,7 @@ export default async function LeaguePronostics({
         }} />
       </div>
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '40px 24px 100px', textAlign: 'center', color: 'white' }}>
-      <LeagueSubNav ligueId={id} ligueNom={league.nom} actif="pronostics" />
-      <p style={{ color: '#999', fontSize: 13, marginBottom: 12 }}>Résultats et pronostics de tous les membres</p>
+      <LeagueSubNav ligueId={id} ligueNom={league.nom} actif="pronostics" /><LeagueSubNav ligueId={id} ligueNom={league.nom} actif="pronostics" estCommissaire={estCommissaire} />      <p style={{ color: '#999', fontSize: 13, marginBottom: 12 }}>Résultats et pronostics de tous les membres</p>
 
       <Link
         href="/pronostics"

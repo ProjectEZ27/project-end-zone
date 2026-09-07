@@ -72,7 +72,7 @@ export default async function MembresLigue({ params }: { params: Promise<{ id: s
         }} />
       </div>
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '40px 24px 100px', textAlign: 'center', color: 'white' }}>
-      <LeagueSubNav ligueId={id} ligueNom={league.nom} actif="membres" />
+      <LeagueSubNav ligueId={id} ligueNom={league.nom} actif="membres" estCommissaire={league.commissaire_id === user.id} />
       <p>{membres.length} joueur{membres.length > 1 ? 's' : ''} actif{membres.length > 1 ? 's' : ''}</p>
 
       <div style={{ marginTop: 24, textAlign: 'left' }}>

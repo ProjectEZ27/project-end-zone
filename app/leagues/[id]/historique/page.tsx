@@ -40,7 +40,7 @@ export default async function HistoriqueLigue({ params }: { params: Promise<{ id
         }} />
       </div>
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '40px 24px 100px', textAlign: 'center', color: 'white' }}>
-      <LeagueSubNav ligueId={id} ligueNom={league.nom} actif="historique" />
+<LeagueSubNav ligueId={id} ligueNom={league.nom} actif="historique" estCommissaire={league.commissaire_id === user.id} />
       <p style={{ color: '#9fb0c9', marginTop: 24 }}>
         L'historique se remplira au fil des saisons jouées sur Project End Zone.
         Reviens ici une fois la première saison terminée pour voir le palmarès de la ligue !

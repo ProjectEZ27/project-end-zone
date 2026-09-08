@@ -14,7 +14,8 @@ import {
   TbCheck,
   TbX,
 } from 'react-icons/tb'
-
+import { genererJournalSemaine } from '@/lib/journal'
+import JournalPhrase from '@/components/JournalPhrase'
 
 export default async function LeagueDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string }> }) {
   const { id } = await params
@@ -79,6 +80,28 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
   }
   const badgeStatut = statutLabel[league.statut] ?? { label: league.statut, bg: '#33415a', color: 'white' }
 
+    const { data: adhesionsMembres } = await supabase
+    .from('adhesions')
+    .select('utilisateur_id')
+    .eq('ligue_id', id)
+    .eq('statut', 'actif')
+
+  const membreIdsLigue = Array.from(new Set([
+    league.commissaire_id,
+    ...(adhesionsMembres ?? []).map((a) => a.utilisateur_id),
+  ]))
+
+  const { data: derniereSemaineClotureeLigue } = await supabase
+    .from('semaines')
+    .select('id')
+    .eq('statut', 'cloturee')
+    .order('id', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const phrasesJournal = derniereSemaineClotureeLigue
+    ? await genererJournalSemaine(supabase, derniereSemaineClotureeLigue.id, membreIdsLigue)
+    : []
   const pastilles = [
     { href: `/leagues/${id}/pronostics`, label: 'Résultats', Icon: TbBallAmericanFootball },
     { href: `/leagues/${id}/classement`, label: 'Classement', Icon: TbTrophy },
@@ -161,6 +184,14 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
           ))}
         </div>
 
+        {phrasesJournal.length > 0 && (
+          <div style={{ marginTop: 20, background: 'rgba(22,35,63,0.6)', border: '1px solid #33415a', borderRadius: 8, padding: 16, textAlign: 'left' }}>
+            <p style={{ fontWeight: 600, marginBottom: 12, color: 'white' }}>📰 Moment fort du mardi</p>
+            {phrasesJournal.map((phrase, i) => (
+              <JournalPhrase key={i} texte={phrase} />
+            ))}
+          </div>
+        )}
         {estCommissaire && (
           <div style={{ marginTop: 20, background: '#16233F', border: '0.5px solid #33415a', borderRadius: 12, padding: 16 }}>
             <TbCrown size={20} color="#EF9F27" style={{ display: 'block', margin: '0 auto 6px' }} />

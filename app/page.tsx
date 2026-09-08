@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import JoinLeagueForm from './JoinLeagueForm'
 import AuthRecoveryListener from './AuthRecoveryListener'
-import { genererJournalSemaine } from '@/lib/journal'
 import LandingPage from '@/components/LandingPage'
 import LeagueLogo from '@/components/LeagueLogo'
 import { calculerClassementSaison } from '@/lib/scoring'
@@ -23,10 +22,9 @@ export default async function Home({
     return <LandingPage />
   }
 
-  const [profileResult, adhesionsResult, semaineClotureeResult, saisonResult, prochainMatchGlobalResult] = await Promise.all([
+  const [profileResult, adhesionsResult, saisonResult, prochainMatchGlobalResult] = await Promise.all([
     supabase.from('profiles').select('pseudo').eq('id', user.id).maybeSingle(),
     supabase.from('adhesions').select('ligue_id, ligues(id, nom, logo_id, commissaire_id)').eq('utilisateur_id', user.id).eq('statut', 'actif'),
-    supabase.from('semaines').select('id, nom').eq('statut', 'cloturee').order('id', { ascending: false }).limit(1).single(),
     supabase.from('saisons').select('id').eq('statut', 'en_cours').single(),
     supabase.from('matchs').select('semaine_id').neq('statut', 'termine').order('coup_envoi', { ascending: true }).limit(1).maybeSingle(),
   ])
@@ -156,13 +154,6 @@ export default async function Home({
     prochainVerrouillage = prochainMatchSemaine?.coup_envoi ?? null
   }
 
-  // Journal du mardi : on cherche la dernière semaine clôturée (la plus récente terminée)
-  const derniereSemaineCloturee = semaineClotureeResult.data
-
-  const journalPhrases = derniereSemaineCloturee
-    ? await genererJournalSemaine(supabase, derniereSemaineCloturee.id)
-    : []
-
   return (
     <div style={{ position: 'relative', minHeight: '100dvh' }}>
       <div style={{
@@ -271,14 +262,6 @@ export default async function Home({
           </div>
         </div>
 
-        {journalPhrases.length > 0 && (
-          <div style={{ marginTop: 24, padding: 16, border: '1px solid #33415a', borderRadius: 8, textAlign: 'left', background: 'rgba(22,35,63,0.6)' }}>
-            <h2 style={{ fontSize: 16, marginBottom: 8, color: 'white' }}>📰 Moment fort du mardi</h2>
-            {journalPhrases.map((phrase, i) => (
-              <p key={i} style={{ margin: '4px 0', color: 'white' }}>{phrase}</p>
-            ))}
-          </div>
-        )}
 
         <div style={{ marginTop: 32, textAlign: 'left' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>

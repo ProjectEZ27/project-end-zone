@@ -31,7 +31,8 @@ function piocher(phrases: string[], pseudo: string): string {
 
 export async function genererJournalSemaine(
   supabase: SupabaseClient,
-  semaine_id: number
+  semaine_id: number,
+  membreIds: string[]
 ): Promise<string[]> {
   const phrases: string[] = []
 
@@ -50,12 +51,14 @@ export async function genererJournalSemaine(
 
   const matchIds = matchs.map((m) => m.id)
 
-  const { data: pronostics } = await supabase
+  const { data: pronosticsBruts } = await supabase
     .from('pronostics')
     .select('*')
     .in('match_id', matchIds)
+    .in('utilisateur_id', membreIds)
 
-  if (!pronostics || pronostics.length === 0) return phrases
+  const pronostics = pronosticsBruts ?? []
+  if (pronostics.length === 0) return phrases
 
   const userIds = [...new Set(pronostics.map((p) => p.utilisateur_id))]
   const { data: profiles } = await supabase

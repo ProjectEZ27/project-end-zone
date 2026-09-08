@@ -17,9 +17,9 @@ import {
 import { genererJournalSemaine } from '@/lib/journal'
 import JournalPhrase from '@/components/JournalPhrase'
 
-export default async function LeagueDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; test_journal?: string }> }) {
+export default async function LeagueDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string }> }) {
   const { id } = await params
-  const { error: errorMessage, test_journal } = await searchParams
+  const { error: errorMessage } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -99,12 +99,7 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
     .limit(1)
     .maybeSingle()
 
-  const phrasesJournal = test_journal
-    ? [
-        "Romain B a été le seul à voir venir cet upset. Respect.",
-        "Nyny a fait un sans-faute cette semaine. Perfect week !",
-      ]
-    : derniereSemaineClotureeLigue
+  const phrasesJournal = derniereSemaineClotureeLigue
     ? await genererJournalSemaine(supabase, derniereSemaineClotureeLigue.id, membreIdsLigue)
     : []
   const pastilles = [

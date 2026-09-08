@@ -167,7 +167,54 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
       <p>
         +{semaine.bonus_1} pt dès {semaine.seuil_bonus_1} bons pronos · +{semaine.bonus_2} pts dès {semaine.seuil_bonus_2} · Perfect week +{semaine.bonus_perfect}
       </p>
-      <p><strong>{nombreFaits}/{nombreTotal} pronostics faits</strong></p>
+      {nombreTotal > 0 && (
+        nombreFaits === 0 ? (
+          <div style={{
+            background: 'rgba(200,53,46,0.12)',
+            border: '1px solid rgba(200,53,46,0.4)',
+            borderRadius: 8,
+            padding: '12px 14px',
+            margin: '12px 0',
+            fontSize: 13,
+            color: '#ff8f87',
+            textAlign: 'left',
+          }}>
+            🔴 Aucun pronostic fait pour cette semaine
+          </div>
+        ) : nombreFaits < nombreTotal ? (
+          <div style={{
+            background: 'rgba(214,143,31,0.12)',
+            border: '1px solid rgba(214,143,31,0.4)',
+            borderRadius: 8,
+            padding: '12px 14px',
+            margin: '12px 0',
+            fontSize: 13,
+            color: '#f0c869',
+            textAlign: 'left',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 6,
+          }}>
+            <span>⏳ {nombreFaits} sur {nombreTotal} pronostics faits</span>
+            <span style={{ fontSize: 11 }}>Il en reste {nombreTotal - nombreFaits}</span>
+          </div>
+        ) : (
+          <div style={{
+            background: 'rgba(46,168,102,0.12)',
+            border: '1px solid rgba(46,168,102,0.4)',
+            borderRadius: 8,
+            padding: '12px 14px',
+            margin: '12px 0',
+            fontSize: 13,
+            color: '#6fe0a0',
+            textAlign: 'left',
+          }}>
+            ✅ Tous tes pronostics sont faits pour cette semaine
+          </div>
+        )
+      )}
 
       <a href="/infos-equipes" style={{
         display: 'flex',

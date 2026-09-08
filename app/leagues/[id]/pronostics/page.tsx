@@ -49,14 +49,23 @@ export default async function LeaguePronostics({
     notFound()
   }
 
-  const [toutesLesSemainesResult, semaineResult] = await Promise.all([
+  const [toutesLesSemainesResult, prochainMatchGlobalResult] = await Promise.all([
     supabase.from('semaines').select('id, nom').order('id', { ascending: true }),
-    semaineParam
-      ? supabase.from('semaines').select('*').eq('id', semaineParam).single()
-      : supabase.from('semaines').select('*').order('id', { ascending: false }).limit(1).single()
+    supabase.from('matchs').select('semaine_id').neq('statut', 'termine').order('coup_envoi', { ascending: true }).limit(1).maybeSingle()
   ])
   const toutesLesSemaines = toutesLesSemainesResult.data ?? []
-  const semaine = semaineResult.data
+
+  let semaine: { id: number; nom: string } | null = null
+  if (semaineParam) {
+    const { data } = await supabase.from('semaines').select('*').eq('id', semaineParam).single()
+    semaine = data
+  } else if (prochainMatchGlobalResult.data) {
+    const { data } = await supabase.from('semaines').select('*').eq('id', prochainMatchGlobalResult.data.semaine_id).single()
+    semaine = data
+  } else {
+    const { data } = await supabase.from('semaines').select('*').order('id', { ascending: false }).limit(1).single()
+    semaine = data
+  }
 
   if (!semaine) {
     return (

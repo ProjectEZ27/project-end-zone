@@ -130,23 +130,35 @@ export default async function LeaguePronostics({
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '40px 24px 100px', textAlign: 'center', color: 'white' }}>
       <LeagueSubNav ligueId={id} ligueNom={league.nom} actif="pronostics" estCommissaire={estCommissaire} />      <p style={{ color: '#999', fontSize: 13, marginBottom: 12 }}>Résultats et pronostics de tous les membres</p>
 
-      <Link
-        href="/pronostics"
-        style={{
-          display: 'block',
-          background: 'linear-gradient(135deg, #7a1a15, #C8352E)',
-          borderRadius: 8,
-          padding: 12,
-          textDecoration: 'none',
-          color: 'white',
-          fontSize: 13,
-          fontWeight: 700,
-          textAlign: 'center',
-          marginBottom: 20,
-        }}
-      >
-        Faire mes pronostics de la semaine →
-      </Link>
+      {(() => {
+        const mesPronosFaits = (pronosticsLigue ?? []).filter((p) => p.utilisateur_id === user.id).length
+        const totalMatchsSemaine = matchs?.length ?? 0
+        const style = mesPronosFaits === 0
+          ? { degrade: 'linear-gradient(135deg, #7a1a15, #C8352E)', libelle: 'Faire mes pronostics de la semaine →' }
+          : mesPronosFaits < totalMatchsSemaine
+          ? { degrade: 'linear-gradient(135deg, #6b4a0f, #d68f1f)', libelle: `⏳ Finalise tes pronostics (${mesPronosFaits}/${totalMatchsSemaine}) →` }
+          : { degrade: 'linear-gradient(135deg, #0c4a3a, #2ea866)', libelle: '✅ Pronostics faits — modifier' }
+
+        return (
+          <Link
+            href="/pronostics"
+            style={{
+              display: 'block',
+              background: style.degrade,
+              borderRadius: 8,
+              padding: 12,
+              textDecoration: 'none',
+              color: 'white',
+              fontSize: 13,
+              fontWeight: 700,
+              textAlign: 'center',
+              marginBottom: 20,
+            }}
+          >
+            {style.libelle}
+          </Link>
+        )
+      })()}
 
       <div style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 24, paddingBottom: 4 }}>
         {toutesLesSemaines.map((s) => (

@@ -134,6 +134,7 @@ export default async function Home({
   }
 
   let nombreMatchsSemaine = 0
+  let mesPronosFaits = 0
   let prochainVerrouillage: string | null = null
   if (semaineActuelle) {
     const { count } = await supabase
@@ -141,6 +142,21 @@ export default async function Home({
       .select('id', { count: 'exact', head: true })
       .eq('semaine_id', semaineActuelle.id)
     nombreMatchsSemaine = count ?? 0
+
+    const { data: matchsSemaineActuelle } = await supabase
+      .from('matchs')
+      .select('id')
+      .eq('semaine_id', semaineActuelle.id)
+    const idsMatchsSemaine = (matchsSemaineActuelle ?? []).map((m) => m.id)
+
+    if (idsMatchsSemaine.length > 0) {
+      const { count: countFaits } = await supabase
+        .from('pronostics')
+        .select('id', { count: 'exact', head: true })
+        .eq('utilisateur_id', user.id)
+        .in('match_id', idsMatchsSemaine)
+      mesPronosFaits = countFaits ?? 0
+    }
 
     const { data: prochainMatchSemaine } = await supabase
       .from('matchs')
@@ -203,47 +219,55 @@ export default async function Home({
         )}
         <p style={{ color: 'white', marginTop: 12 }}>Connecté en tant que {profile.pseudo}</p>
 
-        {semaineActuelle && (
-          <Link
-            href="/pronostics"
-            style={{
-              display: 'block',
-              background: 'linear-gradient(135deg, #7a1a15, #C8352E)',
-              border: '1px solid #ff6b5f',
-              borderRadius: 12,
-              padding: 16,
-              textDecoration: 'none',
-              color: 'white',
-              margin: '20px 0',
-              textAlign: 'left',
-              boxShadow: '0 0 20px rgba(200,53,46,0.35)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-              <div style={{ width: 3, height: 12, background: 'white' }} />
-              <span style={{ fontSize: 10, letterSpacing: 1, color: '#ffd9d5', textTransform: 'uppercase' }}>
-                {semaineActuelle.nom}
-              </span>
-            </div>
-            <div style={{ fontSize: 16, fontWeight: 700 }}>Pronostics de la semaine</div>
-            <div style={{ display: 'flex', gap: 12, marginTop: 8, fontSize: 11, color: '#ffd9d5' }}>
-              <span>📅 {nombreMatchsSemaine} match{nombreMatchsSemaine > 1 ? 's' : ''}</span>
-              <CountdownBadge cible={prochainVerrouillage} />
-            </div>
-            <div style={{
-              marginTop: 12,
-              background: 'white',
-              color: '#C8352E',
-              fontSize: 13,
-              fontWeight: 700,
-              padding: 10,
-              borderRadius: 8,
-              textAlign: 'center',
-            }}>
-              Faire mes pronostics →
-            </div>
-          </Link>
-        )}
+        {semaineActuelle && (() => {
+          const style = mesPronosFaits === 0
+            ? { degrade: 'linear-gradient(135deg, #7a1a15, #C8352E)', bordure: '#ff6b5f', ombre: 'rgba(200,53,46,0.35)', texteHaut: '#ffd9d5', texteBouton: '#C8352E', libelle: 'Faire mes pronostics →' }
+            : mesPronosFaits < nombreMatchsSemaine
+            ? { degrade: 'linear-gradient(135deg, #6b4a0f, #d68f1f)', bordure: '#f0b84a', ombre: 'rgba(214,143,31,0.35)', texteHaut: '#ffedcf', texteBouton: '#a86b0f', libelle: '⏳ Finalise tes pronostics →' }
+            : { degrade: 'linear-gradient(135deg, #0c4a3a, #2ea866)', bordure: '#6fe0a0', ombre: 'rgba(46,168,102,0.35)', texteHaut: '#d7f5e4', texteBouton: '#0F6E56', libelle: '✅ Pronostics faits — modifier' }
+
+          return (
+            <Link
+              href="/pronostics"
+              style={{
+                display: 'block',
+                background: style.degrade,
+                border: `1px solid ${style.bordure}`,
+                borderRadius: 12,
+                padding: 16,
+                textDecoration: 'none',
+                color: 'white',
+                margin: '20px 0',
+                textAlign: 'left',
+                boxShadow: `0 0 20px ${style.ombre}`,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                <div style={{ width: 3, height: 12, background: 'white' }} />
+                <span style={{ fontSize: 10, letterSpacing: 1, color: style.texteHaut, textTransform: 'uppercase' }}>
+                  {semaineActuelle.nom}
+                </span>
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 700 }}>Pronostics de la semaine</div>
+              <div style={{ display: 'flex', gap: 12, marginTop: 8, fontSize: 11, color: style.texteHaut }}>
+                <span>📅 {mesPronosFaits}/{nombreMatchsSemaine} faits</span>
+                <CountdownBadge cible={prochainVerrouillage} />
+              </div>
+              <div style={{
+                marginTop: 12,
+                background: 'white',
+                color: style.texteBouton,
+                fontSize: 13,
+                fontWeight: 700,
+                padding: 10,
+                borderRadius: 8,
+                textAlign: 'center',
+              }}>
+                {style.libelle}
+              </div>
+            </Link>
+          )
+        })()}
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
           <div style={{ background: '#16233F', border: '0.5px solid #33415a', borderRadius: 10, padding: '12px 8px', textAlign: 'center' }}>

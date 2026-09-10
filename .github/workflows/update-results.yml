@@ -10,6 +10,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Appeler la route de mise à jour
-        run: |
-          curl -f -X GET "https://projectendzone.fr/api/cron/update-results" \
-            -H "AuthorizatioCapture d’écran du 2026-09-10 12-42-52
+        run: curl -f -X GET "https://projectendzone.fr/api/cron/update-results" -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

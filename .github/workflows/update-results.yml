@@ -2,7 +2,10 @@ name: Mise à jour des résultats NFL
 
 on:
   schedule:
-    - cron: '*/3 * * * *'
+    - cron: '*/3 12-23 * * 0'
+    - cron: '*/3 0-5 * * 1'
+    - cron: '*/3 0-5 * * 2'
+    - cron: '*/3 0-5 * * 5'
   workflow_dispatch:
 
 jobs:

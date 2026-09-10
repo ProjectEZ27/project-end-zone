@@ -322,6 +322,9 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
                       locked={verrouille}
                       finished={termine}
                       equipeGagnante={match.equipe_gagnante}
+                      scoreDirectA={match.score_a_direct}
+                      scoreDirectB={match.score_b_direct}
+                      quartTemps={match.quart_temps}
                     />
                   )
                 })}

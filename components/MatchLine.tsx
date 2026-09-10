@@ -13,6 +13,9 @@ interface MatchLineProps {
   finished: boolean
   equipeGagnante?: string | null
   ouvert?: boolean
+  scoreDirectA?: number | null
+  scoreDirectB?: number | null
+  quartTemps?: string | null
 }
 
 function Streaks({ side }: { side: 'left' | 'right' }) {
@@ -54,7 +57,11 @@ export default function MatchLine({
   finished,
   equipeGagnante,
   ouvert = true,
+  scoreDirectA,
+  scoreDirectB,
+  quartTemps,
 }: MatchLineProps) {
+  const enDirect = locked && !finished && scoreDirectA != null && scoreDirectB != null
   const color1 = getCouleurEquipe(team1.code)
   const color2 = getCouleurEquipe(team2.code)
 
@@ -105,7 +112,26 @@ export default function MatchLine({
   ].filter(Boolean).join(' ')
 
   return (
-    <div className={matchClasses} style={cssVars}>
+    <div>
+      {enDirect && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          background: 'rgba(200,53,46,0.1)',
+          border: '1px solid rgba(200,53,46,0.4)',
+          borderRadius: '8px 8px 0 0',
+          padding: '6px 10px',
+          fontSize: 11,
+          fontWeight: 700,
+          color: '#ff8f87',
+        }}>
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff4444', display: 'inline-block' }} />
+          EN DIRECT{quartTemps ? ` · ${quartTemps}` : ''} · {scoreDirectA} – {scoreDirectB}
+        </div>
+      )}
+      <div className={matchClasses} style={cssVars}>
       <Streaks side="left" />
       <Streaks side="right" />
 
@@ -166,6 +192,7 @@ export default function MatchLine({
           </div>
         )}
         <div className={styles.check} />
+      </div>
       </div>
     </div>
   )

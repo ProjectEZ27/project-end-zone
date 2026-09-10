@@ -34,30 +34,43 @@ export async function GET(request: Request) {
     const liveMatches = liveResult.data as any[]
 
     for (const match of liveMatches) {
-      if (match.status !== 'finished') continue
-
       const equipeA = match.away.short_name
       const equipeB = match.home.short_name
-      const scoreA = match.score.away
-      const scoreB = match.score.home
-      const equipeGagnante = scoreB > scoreA ? equipeB : scoreA > scoreB ? equipeA : null
 
-      const { error, count } = await supabase
-        .from('matchs')
-        .update({
-          statut: 'termine',
-          score_a: scoreA,
-          score_b: scoreB,
-          equipe_gagnante: equipeGagnante,
-        }, { count: 'exact' })
-        .eq('equipe_a', equipeA)
-        .eq('equipe_b', equipeB)
-        .eq('coup_envoi', match.kickoff_utc)
-        .neq('statut', 'termine')
+      if (match.status === 'finished') {
+        const scoreA = match.score.away
+        const scoreB = match.score.home
+        const equipeGagnante = scoreB > scoreA ? equipeB : scoreA > scoreB ? equipeA : null
 
-      if (!error && count && count > 0) {
-        resultats.push(`${equipeA} ${scoreA} - ${scoreB} ${equipeB}`)
-        miseAJourTotal++
+        const { error, count } = await supabase
+          .from('matchs')
+          .update({
+            statut: 'termine',
+            score_a: scoreA,
+            score_b: scoreB,
+            equipe_gagnante: equipeGagnante,
+          }, { count: 'exact' })
+          .eq('equipe_a', equipeA)
+          .eq('equipe_b', equipeB)
+          .eq('coup_envoi', match.kickoff_utc)
+          .neq('statut', 'termine')
+
+        if (!error && count && count > 0) {
+          resultats.push(`${equipeA} ${scoreA} - ${scoreB} ${equipeB}`)
+          miseAJourTotal++
+        }
+      } else if (match.status === 'in_progress' || match.status === 'live') {
+        await supabase
+          .from('matchs')
+          .update({
+            score_a_direct: match.score?.away ?? null,
+            score_b_direct: match.score?.home ?? null,
+            quart_temps: match.period ?? null,
+            temps_restant: match.clock ?? null,
+          })
+          .eq('equipe_a', equipeA)
+          .eq('equipe_b', equipeB)
+          .eq('coup_envoi', match.kickoff_utc)
       }
     }
   }

@@ -1,6 +1,12 @@
 import { BigBallSportsClient } from '@bigballsdata/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { NOMS_EQUIPES } from '@/lib/teamBadge'
+
+function trouverCodeEquipe(nomComplet: string): string | null {
+  const entree = Object.entries(NOMS_EQUIPES).find(([, nom]) => nom === nomComplet)
+  return entree ? entree[0] : null
+}
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization')
@@ -34,8 +40,8 @@ export async function GET(request: Request) {
     const liveMatches = liveResult.data as any[]
 
     for (const match of liveMatches) {
-      const equipeA = match.away.short_name
-      const equipeB = match.home.short_name
+      const equipeA = trouverCodeEquipe(match.away.name) ?? match.away.short_name
+      const equipeB = trouverCodeEquipe(match.home.name) ?? match.home.short_name
 
       if (match.status === 'finished') {
         const scoreA = match.score.away

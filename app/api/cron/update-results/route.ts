@@ -1,11 +1,19 @@
 import { BigBallSportsClient } from '@bigballsdata/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
-import { NOMS_EQUIPES } from '@/lib/teamBadge'
+const CORRESPONDANCE_EQUIPES: Record<string, string> = {
+  'Arizona Cardinals': 'ARI', 'Atlanta Falcons': 'ATL', 'Baltimore Ravens': 'BAL', 'Buffalo Bills': 'BUF',
+  'Carolina Panthers': 'CAR', 'Chicago Bears': 'CHI', 'Cincinnati Bengals': 'CIN', 'Cleveland Browns': 'CLE',
+  'Dallas Cowboys': 'DAL', 'Denver Broncos': 'DEN', 'Detroit Lions': 'DET', 'Green Bay Packers': 'GB',
+  'Houston Texans': 'HOU', 'Indianapolis Colts': 'IND', 'Jacksonville Jaguars': 'JAX', 'Kansas City Chiefs': 'KC',
+  'Los Angeles Rams': 'LA', 'Los Angeles Chargers': 'LAC', 'Las Vegas Raiders': 'LV', 'Miami Dolphins': 'MIA',
+  'Minnesota Vikings': 'MIN', 'New England Patriots': 'NE', 'New Orleans Saints': 'NO', 'New York Giants': 'NYG',
+  'New York Jets': 'NYJ', 'Philadelphia Eagles': 'PHI', 'Pittsburgh Steelers': 'PIT', 'Seattle Seahawks': 'SEA',
+  'San Francisco 49ers': 'SF', 'Tampa Bay Buccaneers': 'TB', 'Tennessee Titans': 'TEN', 'Washington Commanders': 'WAS',
+}
 
 function trouverCodeEquipe(nomComplet: string): string | null {
-  const entree = Object.entries(NOMS_EQUIPES).find(([, nom]) => nom === nomComplet)
-  return entree ? entree[0] : null
+  return CORRESPONDANCE_EQUIPES[nomComplet] ?? null
 }
 
 export async function GET(request: Request) {

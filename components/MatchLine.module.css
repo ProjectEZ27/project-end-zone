@@ -435,11 +435,11 @@
 }
 
 .rankSideLeft .rankIcon {
-  left: 44px;
+  left: 80px;
 }
 
 .rankSideRight .rankIcon {
-  right: 44px;
+  right: 20px;
 }
 
 .rankIcon::-webkit-details-marker {

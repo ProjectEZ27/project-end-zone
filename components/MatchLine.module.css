@@ -391,7 +391,7 @@
 /* ===== Classement indicatif (icône i) ===== */
 .rankDetails {
   position: absolute;
-  top: 72%;
+  bottom: 46px;
   left: 0;
   right: 0;
   display: flex;
@@ -399,13 +399,13 @@
 }
 
 .teamLeft .rankDetails {
-  justify-content: flex-end;
-  padding-right: 8px;
+  justify-content: flex-start;
+  padding-left: 10px;
 }
 
 .teamRight .rankDetails {
-  justify-content: flex-start;
-  padding-left: 8px;
+  justify-content: flex-end;
+  padding-right: 10px;
 }
 
 .rankIcon {

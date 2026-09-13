@@ -400,14 +400,7 @@
   flex: 1;
   min-width: 0;
   display: flex;
-}
-
-.rankSideLeft {
-  justify-content: flex-start;
-}
-
-.rankSideRight {
-  justify-content: flex-end;
+  justify-content: center;
 }
 
 .rankDetails {
@@ -416,7 +409,9 @@
 
 .rankIcon {
   position: absolute;
-  top: -34px;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -432,14 +427,6 @@
   justify-content: center;
   cursor: pointer;
   list-style: none;
-}
-
-.rankSideLeft .rankIcon {
-  left: 80px;
-}
-
-.rankSideRight .rankIcon {
-  right: 20px;
 }
 
 .rankIcon::-webkit-details-marker {

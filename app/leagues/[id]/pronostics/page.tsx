@@ -228,6 +228,8 @@ export default async function LeaguePronostics({
                 team2={team2}
                 finished={termine}
                 equipeGagnante={match.equipe_gagnante}
+                score1={match.score_a}
+                score2={match.score_b}
               />
 
               {verrouille ? (

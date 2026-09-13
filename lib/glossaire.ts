@@ -1,5 +1,6 @@
 export const GLOSSAIRE: Record<string, string> = {
   'upset': "Un résultat surprenant : l'équipe qu'on pensait perdante finit par gagner le match.",
-  'perfect week': "Le fait d'avoir deviné correctement le résultat de tous les matchs de la semaine.",
-  'sans-faute': "Le fait d'avoir deviné correctement le résultat de tous les matchs de la semaine.",
+  'blowout': "Une victoire écrasante, avec un écart de score très large entre les deux équipes.",
+  'underdog': "L'équipe qu'on donne perdante avant le match, considérée comme la moins forte des deux.",
+  'power ranking': "Un classement des équipes selon leur niveau de jeu global, indépendamment de leur position officielle au classement de la ligue.",
 }

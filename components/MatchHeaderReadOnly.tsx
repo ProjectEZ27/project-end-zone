@@ -6,9 +6,11 @@ interface MatchHeaderReadOnlyProps {
   team2: { code: string; name: string }
   finished: boolean
   equipeGagnante?: string | null
+  score1?: number | null
+  score2?: number | null
 }
 
-export default function MatchHeaderReadOnly({ team1, team2, finished, equipeGagnante }: MatchHeaderReadOnlyProps) {
+export default function MatchHeaderReadOnly({ team1, team2, finished, equipeGagnante, score1, score2 }: MatchHeaderReadOnlyProps) {
   const color1 = getCouleurEquipe(team1.code)
   const color2 = getCouleurEquipe(team2.code)
 
@@ -51,7 +53,11 @@ export default function MatchHeaderReadOnly({ team1, team2, finished, equipeGagn
         </div>
       </div>
 
-      <div className={styles.vs}>VS</div>
+      <div className={styles.vs}>
+        {finished && score1 != null && score2 != null
+          ? <span className={styles.scoreFinal}>{score1}-{score2}</span>
+          : 'VS'}
+      </div>
 
       <div className={teamRightClasses}>
         <div className={styles.teamContent}>

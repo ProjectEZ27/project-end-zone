@@ -416,7 +416,7 @@
 
 .rankIcon {
   position: absolute;
-  top: -48px;
+  top: -34px;
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -435,11 +435,11 @@
 }
 
 .rankSideLeft .rankIcon {
-  left: 0;
+  left: 44px;
 }
 
 .rankSideRight .rankIcon {
-  right: 0;
+  right: 44px;
 }
 
 .rankIcon::-webkit-details-marker {

@@ -7,6 +7,8 @@ import { SpecialPicksPreseason, SpecialPicksAvantPlayoffs, SpecialPicksRecap } f
 import { grouperMatchsParCreneau } from '@/lib/groupMatchsByCreneau'
 import WeekGroupHeader from '@/components/WeekGroupHeader'
 import { estSemaineOuverte, calculerDateOuverture } from '@/lib/semaineOuverture'
+import { getPowerIndexRanking } from '@/lib/powerIndex'
+import { RESUMES_EQUIPES } from '@/lib/resumesEquipes'
 
 export default async function Pronostics({ searchParams }: { searchParams: Promise<{ semaine?: string }> }) {
   const { semaine: semaineParam } = await searchParams
@@ -17,14 +19,21 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
     redirect('/login')
   }
 
-  const [toutesLesSemainesResult, semaineParamResult] = await Promise.all([
+  const [toutesLesSemainesResult, semaineParamResult, classement] = await Promise.all([
     supabase.from('semaines').select('id, nom').order('id', { ascending: true }),
     semaineParam
       ? supabase.from('semaines').select('*').eq('id', semaineParam).single()
-      : Promise.resolve({ data: null })
+      : Promise.resolve({ data: null }),
+    getPowerIndexRanking(new Date().getFullYear())
   ])
   const toutesLesSemaines = toutesLesSemainesResult.data
   let semaine = semaineParamResult.data
+  const rangParEquipe = new Map(classement.map((e) => [e.code, e.rang]))
+  const descCourte = (code: string) => {
+    const texte = RESUMES_EQUIPES[code]?.texte
+    if (!texte) return null
+    return texte.length > 100 ? texte.slice(0, 97) + '…' : texte
+  }
 
   if (!semaine) {
     // Semaine par défaut = celle du prochain match non terminé (chronologiquement),
@@ -325,6 +334,10 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
                       scoreDirectA={match.score_a_direct}
                       scoreDirectB={match.score_b_direct}
                       quartTemps={match.quart_temps}
+                      rank1={rangParEquipe.get(match.equipe_a) ?? null}
+                      rank2={rangParEquipe.get(match.equipe_b) ?? null}
+                      desc1={descCourte(match.equipe_a)}
+                      desc2={descCourte(match.equipe_b)}
                     />
                   )
                 })}
@@ -346,6 +359,10 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
                 finished={false}
                 equipeGagnante={null}
                 ouvert={false}
+                rank1={rangParEquipe.get(match.equipe_a) ?? null}
+                rank2={rangParEquipe.get(match.equipe_b) ?? null}
+                desc1={descCourte(match.equipe_a)}
+                desc2={descCourte(match.equipe_b)}
               />
             ))}
           </div>

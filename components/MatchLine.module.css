@@ -387,6 +387,75 @@
 .resultBadge.resultCross::after {
   transform: rotate(-45deg);
 }
+
+/* ===== Classement indicatif (bouton +) ===== */
+.rankDetails {
+  position: absolute;
+  top: 8px;
+  z-index: 45;
+}
+
+.rankLeft {
+  left: 8px;
+}
+
+.rankRight {
+  right: 8px;
+}
+
+.rankButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: transparent;
+  color: rgba(255,255,255,0.85);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+  list-style: none;
+}
+
+.rankButton::-webkit-details-marker {
+  display: none;
+}
+
+.rankPanel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 6px;
+  background: rgba(10,14,26,0.95);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  padding: 8px 10px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rankValue {
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+}
+
+.rankNote {
+  font-size: 9px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.5);
+}
+
+.rankDesc {
+  font-size: 10px;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.4;
+}
+
 /* ===== Semaine pas encore ouverte ===== */
 .match.notOpen {
   opacity: 0.55;

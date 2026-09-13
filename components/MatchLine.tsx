@@ -16,6 +16,10 @@ interface MatchLineProps {
   scoreDirectA?: number | null
   scoreDirectB?: number | null
   quartTemps?: string | null
+  rank1?: number | null
+  rank2?: number | null
+  desc1?: string | null
+  desc2?: string | null
 }
 
 function Streaks({ side }: { side: 'left' | 'right' }) {
@@ -60,6 +64,10 @@ export default function MatchLine({
   scoreDirectA,
   scoreDirectB,
   quartTemps,
+  rank1,
+  rank2,
+  desc1,
+  desc2,
 }: MatchLineProps) {
   const enDirect = locked && !finished && scoreDirectA != null && scoreDirectB != null
   const color1 = getCouleurEquipe(team1.code)
@@ -164,6 +172,15 @@ export default function MatchLine({
         {finished && chosenLeft && (
           <div className={`${styles.resultBadge} ${won ? styles.resultCheck : styles.resultCross}`} />
         )}
+        {!finished && rank1 != null && (
+          <details className={`${styles.rankDetails} ${styles.rankLeft}`}>
+            <summary className={styles.rankButton}>+</summary>
+            <div className={styles.rankPanel}>
+              <span className={styles.rankValue}>{rank1}e sur 32 <span className={styles.rankNote}>(indicatif)</span></span>
+              {desc1 && <span className={styles.rankDesc}>{desc1}</span>}
+            </div>
+          </details>
+        )}
       </div>
 
       <div className={styles.vs}>
@@ -197,6 +214,15 @@ export default function MatchLine({
         <div className={styles.check} />
         {finished && chosenRight && (
           <div className={`${styles.resultBadge} ${won ? styles.resultCheck : styles.resultCross}`} />
+        )}
+        {!finished && rank2 != null && (
+          <details className={`${styles.rankDetails} ${styles.rankRight}`}>
+            <summary className={styles.rankButton}>+</summary>
+            <div className={styles.rankPanel}>
+              <span className={styles.rankValue}>{rank2}e sur 32 <span className={styles.rankNote}>(indicatif)</span></span>
+              {desc2 && <span className={styles.rankDesc}>{desc2}</span>}
+            </div>
+          </details>
         )}
       </div>
       </div>

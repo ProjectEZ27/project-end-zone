@@ -3,6 +3,8 @@ export const dynamic = 'force-dynamic'
 import { getPowerIndexRanking } from '@/lib/powerIndex'
 import RulesAccordion from '@/components/RulesAccordion'
 import { RESUMES_EQUIPES } from '@/lib/resumesEquipes'
+import InfoToggle from '@/components/InfoToggle'
+import { GLOSSAIRE } from '@/lib/glossaire'
 
 export default async function InfosEquipes() {
   const annee = new Date().getFullYear()
@@ -28,7 +30,10 @@ export default async function InfosEquipes() {
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '40px 16px 100px', position: 'relative' }}>
         <h1 style={{ fontSize: 26, textAlign: 'center', marginBottom: 4 }}>🏈 Infos équipes</h1>
         <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)', fontSize: 14, marginBottom: 32 }}>
-          Le classement des 32 équipes, pour t'aider à pronostiquer
+          Le power ranking des 32 équipes, pour t'aider à pronostiquer
+          <InfoToggle label="Qu'est-ce que le power ranking ?">
+            {GLOSSAIRE['power ranking']}
+          </InfoToggle>
         </p>
 
         {classement.length === 0 ? (

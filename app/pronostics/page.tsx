@@ -30,9 +30,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   let semaine = semaineParamResult.data
   const rangParEquipe = new Map(classement.map((e) => [e.code, e.rang]))
   const descCourte = (code: string) => {
-    const texte = RESUMES_EQUIPES[code]?.texte
-    if (!texte) return null
-    return texte.length > 100 ? texte.slice(0, 97) + '…' : texte
+    return RESUMES_EQUIPES[code]?.texte ?? null
   }
 
   if (!semaine) {

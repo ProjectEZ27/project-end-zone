@@ -388,68 +388,62 @@
   transform: rotate(-45deg);
 }
 
-/* ===== Classement indicatif (bouton +) ===== */
-.rankRow {
-  display: flex;
-  justify-content: space-between;
-  margin-top: -30px;
-  position: relative;
-  z-index: 45;
-  padding: 0 8px;
-  pointer-events: none;
-}
-
-.rankSide {
-  display: flex;
-  flex-direction: column;
-  pointer-events: none;
-}
-
-.rankSideLeft {
-  align-items: flex-start;
-}
-
-.rankSideRight {
-  align-items: flex-end;
-}
-
+/* ===== Classement indicatif (icône i) ===== */
 .rankDetails {
-  pointer-events: auto;
+  position: absolute;
+  top: 58%;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  z-index: 46;
 }
 
-.rankButton {
+.rankIcon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.35);
+  color: rgba(255,255,255,0.9);
+  font-size: 12px;
+  font-weight: 700;
+  font-style: italic;
+  font-family: Georgia, 'Times New Roman', serif;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: rgba(0,0,0,0.35);
-  color: rgba(255,255,255,0.95);
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 1;
   cursor: pointer;
   list-style: none;
 }
 
-.rankButton::-webkit-details-marker {
+.rankIcon::-webkit-details-marker {
   display: none;
 }
 
 .rankPanel {
-  margin-top: 6px;
-  width: 260px;
-  max-width: 90vw;
+  position: absolute;
+  top: 100%;
+  margin-top: 10px;
+  width: 100%;
+  box-sizing: border-box;
   background: rgba(10,14,26,0.97);
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 8px;
-  padding: 10px 14px;
+  padding: 10px 12px;
   text-align: left;
   display: flex;
   flex-direction: column;
   gap: 4px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+}
+
+.rankPanelLeft {
+  left: 0;
+}
+
+.rankPanelRight {
+  right: 0;
 }
 
 .rankValue {
@@ -468,6 +462,10 @@
   font-size: 10px;
   color: rgba(255,255,255,0.65);
   line-height: 1.4;
+}
+
+.match:has(.rankDetails[open]) {
+  overflow: visible;
 }
 
 /* ===== Semaine pas encore ouverte ===== */

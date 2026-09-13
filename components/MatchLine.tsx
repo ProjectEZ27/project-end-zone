@@ -136,7 +136,7 @@ export default function MatchLine({
           color: '#ff8f87',
         }}>
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff4444', display: 'inline-block' }} />
-          EN DIRECT{quartTemps ? ` · ${quartTemps}` : ''} · {scoreDirectA} – {scoreDirectB}
+          EN DIRECT
         </div>
       )}
       <div className={matchClasses} style={cssVars}>
@@ -177,6 +177,8 @@ export default function MatchLine({
       <div className={styles.vs}>
         {finished && score1 != null && score2 != null
           ? <span className={styles.scoreFinal}>{score1}-{score2}</span>
+          : enDirect
+          ? <span className={styles.scoreLive}>{scoreDirectA}-{scoreDirectB}</span>
           : 'VS'}
       </div>
 

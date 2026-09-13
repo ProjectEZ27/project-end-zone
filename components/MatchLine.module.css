@@ -143,6 +143,14 @@
   letter-spacing: 1px;
 }
 
+.scoreLive {
+  font-size: 22px;
+  font-weight: 900;
+  color: #ff8f87;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+  letter-spacing: 1px;
+}
+
 .streaks {
   position: absolute;
   inset: 0;

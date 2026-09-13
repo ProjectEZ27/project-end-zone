@@ -389,26 +389,34 @@
 }
 
 /* ===== Classement indicatif (icône i) ===== */
-.rankDetails {
-  position: absolute;
-  bottom: 46px;
-  left: 0;
-  right: 0;
+.rankRow {
   display: flex;
-  z-index: 46;
+  justify-content: space-between;
+  position: relative;
+  padding: 0 8px;
 }
 
-.teamLeft .rankDetails {
+.rankSide {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}
+
+.rankSideLeft {
   justify-content: flex-start;
-  padding-left: 10px;
 }
 
-.teamRight .rankDetails {
+.rankSideRight {
   justify-content: flex-end;
-  padding-right: 10px;
+}
+
+.rankDetails {
+  position: relative;
 }
 
 .rankIcon {
+  position: absolute;
+  top: -48px;
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -426,14 +434,20 @@
   list-style: none;
 }
 
+.rankSideLeft .rankIcon {
+  left: 0;
+}
+
+.rankSideRight .rankIcon {
+  right: 0;
+}
+
 .rankIcon::-webkit-details-marker {
   display: none;
 }
 
 .rankPanel {
-  position: absolute;
-  top: 100%;
-  margin-top: 10px;
+  margin-top: 6px;
   width: 100%;
   box-sizing: border-box;
   background: rgba(10,14,26,0.97);
@@ -445,14 +459,6 @@
   flex-direction: column;
   gap: 4px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-}
-
-.rankPanelLeft {
-  left: 0;
-}
-
-.rankPanelRight {
-  right: 0;
 }
 
 .rankValue {
@@ -471,14 +477,6 @@
   font-size: 10px;
   color: rgba(255,255,255,0.65);
   line-height: 1.4;
-}
-
-.match:has(.rankDetails[open]) {
-  overflow: visible;
-}
-
-.match:has(.rankDetails[open]) .team {
-  overflow: visible;
 }
 
 /* ===== Semaine pas encore ouverte ===== */

@@ -172,17 +172,6 @@ export default function MatchLine({
         {finished && chosenLeft && (
           <div className={`${styles.resultBadge} ${won ? styles.resultCheck : styles.resultCross}`} />
         )}
-        {!finished && rank1 != null && (
-          <details className={styles.rankDetails}>
-            <summary className={styles.rankIcon}>i</summary>
-            <div className={`${styles.rankPanel} ${styles.rankPanelLeft}`}>
-              <span className={styles.rankValue}>
-                {team1.name} — {rank1}e sur 32 <span className={styles.rankNote}>(indicatif)</span>
-              </span>
-              {desc1 && <span className={styles.rankDesc}>{desc1}</span>}
-            </div>
-          </details>
-        )}
       </div>
 
       <div className={styles.vs}>
@@ -217,19 +206,39 @@ export default function MatchLine({
         {finished && chosenRight && (
           <div className={`${styles.resultBadge} ${won ? styles.resultCheck : styles.resultCross}`} />
         )}
-        {!finished && rank2 != null && (
-          <details className={styles.rankDetails}>
-            <summary className={styles.rankIcon}>i</summary>
-            <div className={`${styles.rankPanel} ${styles.rankPanelRight}`}>
-              <span className={styles.rankValue}>
-                {team2.name} — {rank2}e sur 32 <span className={styles.rankNote}>(indicatif)</span>
-              </span>
-              {desc2 && <span className={styles.rankDesc}>{desc2}</span>}
-            </div>
-          </details>
-        )}
       </div>
       </div>
+
+      {!finished && (rank1 != null || rank2 != null) && (
+        <div className={styles.rankRow}>
+          <div className={`${styles.rankSide} ${styles.rankSideLeft}`}>
+            {rank1 != null && (
+              <details className={styles.rankDetails}>
+                <summary className={styles.rankIcon}>i</summary>
+                <div className={styles.rankPanel}>
+                  <span className={styles.rankValue}>
+                    {team1.name} — {rank1}e sur 32 <span className={styles.rankNote}>(indicatif)</span>
+                  </span>
+                  {desc1 && <span className={styles.rankDesc}>{desc1}</span>}
+                </div>
+              </details>
+            )}
+          </div>
+          <div className={`${styles.rankSide} ${styles.rankSideRight}`}>
+            {rank2 != null && (
+              <details className={styles.rankDetails}>
+                <summary className={styles.rankIcon}>i</summary>
+                <div className={styles.rankPanel}>
+                  <span className={styles.rankValue}>
+                    {team2.name} — {rank2}e sur 32 <span className={styles.rankNote}>(indicatif)</span>
+                  </span>
+                  {desc2 && <span className={styles.rankDesc}>{desc2}</span>}
+                </div>
+              </details>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

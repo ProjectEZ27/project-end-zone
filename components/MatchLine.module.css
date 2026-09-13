@@ -389,18 +389,32 @@
 }
 
 /* ===== Classement indicatif (bouton +) ===== */
-.rankDetails {
-  position: absolute;
-  top: 8px;
+.rankRow {
+  display: flex;
+  justify-content: space-between;
+  margin-top: -30px;
+  position: relative;
   z-index: 45;
+  padding: 0 8px;
+  pointer-events: none;
 }
 
-.rankLeft {
-  left: 8px;
+.rankSide {
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
 }
 
-.rankRight {
-  right: 8px;
+.rankSideLeft {
+  align-items: flex-start;
+}
+
+.rankSideRight {
+  align-items: flex-end;
+}
+
+.rankDetails {
+  pointer-events: auto;
 }
 
 .rankButton {
@@ -409,8 +423,8 @@
   justify-content: center;
   width: 26px;
   height: 26px;
-  background: rgba(0,0,0,0.25);
   border-radius: 50%;
+  background: rgba(0,0,0,0.35);
   color: rgba(255,255,255,0.95);
   font-size: 22px;
   font-weight: 700;
@@ -424,26 +438,18 @@
 }
 
 .rankPanel {
-  position: absolute;
-  top: 28px;
-  width: 160px;
+  margin-top: 6px;
+  width: 260px;
+  max-width: 90vw;
   background: rgba(10,14,26,0.97);
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 8px;
-  padding: 8px 10px;
+  padding: 10px 14px;
   text-align: left;
   display: flex;
   flex-direction: column;
   gap: 4px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-}
-
-.rankLeft .rankPanel {
-  left: 0;
-}
-
-.rankRight .rankPanel {
-  right: 0;
 }
 
 .rankValue {

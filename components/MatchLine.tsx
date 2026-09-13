@@ -138,10 +138,6 @@ export default function MatchLine({
       {isPending && <div className={styles.pendingBadge}>À pronostiquer</div>}
       {notYetOpen && <div className={styles.notOpenBadge}>Pas encore ouvert</div>}
 
-      {finished && (won || lost) && (
-        <div className={`${styles.centerMark} ${won ? styles.check : styles.cross}`} />
-      )}
-
       <div className={teamLeftClasses}>
         {canClick ? (
           <form action={selectPronostic} style={{ width: '100%', height: '100%' }}>
@@ -165,9 +161,16 @@ export default function MatchLine({
           </div>
         )}
         <div className={styles.check} />
+        {finished && chosenLeft && (
+          <div className={`${styles.resultBadge} ${won ? styles.resultCheck : styles.resultCross}`} />
+        )}
       </div>
 
-      <div className={styles.vs}>VS</div>
+      <div className={styles.vs}>
+        {finished && score1 != null && score2 != null
+          ? <span className={styles.scoreFinal}>{score1}-{score2}</span>
+          : 'VS'}
+      </div>
 
       <div className={teamRightClasses}>
         {canClick ? (
@@ -192,6 +195,9 @@ export default function MatchLine({
           </div>
         )}
         <div className={styles.check} />
+        {finished && chosenRight && (
+          <div className={`${styles.resultBadge} ${won ? styles.resultCheck : styles.resultCross}`} />
+        )}
       </div>
       </div>
     </div>

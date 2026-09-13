@@ -135,6 +135,14 @@
   pointer-events: none;
 }
 
+.scoreFinal {
+  font-size: 22px;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+  letter-spacing: 1px;
+}
+
 .streaks {
   position: absolute;
   inset: 0;
@@ -332,55 +340,51 @@
   background: linear-gradient(135deg, #2d3138, #1d2027) !important;
 }
 
-.centerMark {
+.resultBadge {
   position: absolute;
-  z-index: 30;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
+  z-index: 40;
+  bottom: 8px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(10,14,26,0.85);
+  border-radius: 50%;
+  background: white;
 }
 
-.centerMark.check {
-  border: 3px solid #4ee892;
-  box-shadow: 0 0 10px #4ee892, 0 0 26px rgba(78,232,146,0.6);
+.teamLeft .resultBadge {
+  left: 8px;
 }
 
-.centerMark.check::after {
+.teamRight .resultBadge {
+  right: 8px;
+}
+
+.resultBadge.resultCheck::after {
   content: "";
-  width: 20px;
-  height: 11px;
-  border-left: 4px solid #4ee892;
-  border-bottom: 4px solid #4ee892;
-  transform: rotate(-45deg) translate(2px, -3px);
+  width: 12px;
+  height: 6px;
+  border-left: 3px solid #16a34a;
+  border-bottom: 3px solid #16a34a;
+  transform: rotate(-45deg) translate(1px, -1px);
 }
 
-.centerMark.cross {
-  border: 3px solid #9ca3af;
-  box-shadow: 0 0 10px rgba(156,163,175,0.5), 0 0 26px rgba(156,163,175,0.3);
-}
-
-.centerMark.cross::before,
-.centerMark.cross::after {
+.resultBadge.resultCross::before,
+.resultBadge.resultCross::after {
   content: "";
   position: absolute;
-  width: 24px;
-  height: 4px;
-  background: #9ca3af;
+  width: 14px;
+  height: 3px;
+  background: #4a5266;
   border-radius: 2px;
 }
 
-.centerMark.cross::before {
+.resultBadge.resultCross::before {
   transform: rotate(45deg);
 }
 
-.centerMark.cross::after {
+.resultBadge.resultCross::after {
   transform: rotate(-45deg);
 }
 /* ===== Semaine pas encore ouverte ===== */

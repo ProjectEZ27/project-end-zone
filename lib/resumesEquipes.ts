@@ -142,6 +142,16 @@ export const RESUMES_EQUIPES: Record<string, ResumeEquipe> = {
     forces: ['Progression offensive'],
     faiblesses: ['Défense'],
   },
+    SF: {
+    texte: "Une attaque polyvalente avec des joueurs capables de faire la différence à tous les niveaux du terrain, freinée ces dernières saisons par des blessures récurrentes à des postes clés.",
+    forces: ['Polyvalence offensive', 'Ligne défensive'],
+    faiblesses: ['Fragilité (blessures récurrentes)'],
+  },
+  GB: {
+    texte: "Un jeune quarterback en pleine progression, entouré d'un secondaire solide capable de créer des turnovers décisifs dans les moments importants.",
+    forces: ['Défense (secondaire)', 'Progression au poste de quarterback'],
+    faiblesses: ['Régularité offensive'],
+  },
   JAX: {
     texte: "Du talent individuel réel à plusieurs postes clés, encore desservi par un manque de régularité collective sur l'ensemble d'une saison.",
     forces: ['Talent individuel'],

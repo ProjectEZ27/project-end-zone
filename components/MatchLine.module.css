@@ -391,12 +391,21 @@
 /* ===== Classement indicatif (icône i) ===== */
 .rankDetails {
   position: absolute;
-  top: 58%;
+  top: 72%;
   left: 0;
   right: 0;
   display: flex;
-  justify-content: center;
   z-index: 46;
+}
+
+.teamLeft .rankDetails {
+  justify-content: flex-end;
+  padding-right: 8px;
+}
+
+.teamRight .rankDetails {
+  justify-content: flex-start;
+  padding-left: 8px;
 }
 
 .rankIcon {
@@ -465,6 +474,10 @@
 }
 
 .match:has(.rankDetails[open]) {
+  overflow: visible;
+}
+
+.match:has(.rankDetails[open]) .team {
   overflow: visible;
 }
 

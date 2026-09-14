@@ -74,17 +74,25 @@ export async function GET(request: Request) {
           miseAJourTotal++
         }
       } else if (match.status === 'in_progress' || match.status === 'live') {
-        await supabase
+        const { error, count } = await supabase
           .from('matchs')
           .update({
             score_a_direct: match.score?.away ?? null,
             score_b_direct: match.score?.home ?? null,
             quart_temps: match.period ?? null,
             temps_restant: match.clock ?? null,
-          })
+          }, { count: 'exact' })
           .eq('equipe_a', equipeA)
           .eq('equipe_b', equipeB)
           .eq('coup_envoi', match.kickoff_utc)
+
+        if (error) {
+          resultats.push(`ERREUR live ${equipeA}-${equipeB}: ${error.message}`)
+        } else if (!count || count === 0) {
+          resultats.push(`AUCUNE LIGNE TROUVÉE (live) pour ${equipeA} @ ${equipeB}, kickoff=${match.kickoff_utc}`)
+        } else {
+          resultats.push(`OK live ${equipeA} ${match.score?.away}-${match.score?.home} ${equipeB}`)
+        }
       }
     }
   }

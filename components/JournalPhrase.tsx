@@ -4,9 +4,19 @@ import { useState } from 'react'
 import { GLOSSAIRE } from '@/lib/glossaire'
 
 function construireRegex() {
-  const termes = Object.keys(GLOSSAIRE).sort((a, b) => b.length - a.length)
+  const termes = Object.keys(GLOSSAIRE)
+    .filter((t) => !t.endsWith('-journal'))
+    .sort((a, b) => b.length - a.length)
   const echappes = termes.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
   return new RegExp(`(${echappes.join('|')})`, 'gi')
+}
+
+function resoudreCle(motTrouve: string): string | null {
+  const brut = motTrouve.toLowerCase()
+  const cleJournal = `${brut}-journal`
+  if (GLOSSAIRE[cleJournal]) return cleJournal
+  if (GLOSSAIRE[brut]) return brut
+  return null
 }
 
 export default function JournalPhrase({ texte }: { texte: string }) {
@@ -17,8 +27,8 @@ export default function JournalPhrase({ texte }: { texte: string }) {
     <div style={{ marginBottom: 12 }}>
       <p style={{ margin: 0, lineHeight: 1.6, fontSize: 14, color: 'white' }}>
         {morceaux.map((morceau, i) => {
-          const cle = morceau.toLowerCase()
-          if (GLOSSAIRE[cle]) {
+          const cle = resoudreCle(morceau)
+          if (cle) {
             const estActif = termeActif === cle
             return (
               <span

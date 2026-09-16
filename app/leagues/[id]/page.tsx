@@ -91,13 +91,17 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
     ...(adhesionsMembres ?? []).map((a) => a.utilisateur_id),
   ]))
 
-  const { data: derniereSemaineClotureeLigue } = await supabase
-    .from('semaines')
-    .select('id')
-    .eq('statut', 'cloturee')
-    .order('id', { ascending: false })
+  const { data: dernierMatchTermineLigue } = await supabase
+    .from('matchs')
+    .select('semaine_id')
+    .eq('statut', 'termine')
+    .order('coup_envoi', { ascending: false })
     .limit(1)
     .maybeSingle()
+
+  const derniereSemaineClotureeLigue = dernierMatchTermineLigue
+    ? { id: dernierMatchTermineLigue.semaine_id }
+    : null
 
   const phrasesJournal = derniereSemaineClotureeLigue
     ? await genererJournalSemaine(supabase, derniereSemaineClotureeLigue.id, membreIdsLigue)

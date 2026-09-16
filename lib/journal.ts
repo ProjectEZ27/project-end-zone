@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js'
+import { NOMS_EQUIPES } from './teamBadge'
 
 const PHRASES_PERFECT_WEEK = [
   "{pseudo} a fait un sans-faute cette semaine. Perfect week !",
@@ -7,9 +8,9 @@ const PHRASES_PERFECT_WEEK = [
 ]
 
 const PHRASES_UPSET = [
-  "{pseudo} a été le seul à voir venir cet upset. Respect.",
-  "Pendant que tout le monde se trompait, {pseudo} avait le bon pronostic.",
-  "{pseudo} a flairé la surprise de la semaine, seul contre tous.",
+  "{pseudo} a été le seul à voir venir la victoire surprise de {equipeGagnante} face à {equipeAdverse}. Respect.",
+  "Pendant que tout le monde se trompait sur {equipeGagnante} - {equipeAdverse}, {pseudo} avait le bon pronostic.",
+  "{pseudo} a flairé la surprise du match {equipeGagnante} - {equipeAdverse}, seul contre tous.",
 ]
 
 const PHRASES_PIRE_SCORE = [
@@ -24,9 +25,12 @@ const PHRASES_CHUTE = [
   "{pseudo} recule le plus au classement général cette semaine.",
 ]
 
-function piocher(phrases: string[], pseudo: string): string {
+function piocher(phrases: string[], remplacements: Record<string, string>): string {
   const phrase = phrases[Math.floor(Math.random() * phrases.length)]
-  return phrase.replace('{pseudo}', pseudo)
+  return Object.entries(remplacements).reduce(
+    (acc, [cle, valeur]) => acc.split(`{${cle}}`).join(valeur),
+    phrase
+  )
 }
 
 export async function genererJournalSemaine(
@@ -87,7 +91,7 @@ export async function genererJournalSemaine(
   const perfects = scoresArray.filter(([, score]) => score === nombreMatchs)
   if (perfects.length > 0) {
     const [userId] = perfects[0]
-    phrases.push(piocher(PHRASES_PERFECT_WEEK, pseudoMap.get(userId) ?? 'Un joueur'))
+    phrases.push(piocher(PHRASES_PERFECT_WEEK, { pseudo: pseudoMap.get(userId) ?? 'Un joueur' }))
   }
 
   // 2. Upset trouvé par un seul joueur
@@ -98,7 +102,15 @@ export async function genererJournalSemaine(
     const totalPronos = pronosCeMatch.length
     if (bonsPronos.length === 1 && totalPronos > 2) {
       const userId = bonsPronos[0].utilisateur_id
-      phrases.push(piocher(PHRASES_UPSET, pseudoMap.get(userId) ?? 'Un joueur'))
+      const equipeGagnante = NOMS_EQUIPES[match.equipe_gagnante] ?? match.equipe_gagnante
+      const equipeAdverse = match.equipe_gagnante === match.equipe_a
+        ? (NOMS_EQUIPES[match.equipe_b] ?? match.equipe_b)
+        : (NOMS_EQUIPES[match.equipe_a] ?? match.equipe_a)
+      phrases.push(piocher(PHRASES_UPSET, {
+        pseudo: pseudoMap.get(userId) ?? 'Un joueur',
+        equipeGagnante,
+        equipeAdverse,
+      }))
       break // un seul upset mis en avant par semaine
     }
   }
@@ -109,7 +121,7 @@ export async function genererJournalSemaine(
     const pireJoueurs = scoresArray.filter(([, s]) => s === pireScore)
     if (pireJoueurs.length === 1 && pireScore < nombreMatchs) {
       const [userId] = pireJoueurs[0]
-      phrases.push(piocher(PHRASES_PIRE_SCORE, pseudoMap.get(userId) ?? 'Un joueur'))
+      phrases.push(piocher(PHRASES_PIRE_SCORE, { pseudo: pseudoMap.get(userId) ?? 'Un joueur' }))
     }
   }
 

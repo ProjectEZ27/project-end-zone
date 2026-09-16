@@ -1,6 +1,15 @@
-export const CLASSEMENT_MANUEL: string[] = [
-  'BUF', 'SEA', 'BAL', 'LA', 'SF', 'PHI', 'CHI', 'KC',
-  'DEN', 'NE', 'HOU', 'DET', 'JAX', 'GB', 'CIN', 'DAL',
-  'MIN', 'NYG', 'LAC', 'TB', 'PIT', 'IND', 'WAS', 'ARI',
-  'NO', 'CAR', 'NYJ', 'LV', 'ATL', 'TEN', 'MIA', 'CLE',
-]
+import { CLASSEMENT_MANUEL } from './powerRankingManuel'
+
+export interface EquipePower {
+  code: string
+  rang: number
+  fpi: number | null
+}
+
+export async function getPowerIndexRanking(_annee: number): Promise<EquipePower[]> {
+  return CLASSEMENT_MANUEL.map((code, index) => ({
+    code,
+    rang: index + 1,
+    fpi: null,
+  }))
+}

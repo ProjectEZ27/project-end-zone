@@ -23,8 +23,7 @@ export async function login(formData: FormData) {
     redirect(errorUrl)
   }
 
-  revalidatePath('/', 'layout')
-  redirect(next || '/')
+  redirect(next ? `https://projectendzone.fr${next}` : 'https://projectendzone.fr')
 }
 
 export async function signup(formData: FormData) {

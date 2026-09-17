@@ -16,14 +16,14 @@ export async function selectPronostic(formData: FormData) {
   const match_id = formData.get('match_id') as string
   const equipe = formData.get('equipe') as string
 
-  // Vérifier que le match n'est pas verrouillé
+  // Vérifier que le match n'est pas verrouillé (par statut OU par l'heure du coup d'envoi)
   const { data: match } = await supabase
     .from('matchs')
-    .select('statut')
+    .select('statut, coup_envoi')
     .eq('id', match_id)
     .single()
 
-  if (!match || match.statut !== 'a_venir') {
+  if (!match || match.statut !== 'a_venir' || new Date() >= new Date(match.coup_envoi)) {
     return
   }
 

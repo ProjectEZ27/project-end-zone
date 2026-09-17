@@ -314,9 +314,8 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {creneau.matchs.map((match) => {
                   const monPronostic = mesPronosticsMap.get(match.id)
-                  const verrouille = match.statut !== 'a_venir'
+                  const verrouille = match.statut !== 'a_venir' || new Date() >= new Date(match.coup_envoi)
                   const termine = match.statut === 'termine'
-
                   return (
                     <MatchLine
                       key={match.id}

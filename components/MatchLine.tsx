@@ -69,7 +69,8 @@ export default function MatchLine({
   desc1,
   desc2,
 }: MatchLineProps) {
-  const enDirect = locked && !finished && scoreDirectA != null && scoreDirectB != null
+const AFFICHER_SCORE_EN_DIRECT = false // désactivé le 21/09 : actualisations trop espacées, à réactiver une fois le polling navigateur en place
+const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA != null && scoreDirectB != null
   const color1 = getCouleurEquipe(team1.code)
   const color2 = getCouleurEquipe(team2.code)
 

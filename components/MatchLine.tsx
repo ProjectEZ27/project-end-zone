@@ -20,6 +20,8 @@ interface MatchLineProps {
   rank2?: number | null
   desc1?: string | null
   desc2?: string | null
+  bilan1?: { victoires: number; defaites: number } | null
+  bilan2?: { victoires: number; defaites: number } | null
 }
 
 function Streaks({ side }: { side: 'left' | 'right' }) {
@@ -68,6 +70,8 @@ export default function MatchLine({
   rank2,
   desc1,
   desc2,
+  bilan1,
+  bilan2,
 }: MatchLineProps) {
 const AFFICHER_SCORE_EN_DIRECT = false // désactivé le 21/09 : actualisations trop espacées, à réactiver une fois le polling navigateur en place
 const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA != null && scoreDirectB != null
@@ -157,6 +161,9 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
                 <div>
                   <div className={styles.teamCode}>{team1.code}</div>
                   <div className={styles.teamName}>{team1.name}</div>
+                  {!finished && bilan1 && (
+                    <div className={styles.teamRecord}>{bilan1.victoires}-{bilan1.defaites}</div>
+                  )}
                 </div>
               </div>
             </button>
@@ -166,6 +173,9 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
             <div>
               <div className={styles.teamCode}>{team1.code}</div>
               <div className={styles.teamName}>{team1.name}</div>
+              {!finished && bilan1 && (
+                <div className={styles.teamRecord}>{bilan1.victoires}-{bilan1.defaites}</div>
+              )}
             </div>
           </div>
         )}
@@ -193,6 +203,9 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
                 <div>
                   <div className={styles.teamCode}>{team2.code}</div>
                   <div className={styles.teamName}>{team2.name}</div>
+                  {!finished && bilan2 && (
+                    <div className={styles.teamRecord}>{bilan2.victoires}-{bilan2.defaites}</div>
+                  )}
                 </div>
               </div>
             </button>
@@ -202,6 +215,9 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
             <div>
               <div className={styles.teamCode}>{team2.code}</div>
               <div className={styles.teamName}>{team2.name}</div>
+              {!finished && bilan2 && (
+                <div className={styles.teamRecord}>{bilan2.victoires}-{bilan2.defaites}</div>
+              )}
             </div>
           </div>
         )}
@@ -213,33 +229,29 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
       </div>
 
       {!finished && (rank1 != null || rank2 != null) && (
-        <div className={styles.rankRow}>
-          <div className={`${styles.rankSide} ${styles.rankSideLeft}`}>
-            {rank1 != null && (
-              <details className={styles.rankDetails}>
-                <summary className={styles.rankIcon}>i</summary>
-                <div className={styles.rankPanel}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 6 }}>
+          <details className={styles.infoDetails}>
+            <summary className={styles.infoIcon}>i</summary>
+            <div className={styles.infoPanel}>
+              {rank1 != null && (
+                <div className={styles.infoCol}>
                   <span className={styles.rankValue}>
                     {team1.name} — {rank1}e sur 32 <span className={styles.rankNote}>(indicatif)</span>
                   </span>
                   {desc1 && <span className={styles.rankDesc}>{desc1}</span>}
                 </div>
-              </details>
-            )}
-          </div>
-          <div className={`${styles.rankSide} ${styles.rankSideRight}`}>
-            {rank2 != null && (
-              <details className={styles.rankDetails}>
-                <summary className={styles.rankIcon}>i</summary>
-                <div className={styles.rankPanel}>
+              )}
+              {rank1 != null && rank2 != null && <div className={styles.infoDivider} />}
+              {rank2 != null && (
+                <div className={styles.infoCol}>
                   <span className={styles.rankValue}>
                     {team2.name} — {rank2}e sur 32 <span className={styles.rankNote}>(indicatif)</span>
                   </span>
                   {desc2 && <span className={styles.rankDesc}>{desc2}</span>}
                 </div>
-              </details>
-            )}
-          </div>
+              )}
+            </div>
+          </details>
         </div>
       )}
     </div>

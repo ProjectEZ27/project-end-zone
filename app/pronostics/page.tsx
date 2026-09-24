@@ -9,6 +9,7 @@ import WeekGroupHeader from '@/components/WeekGroupHeader'
 import { estSemaineOuverte, calculerDateOuverture } from '@/lib/semaineOuverture'
 import { getPowerIndexRanking } from '@/lib/powerIndex'
 import { RESUMES_EQUIPES } from '@/lib/resumesEquipes'
+import { calculerBilanEquipes } from '@/lib/bilanEquipes'
 
 export default async function Pronostics({ searchParams }: { searchParams: Promise<{ semaine?: string }> }) {
   const { semaine: semaineParam } = await searchParams
@@ -102,12 +103,11 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
 
   const [matchsResult, saisonResult] = await Promise.all([
     supabase.from('matchs').select('*').eq('semaine_id', semaine.id).order('coup_envoi', { ascending: true }),
-    (estPremiereSemaine || estSemaineWildCard || estSemaineSuperBowl)
-      ? supabase.from('saisons').select('id, nom').eq('statut', 'en_cours').single()
-      : Promise.resolve({ data: null })
+    supabase.from('saisons').select('id, nom').eq('statut', 'en_cours').single()
   ])
   const matchs = matchsResult.data
   const saison = saisonResult.data
+  const bilanParEquipe = saison ? await calculerBilanEquipes(supabase, saison.id) : {}
 
   const estSemainePlayoffsVide =
     (!matchs || matchs.length === 0) &&
@@ -335,6 +335,8 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
                       rank2={rangParEquipe.get(match.equipe_b) ?? null}
                       desc1={descCourte(match.equipe_a)}
                       desc2={descCourte(match.equipe_b)}
+                      bilan1={bilanParEquipe[match.equipe_a] ?? null}
+                      bilan2={bilanParEquipe[match.equipe_b] ?? null}
                     />
                   )
                 })}
@@ -360,6 +362,8 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
                 rank2={rangParEquipe.get(match.equipe_b) ?? null}
                 desc1={descCourte(match.equipe_a)}
                 desc2={descCourte(match.equipe_b)}
+                bilan1={bilanParEquipe[match.equipe_a] ?? null}
+                bilan2={bilanParEquipe[match.equipe_b] ?? null}
               />
             ))}
           </div>

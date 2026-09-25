@@ -497,3 +497,22 @@
   color: rgba(255,255,255,0.55);
   border: 1px solid rgba(255,255,255,0.15);
 }
+
+/* ===== Icône domicile ===== */
+.homeIcon {
+  position: absolute;
+  top: 5px;
+  right: 8px;
+  z-index: 42;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.homeIconClair {
+  color: rgba(0,0,0,0.55);
+}
+
+.homeIconSombre {
+  color: rgba(255,255,255,0.75);
+}

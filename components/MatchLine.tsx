@@ -227,7 +227,7 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
           <div className={`${styles.resultBadge} ${won ? styles.resultCheck : styles.resultCross}`} />
         )}
         <div className={`${styles.homeIcon} ${fondClairEquipe2 ? styles.homeIconSombre : styles.homeIconClair}`}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z" />
           </svg>
         </div>

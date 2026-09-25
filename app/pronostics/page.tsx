@@ -10,6 +10,7 @@ import { estSemaineOuverte, calculerDateOuverture } from '@/lib/semaineOuverture
 import { getPowerIndexRanking } from '@/lib/powerIndex'
 import { RESUMES_EQUIPES } from '@/lib/resumesEquipes'
 import { calculerBilanEquipes } from '@/lib/bilanEquipes'
+import ToggleAllInfos from '@/components/ToggleAllInfos'
 
 export default async function Pronostics({ searchParams }: { searchParams: Promise<{ semaine?: string }> }) {
   const { semaine: semaineParam } = await searchParams
@@ -299,6 +300,8 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
           </p>
         </div>
       )}
+
+      {nombreTotal > 0 && !estSemainePlayoffsVide && <ToggleAllInfos />}
 
       <div>
         {estSemainePlayoffsVide ? null : semaineOuverte ? (

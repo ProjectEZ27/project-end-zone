@@ -230,7 +230,7 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
 
       {!finished && (rank1 != null || rank2 != null) && (
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: 6 }}>
-          <details className={styles.infoDetails}>
+          <details className={styles.infoDetails} data-info-toggle>
             <summary className={styles.infoIcon}>i</summary>
             <div className={styles.infoPanel}>
               {rank1 != null && (

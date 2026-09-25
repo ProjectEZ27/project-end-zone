@@ -1,6 +1,6 @@
 import styles from './MatchLine.module.css'
 import { selectPronostic } from '@/app/pronostics/actions'
-import { getCouleurEquipe } from '@/lib/teamColors'
+import { getCouleurEquipe, estCouleurClaire } from '@/lib/teamColors'
 
 interface MatchLineProps {
   matchId: string
@@ -77,6 +77,7 @@ const AFFICHER_SCORE_EN_DIRECT = false // désactivé le 21/09 : actualisations 
 const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA != null && scoreDirectB != null
   const color1 = getCouleurEquipe(team1.code)
   const color2 = getCouleurEquipe(team2.code)
+  const fondClairEquipe2 = estCouleurClaire(color2.primary)
 
   const chosenLeft = selectedTeam === team1.code
   const chosenRight = selectedTeam === team2.code
@@ -225,6 +226,11 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
         {finished && chosenRight && (
           <div className={`${styles.resultBadge} ${won ? styles.resultCheck : styles.resultCross}`} />
         )}
+        <div className={`${styles.homeIcon} ${fondClairEquipe2 ? styles.homeIconSombre : styles.homeIconClair}`}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z" />
+          </svg>
+        </div>
       </div>
       </div>
 

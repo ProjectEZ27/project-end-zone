@@ -27,6 +27,21 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
   const saison = saisonResult.data
   const prochainMatchData = prochainMatchResult.data
 
+  let pronosSuperBowlPreseason: string | null = null
+  let pronosSuperBowlAvantPlayoffs: string | null = null
+  let pronosMvp: string | null = null
+  if (saison) {
+    const { data: pronosSpeciaux } = await supabase
+      .from('pronostics_speciaux')
+      .select('type, choix')
+      .eq('utilisateur_id', user.id)
+      .eq('saison_id', saison.id)
+
+    pronosSuperBowlPreseason = pronosSpeciaux?.find((p) => p.type === 'super_bowl_preseason')?.choix ?? null
+    pronosSuperBowlAvantPlayoffs = pronosSpeciaux?.find((p) => p.type === 'super_bowl_avant_playoffs')?.choix ?? null
+    pronosMvp = pronosSpeciaux?.find((p) => p.type === 'mvp')?.choix ?? null
+  }
+
   let semaineActuelleData: { id: number; nom: string } | null = null
   if (prochainMatchData) {
     const { data } = await supabase.from('semaines').select('id, nom').eq('id', prochainMatchData.semaine_id).single()
@@ -227,6 +242,53 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
             </div>
           ))}
         </div>
+        {(pronosSuperBowlPreseason || pronosMvp) && (
+          <div style={{ marginTop: 16, textAlign: 'left' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+              <span style={{ fontSize: 16 }}>🔮</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#f5b43c' }}>Pronostics de la saison</span>
+            </div>
+
+            {pronosSuperBowlAvantPlayoffs ? (
+              <div style={{ background: '#16233F', borderRadius: 10, borderBottom: '2px solid #C8352E', marginBottom: 10, overflow: 'hidden' }}>
+                <div style={{ padding: '10px 12px 0', color: '#7a8aa5', fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  🏆 Vainqueur du Super Bowl
+                </div>
+                <div style={{ display: 'flex' }}>
+                  <div style={{ flex: 1, padding: '8px 12px 12px' }}>
+                    <div style={{ color: '#5f6a80', fontSize: 9, marginBottom: 3 }}>Avant la Week 1</div>
+                    <div style={{ color: 'white', fontSize: 15, fontWeight: 700 }}>{pronosSuperBowlPreseason}</div>
+                  </div>
+                  <div style={{ width: 1, background: 'rgba(255,255,255,0.08)' }} />
+                  <div style={{ flex: 1, padding: '8px 12px 12px' }}>
+                    <div style={{ color: '#5f6a80', fontSize: 9, marginBottom: 3 }}>Avant le Wild Card</div>
+                    <div style={{ color: 'white', fontSize: 15, fontWeight: 700 }}>{pronosSuperBowlAvantPlayoffs}</div>
+                  </div>
+                </div>
+              </div>
+            ) : pronosSuperBowlPreseason ? (
+              <div style={{ display: 'grid', gridTemplateColumns: pronosMvp ? '1fr 1fr' : '1fr', gap: 10, marginBottom: pronosMvp ? 10 : 0 }}>
+                <div style={{ background: '#16233F', borderRadius: 10, padding: '14px 12px', borderBottom: '2px solid #C8352E' }}>
+                  <div style={{ color: '#7a8aa5', fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>🏆 Super Bowl</div>
+                  <div style={{ color: 'white', fontSize: 15, fontWeight: 700 }}>{pronosSuperBowlPreseason}</div>
+                </div>
+                {pronosMvp && (
+                  <div style={{ background: '#16233F', borderRadius: 10, padding: '14px 12px', borderBottom: '2px solid #C8352E' }}>
+                    <div style={{ color: '#7a8aa5', fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>⭐ MVP</div>
+                    <div style={{ color: 'white', fontSize: 15, fontWeight: 700 }}>{pronosMvp}</div>
+                  </div>
+                )}
+              </div>
+            ) : null}
+
+            {pronosSuperBowlAvantPlayoffs && pronosMvp && (
+              <div style={{ background: '#16233F', borderRadius: 10, padding: '14px 12px', borderBottom: '2px solid #C8352E' }}>
+                <div style={{ color: '#7a8aa5', fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>⭐ MVP</div>
+                <div style={{ color: 'white', fontSize: 15, fontWeight: 700 }}>{pronosMvp}</div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* BLOC MA SAISON */}
         <div style={{ marginTop: 16, textAlign: 'left' }}>

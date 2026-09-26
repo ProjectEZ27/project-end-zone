@@ -10,9 +10,9 @@ const TAILLE_PAGE = 50
 export default async function Classement({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>
+  searchParams: Promise<{ page?: string; ligue?: string }>
 }) {
-  const { page: pageParam } = await searchParams
+  const { page: pageParam, ligue: ligueParam } = await searchParams
   const pageActuelle = Math.max(1, parseInt(pageParam ?? '1', 10) || 1)
 
   const supabase = await createClient()
@@ -42,6 +42,10 @@ export default async function Classement({
     new Map(liguesBrutes.map((l: any) => [l.id, l])).values()
   ) as { id: number; nom: string }[]
 
+  const ligueSelectionnee = ligueParam
+    ? mesLigues.find((l) => String(l.id) === ligueParam) ?? null
+    : null
+
   if (!saison) {
     return (
       <div style={{ maxWidth: 500, margin: '80px auto', padding: 24, textAlign: 'center' }}>
@@ -51,7 +55,19 @@ export default async function Classement({
     )
   }
 
-  const classement = await calculerClassementSaison(supabase, saison.id)
+  const classementComplet = await calculerClassementSaison(supabase, saison.id)
+
+  let classement = classementComplet
+  if (ligueSelectionnee) {
+    const { data: adhesionsLigue } = await supabase
+      .from('adhesions')
+      .select('utilisateur_id')
+      .eq('ligue_id', ligueSelectionnee.id)
+      .eq('statut', 'actif')
+
+    const membresLigueIds = new Set((adhesionsLigue ?? []).map((a) => a.utilisateur_id))
+    classement = classementComplet.filter((j) => membresLigueIds.has(j.utilisateur_id))
+  }
 
   const userIds = classement.map((j) => j.utilisateur_id)
   const { data: profils } = userIds.length > 0
@@ -68,6 +84,13 @@ export default async function Classement({
   const monRang = monIndex >= 0 ? monIndex + 1 : null
   const jeSuisSurCettePage = monRang !== null && monRang > debutPage && monRang <= debutPage + TAILLE_PAGE
   const jeSuisHorsPage = monRang !== null && !jeSuisSurCettePage
+
+  const construireUrlPage = (p: number) => {
+    const params = new URLSearchParams()
+    if (ligueSelectionnee) params.set('ligue', String(ligueSelectionnee.id))
+    params.set('page', String(p))
+    return `/classement?${params.toString()}`
+  }
 
   const styleBordure = (rang: number) => {
     if (rang === 1) return '#EF9F27'
@@ -135,41 +158,48 @@ export default async function Classement({
           fontWeight: 700,
           textShadow: '0 0 18px rgba(200,53,46,0.65)',
         }}>
-          Classement général
+          {ligueSelectionnee ? `Classement — ${ligueSelectionnee.nom}` : 'Classement général'}
         </h1>
         <p style={{ fontSize: 12, color: '#9fb0c9', marginTop: 4, marginBottom: 16 }}>Saison 2026-2027</p>
 
         {mesLigues.length > 0 && (
           <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 20, flexWrap: 'wrap' }}>
-            <div style={{
-              padding: '7px 16px',
-              borderRadius: 20,
-              fontSize: 12,
-              fontWeight: 700,
-              background: 'rgba(200,53,46,0.2)',
-              border: '1px solid rgba(200,53,46,0.6)',
-              color: 'white',
-            }}>
+            <Link
+              href="/classement"
+              style={{
+                padding: '7px 16px',
+                borderRadius: 20,
+                fontSize: 12,
+                fontWeight: 700,
+                textDecoration: 'none',
+                background: !ligueSelectionnee ? 'rgba(200,53,46,0.2)' : 'rgba(255,255,255,0.04)',
+                border: !ligueSelectionnee ? '1px solid rgba(200,53,46,0.6)' : '1px solid rgba(255,255,255,0.15)',
+                color: !ligueSelectionnee ? 'white' : 'rgba(255,255,255,0.7)',
+              }}
+            >
               Général
-            </div>
-            {mesLigues.map((ligue) => (
-              <Link
-                key={ligue.id}
-                href={`/leagues/${ligue.id}/classement`}
-                style={{
-                  padding: '7px 16px',
-                  borderRadius: 20,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.15)',
-                  color: 'rgba(255,255,255,0.7)',
-                  textDecoration: 'none',
-                }}
-              >
-                {ligue.nom}
-              </Link>
-            ))}
+            </Link>
+            {mesLigues.map((ligue) => {
+              const actif = ligueSelectionnee?.id === ligue.id
+              return (
+                <Link
+                  key={ligue.id}
+                  href={`/classement?ligue=${ligue.id}`}
+                  style={{
+                    padding: '7px 16px',
+                    borderRadius: 20,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    background: actif ? 'rgba(200,53,46,0.2)' : 'rgba(255,255,255,0.04)',
+                    border: actif ? '1px solid rgba(200,53,46,0.6)' : '1px solid rgba(255,255,255,0.15)',
+                    color: actif ? 'white' : 'rgba(255,255,255,0.7)',
+                  }}
+                >
+                  {ligue.nom}
+                </Link>
+              )
+            })}
           </div>
         )}
 
@@ -206,7 +236,7 @@ export default async function Classement({
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                 <Link
                   key={p}
-                  href={`/classement?page=${p}`}
+                  href={construireUrlPage(p)}
                   style={{
                     padding: '6px 12px',
                     borderRadius: 6,

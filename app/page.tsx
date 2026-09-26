@@ -271,8 +271,9 @@ export default async function Home({
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
           <div style={{ background: '#16233F', border: '0.5px solid #33415a', borderRadius: 10, padding: '12px 8px', textAlign: 'center' }}>
+            <div style={{ fontSize: 9, color: '#7a8aa5', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Classement général</div>
             <div style={{ fontSize: 18 }}>🏆</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: 'white', marginTop: 4 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: 'white', marginTop: 2 }}>
               {monRangGeneral ? `${monRangGeneral}e` : '—'}
             </div>
             <div style={{ fontSize: 9, color: '#9fb0c9' }}>
@@ -280,8 +281,9 @@ export default async function Home({
             </div>
           </div>
           <div style={{ background: '#16233F', border: '0.5px solid #33415a', borderRadius: 10, padding: '12px 8px', textAlign: 'center' }}>
+            <div style={{ fontSize: 9, color: '#7a8aa5', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Points cette saison</div>
             <div style={{ fontSize: 18 }}>🎯</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: 'white', marginTop: 4 }}>{mesPointsSaison} pts</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: 'white', marginTop: 2 }}>{mesPointsSaison} pts</div>
             <div style={{ fontSize: 9, color: '#9fb0c9' }}>{tauxReussite}% réussite</div>
           </div>
         </div>

@@ -23,7 +23,7 @@ export default function LeagueSwitcher({
         window.location.href = `/leagues/${e.target.value}`
       }}
       style={{
-        background: 'rgba(255,255,255,0.06)',
+        background: '#16233F',
         border: '1px solid rgba(255,255,255,0.2)',
         color: 'white',
         fontSize: 13,
@@ -34,9 +34,11 @@ export default function LeagueSwitcher({
         marginBottom: 8,
       }}
     >
-      <option value={ligueActuelleId}>{ligueActuelleNom} (actuelle)</option>
+      <option style={{ background: '#16233F', color: 'white' }} value={ligueActuelleId}>
+        {ligueActuelleNom} (actuelle)
+      </option>
       {autresLigues.map((l) => (
-        <option key={l.id} value={l.id}>
+        <option key={l.id} style={{ background: '#16233F', color: 'white' }} value={l.id}>
           {l.nom}
         </option>
       ))}

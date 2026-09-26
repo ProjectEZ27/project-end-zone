@@ -3,18 +3,23 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { calculerClassementSaison, calculerClassementSemaine, calculerHistoriqueSemaines } from '@/lib/scoring'
 import LeagueSubNav from '@/components/LeagueSubNav'
+import UserAvatar from '@/components/UserAvatar'
+import { TbChevronRight } from 'react-icons/tb'
+
+const TAILLE_PAGE = 50
 
 export default async function ClassementLigue({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ mode?: string; semaine?: string }>
+  searchParams: Promise<{ mode?: string; semaine?: string; page?: string }>
 }) {
   const { id } = await params
-  const { mode, semaine: semaineParam } = await searchParams
+  const { mode, semaine: semaineParam, page: pageParam } = await searchParams
   const vueSemaine = mode === 'semaine'
   const vueHistorique = mode === 'historique'
+  const pageActuelle = Math.max(1, parseInt(pageParam ?? '1', 10) || 1)
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -91,6 +96,25 @@ export default async function ClassementLigue({
       .map((j) => ({ utilisateur_id: j.utilisateur_id, pseudo: j.pseudo, score: j.score_saison }))
   }
 
+  const idsPourAvatars = lignes.map((j) => j.utilisateur_id)
+  const { data: profils } = idsPourAvatars.length > 0
+    ? await supabase.from('profiles').select('id, avatar_id').in('id', idsPourAvatars)
+    : { data: [] as any[] }
+  const avatarMap = new Map((profils ?? []).map((p) => [p.id, p.avatar_id ?? 1]))
+
+  const totalPages = Math.max(1, Math.ceil(lignes.length / TAILLE_PAGE))
+  const pageCorrigee = Math.min(pageActuelle, totalPages)
+  const debutPage = (pageCorrigee - 1) * TAILLE_PAGE
+  const lignesPage = lignes.slice(debutPage, debutPage + TAILLE_PAGE)
+
+  const construireUrlPage = (p: number) => {
+    const params = new URLSearchParams()
+    if (mode) params.set('mode', mode)
+    if (semaineParam) params.set('semaine', semaineParam)
+    params.set('page', String(p))
+    return `/leagues/${id}/classement?${params.toString()}`
+  }
+
   const boutonStyle = (actif: boolean) => ({
     padding: '6px 14px',
     borderRadius: 6,
@@ -98,6 +122,48 @@ export default async function ClassementLigue({
     color: 'white',
     backgroundColor: actif ? '#C8352E' : '#16233F',
   })
+
+  const styleBordure = (rang: number) => {
+    if (rang === 1) return '#EF9F27'
+    if (rang === 2) return '#B9C1CC'
+    if (rang === 3) return '#B5651D'
+    return '#33415a'
+  }
+  const styleChiffre = (rang: number) => {
+    if (rang === 1) return '#EF9F27'
+    if (rang === 2) return '#B9C1CC'
+    if (rang === 3) return '#CD8B5C'
+    return '#7a8aa5'
+  }
+
+  const LigneJoueur = ({ joueur, rang, moi }: { joueur: typeof lignes[number]; rang: number; moi: boolean }) => (
+    <Link
+      href={`/joueur/${joueur.utilisateur_id}`}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        background: moi ? '#22160e' : '#16233F',
+        border: `1px solid ${moi ? '#C8352E' : styleBordure(rang)}`,
+        borderRadius: 10,
+        padding: '10px 12px',
+        textDecoration: 'none',
+        color: 'white',
+      }}
+    >
+      <span style={{ fontSize: 13, fontWeight: 700, color: moi ? '#E8544C' : styleChiffre(rang), width: 20 }}>
+        {rang}
+      </span>
+      <UserAvatar avatarId={avatarMap.get(joueur.utilisateur_id) ?? 1} size={45} />
+      <div style={{ flex: 1, textAlign: 'left' }}>
+        <div style={{ fontSize: 13, fontWeight: 600 }}>
+          {joueur.pseudo} {moi && <span style={{ color: '#E8544C', fontSize: 10, fontWeight: 700 }}>(TOI)</span>}
+        </div>
+        <div style={{ fontSize: 10, color: '#9fb0c9' }}>{joueur.score} pts</div>
+      </div>
+      <TbChevronRight size={16} color={moi ? '#E8544C' : '#7a8aa5'} />
+    </Link>
+  )
 
   return (
     <div style={{ position: 'relative', minHeight: '100dvh' }}>
@@ -183,27 +249,43 @@ export default async function ClassementLigue({
       ) : lignes.length === 0 ? (
         <p style={{ marginTop: 24 }}>Aucun résultat pour le moment.</p>
       ) : (
-        <table style={{ width: '100%', marginTop: 24, borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: '2px solid #ccc' }}>
-              <th style={{ padding: 8, textAlign: 'left' }}>#</th>
-              <th style={{ padding: 8, textAlign: 'left' }}>Joueur</th>
-              <th style={{ padding: 8, textAlign: 'right' }}>Points</th>
-            </tr>
-          </thead>
-          <tbody>
-            {lignes.map((joueur, index) => {
-              const medaille = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : null
-              return (
-                <tr key={joueur.utilisateur_id} style={{ borderBottom: '1px solid #eee', fontWeight: joueur.utilisateur_id === user.id ? 'bold' : 'normal' }}>
-                  <td style={{ padding: 8 }}>{index + 1} {medaille ?? ''}</td>
-                  <td style={{ padding: 8 }}>{joueur.pseudo}</td>
-                  <td style={{ padding: 8, textAlign: 'right' }}>{joueur.score}</td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+        <>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 24 }}>
+          {lignesPage.map((joueur, index) => {
+            const rangReel = debutPage + index + 1
+            return (
+              <LigneJoueur
+                key={joueur.utilisateur_id}
+                joueur={joueur}
+                rang={rangReel}
+                moi={joueur.utilisateur_id === user.id}
+              />
+            )
+          })}
+        </div>
+
+        {totalPages > 1 && (
+          <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <Link
+                key={p}
+                href={construireUrlPage(p)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 6,
+                  textDecoration: 'none',
+                  color: 'white',
+                  backgroundColor: p === pageCorrigee ? '#C8352E' : '#16233F',
+                  fontSize: 13,
+                  fontWeight: 700,
+                }}
+              >
+                {p}
+              </Link>
+            ))}
+          </div>
+        )}
+        </>
       )}
       </div>
     </div>

@@ -6,6 +6,7 @@ import PseudoEditor from '@/components/PseudoEditor'
 import { NOMS_EQUIPES } from '@/lib/teamBadge'
 import { TbTargetArrow, TbTrendingUp, TbBallAmericanFootball, TbCalendarCheck, TbTrophy, TbCalendar, TbClock } from 'react-icons/tb'
 import { calculerClassementSaison } from '@/lib/scoring'
+import EquipeFavoriteEditor from '@/components/EquipeFavoriteEditor'
 
 export default async function Profile({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error: errorMessage } = await searchParams
@@ -204,14 +205,9 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
         {errorMessage && (
           <p style={{ color: '#e05252', marginTop: 8 }}>⚠️ {errorMessage}</p>
         )}
-        {profile?.equipe_favorite && (
-          <p style={{ fontSize: 12, color: '#9fb0c9', marginTop: 4 }}>
-            Équipe favorite :{' '}
-            <span style={{ color: '#C8352E', fontWeight: 600 }}>
-              {NOMS_EQUIPES[profile.equipe_favorite] ?? profile.equipe_favorite}
-            </span>
-          </p>
-        )}
+        <div style={{ marginTop: 4 }}>
+          <EquipeFavoriteEditor currentEquipe={profile?.equipe_favorite ?? null} />
+        </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 24 }}>
           {stats.map((s, i) => (
@@ -245,7 +241,6 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
         {(pronosSuperBowlPreseason || pronosMvp) && (
           <div style={{ marginTop: 16, textAlign: 'left' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-              <span style={{ fontSize: 16 }}>🔮</span>
               <span style={{ fontSize: 14, fontWeight: 700, color: '#f5b43c' }}>Pronostics de la saison</span>
             </div>
 

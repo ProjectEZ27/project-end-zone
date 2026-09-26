@@ -68,14 +68,38 @@ export default async function ClassementLigue({
     .eq('saison_id', saison.id)
     .order('id', { ascending: true })
 
+  // On ignore le champ "statut" des semaines (jamais mis à jour côté base) et on
+  // détermine l'état réel de chaque semaine à partir des vrais matchs.
+  const semaineIds = (semaines ?? []).map((s) => s.id)
+  const { data: matchsToutesSemaines } = semaineIds.length > 0
+    ? await supabase.from('matchs').select('semaine_id, statut, coup_envoi').in('semaine_id', semaineIds)
+    : { data: [] as any[] }
+
+  const maintenant = new Date()
+  const etatParSemaine = new Map<number, 'cloturee' | 'en_cours' | 'a_venir'>()
+  for (const s of semaines ?? []) {
+    const matchsDeCetteSemaine = (matchsToutesSemaines ?? []).filter((m) => m.semaine_id === s.id)
+    if (matchsDeCetteSemaine.length === 0) {
+      etatParSemaine.set(s.id, 'a_venir')
+      continue
+    }
+    const tousTermines = matchsDeCetteSemaine.every((m) => m.statut === 'termine')
+    const auMoinsUnCommence = matchsDeCetteSemaine.some((m) => new Date(m.coup_envoi) <= maintenant)
+    if (tousTermines) etatParSemaine.set(s.id, 'cloturee')
+    else if (auMoinsUnCommence) etatParSemaine.set(s.id, 'en_cours')
+    else etatParSemaine.set(s.id, 'a_venir')
+  }
+
   let semaineActive: { id: number; nom: string } | null = null
   if (vueSemaine && semaines && semaines.length > 0) {
     if (semaineParam) {
       semaineActive = semaines.find((s) => String(s.id) === semaineParam) ?? null
     }
     if (!semaineActive) {
-      const cloturees = semaines.filter((s) => s.statut === 'cloturee')
-      semaineActive = cloturees.length > 0 ? cloturees[cloturees.length - 1] : semaines[semaines.length - 1]
+      const semainesCommencees = semaines.filter((s) => etatParSemaine.get(s.id) !== 'a_venir')
+      semaineActive = semainesCommencees.length > 0
+        ? semainesCommencees[semainesCommencees.length - 1]
+        : semaines[0]
     }
   }
 
@@ -203,11 +227,15 @@ export default async function ClassementLigue({
         <form method="GET" style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'center' }}>
           <input type="hidden" name="mode" value="semaine" />
           <select name="semaine" defaultValue={semaineActive?.id} style={{ padding: 6 }}>
-            {semaines.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.nom}{s.statut === 'ouverte' ? ' (en cours)' : ''}
-              </option>
-            ))}
+            {semaines.map((s) => {
+              const etat = etatParSemaine.get(s.id)
+              const suffixe = etat === 'en_cours' ? ' (en cours)' : etat === 'cloturee' ? '' : ' (à venir)'
+              return (
+                <option key={s.id} value={s.id}>
+                  {s.nom}{suffixe}
+                </option>
+              )
+            })}
           </select>
           <button type="submit" style={{ padding: '6px 12px' }}>Voir</button>
         </form>

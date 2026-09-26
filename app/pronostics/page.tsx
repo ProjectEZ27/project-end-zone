@@ -238,10 +238,22 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
       }}>
         <span style={{ fontSize: 20 }}>🏈</span>
         <span style={{ flex: 1, textAlign: 'left', fontSize: 13, fontWeight: 700 }}>
-          Un doute sur un match ? Compare les deux équipes
+          Voir le power ranking complet des 32 équipes
         </span>
         <span style={{ fontSize: 16, color: '#ff9088' }}>→</span>
       </a>
+      <div style={{
+        background: 'rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: 8,
+        padding: '10px 14px',
+        margin: '0 0 16px',
+        fontSize: 12,
+        color: 'rgba(255,255,255,0.6)',
+        textAlign: 'left',
+      }}>
+        ℹ️ Astuce : clique sur le "i" sous chaque équipe pour voir son classement et son résumé directement ici
+      </div>
 
       {estPremiereSemaine && saison && (
         <SpecialPicksPreseason saisonId={saison.id} mesPronosSpeciaux={mesPronosSpeciaux} />

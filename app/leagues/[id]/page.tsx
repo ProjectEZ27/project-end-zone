@@ -16,6 +16,7 @@ import {
 } from 'react-icons/tb'
 import { genererJournalSemaine } from '@/lib/journal'
 import JournalPhrase from '@/components/JournalPhrase'
+import LeagueSwitcher from '@/components/LeagueSwitcher'
 
 export default async function LeagueDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string }> }) {
   const { id } = await params
@@ -38,6 +39,22 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
   }
 
   const estCommissaire = league.commissaire_id === user.id
+
+  const { data: mesAdhesions } = await supabase
+    .from('adhesions')
+    .select('ligue_id, ligues(id, nom)')
+    .eq('utilisateur_id', user.id)
+    .eq('statut', 'actif')
+
+  const mesLiguesBrutes = (mesAdhesions ?? [])
+    .map((a: any) => a.ligues)
+    .filter(Boolean)
+
+  const mesLigues = Array.from(
+    new Map(mesLiguesBrutes.map((l: any) => [l.id, l])).values()
+  ) as { id: number; nom: string }[]
+
+  const autresLigues = mesLigues.filter((l) => String(l.id) !== id)
 
   let estMembreActif = estCommissaire
   if (!estCommissaire) {
@@ -147,6 +164,9 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
           leagueName={league.nom}
         />
         <h1 style={{ fontSize: 20, fontWeight: 600, marginTop: 8 }}>{league.nom}</h1>
+                <div>
+          <LeagueSwitcher ligueActuelleId={id} ligueActuelleNom={league.nom} autresLigues={autresLigues} />
+        </div>
         <p style={{ fontSize: 13, color: '#9fb0c9', marginTop: 4 }}>
           {league.taille_max} joueurs max{' '}
           <span style={{ margin: '0 4px' }}>·</span>

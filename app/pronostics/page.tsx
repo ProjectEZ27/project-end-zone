@@ -242,18 +242,6 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
         </span>
         <span style={{ fontSize: 16, color: '#ff9088' }}>→</span>
       </a>
-      <div style={{
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.1)',
-        borderRadius: 8,
-        padding: '10px 14px',
-        margin: '0 0 16px',
-        fontSize: 12,
-        color: 'rgba(255,255,255,0.6)',
-        textAlign: 'left',
-      }}>
-        ℹ️ Astuce : clique sur le "i" sous chaque équipe pour voir son classement et son résumé directement ici
-      </div>
 
       {estPremiereSemaine && saison && (
         <SpecialPicksPreseason saisonId={saison.id} mesPronosSpeciaux={mesPronosSpeciaux} />
@@ -313,7 +301,14 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
         </div>
       )}
 
-      {nombreTotal > 0 && !estSemainePlayoffsVide && <ToggleAllInfos />}
+      {nombreTotal > 0 && !estSemainePlayoffsVide && (
+        <div style={{ marginBottom: 16 }}>
+          <ToggleAllInfos />
+          <p style={{ color: '#5f6a80', fontSize: 10, textAlign: 'center', margin: '6px 0 0' }}>
+            Affiche, match par match, le résumé des deux équipes qui s'affrontent
+          </p>
+        </div>
+      )}
 
       <div>
         {estSemainePlayoffsVide ? null : semaineOuverte ? (

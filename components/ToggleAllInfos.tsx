@@ -33,7 +33,25 @@ export default function ToggleAllInfos() {
         cursor: 'pointer',
       }}
     >
-      {open ? '✕ Masquer toutes les infos équipes' : 'ℹ️ Afficher toutes les infos équipes'}
+      {open ? (
+        '✕ Masquer toutes les infos équipes'
+      ) : (
+        <>
+          <span style={{
+            width: 16,
+            height: 16,
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.15)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 10,
+            fontStyle: 'italic',
+            fontFamily: 'Georgia, serif',
+          }}>i</span>
+          Afficher toutes les infos équipes
+        </>
+      )}
     </button>
   )
 }

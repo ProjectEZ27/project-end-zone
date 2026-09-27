@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { changerEquipeFavorite } from '@/app/profile/actions'
 import { NOMS_EQUIPES } from '@/lib/teamBadge'
+import { getCouleurAccent } from '@/lib/teamColors'
 
 const EQUIPES_NFL = [
   'ARI','ATL','BAL','BUF','CAR','CHI','CIN','CLE','DAL','DEN','DET','GB',
@@ -22,7 +23,7 @@ export default function EquipeFavoriteEditor({ currentEquipe }: EquipeFavoriteEd
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
         <p style={{ fontSize: 12, color: '#9fb0c9', margin: 0 }}>
           Équipe favorite :{' '}
-          <span style={{ color: '#C8352E', fontWeight: 600 }}>
+<span style={{ color: currentEquipe ? getCouleurAccent(currentEquipe) : '#C8352E', fontWeight: 600 }}>
             {currentEquipe ? (NOMS_EQUIPES[currentEquipe] ?? currentEquipe) : 'aucune'}
           </span>
         </p>

@@ -78,3 +78,29 @@ export async function changerAvatar(formData: FormData) {
 
   redirect('/profile')
 }
+export async function changerEquipeFavorite(formData: FormData) {
+  const nouvelleEquipe = (formData.get('equipe_favorite') as string)?.trim()
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  if (!nouvelleEquipe) {
+    redirect('/profile?error=' + encodeURIComponent('Équipe invalide'))
+  }
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ equipe_favorite: nouvelleEquipe })
+    .eq('id', user.id)
+
+  if (error) {
+    redirect('/profile?error=' + encodeURIComponent(error.message))
+  }
+
+  revalidatePath('/profile')
+  revalidatePath('/')
+}

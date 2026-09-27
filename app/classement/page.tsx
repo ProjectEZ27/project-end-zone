@@ -5,7 +5,16 @@ import Link from 'next/link'
 import UserAvatar from '@/components/UserAvatar'
 import { TbChevronRight } from 'react-icons/tb'
 
-export default async function Classement() {
+const TAILLE_PAGE = 50
+
+export default async function Classement({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; ligue?: string }>
+}) {
+  const { page: pageParam, ligue: ligueParam } = await searchParams
+  const pageActuelle = Math.max(1, parseInt(pageParam ?? '1', 10) || 1)
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -19,6 +28,24 @@ export default async function Classement() {
     .eq('statut', 'en_cours')
     .single()
 
+  const { data: adhesions } = await supabase
+    .from('adhesions')
+    .select('ligue_id, ligues(id, nom)')
+    .eq('utilisateur_id', user.id)
+    .eq('statut', 'actif')
+
+  const liguesBrutes = (adhesions ?? [])
+    .map((a: any) => a.ligues)
+    .filter(Boolean)
+
+  const mesLigues = Array.from(
+    new Map(liguesBrutes.map((l: any) => [l.id, l])).values()
+  ) as { id: number; nom: string }[]
+
+  const ligueSelectionnee = ligueParam
+    ? mesLigues.find((l) => String(l.id) === ligueParam) ?? null
+    : null
+
   if (!saison) {
     return (
       <div style={{ maxWidth: 500, margin: '80px auto', padding: 24, textAlign: 'center' }}>
@@ -28,7 +55,19 @@ export default async function Classement() {
     )
   }
 
-  const classement = await calculerClassementSaison(supabase, saison.id)
+  const classementComplet = await calculerClassementSaison(supabase, saison.id)
+
+  let classement = classementComplet
+  if (ligueSelectionnee) {
+    const { data: adhesionsLigue } = await supabase
+      .from('adhesions')
+      .select('utilisateur_id')
+      .eq('ligue_id', ligueSelectionnee.id)
+      .eq('statut', 'actif')
+
+    const membresLigueIds = new Set((adhesionsLigue ?? []).map((a) => a.utilisateur_id))
+    classement = classementComplet.filter((j) => membresLigueIds.has(j.utilisateur_id))
+  }
 
   const userIds = classement.map((j) => j.utilisateur_id)
   const { data: profils } = userIds.length > 0
@@ -36,10 +75,22 @@ export default async function Classement() {
     : { data: [] as any[] }
   const avatarMap = new Map((profils ?? []).map((p) => [p.id, p.avatar_id ?? 1]))
 
-  const top10 = classement.slice(0, 10)
+  const totalPages = Math.max(1, Math.ceil(classement.length / TAILLE_PAGE))
+  const pageCorrigee = Math.min(pageActuelle, totalPages)
+  const debutPage = (pageCorrigee - 1) * TAILLE_PAGE
+  const classementPage = classement.slice(debutPage, debutPage + TAILLE_PAGE)
+
   const monIndex = classement.findIndex((j) => j.utilisateur_id === user.id)
   const monRang = monIndex >= 0 ? monIndex + 1 : null
-  const jeSuisHorsTop10 = monRang !== null && monRang > 10
+  const jeSuisSurCettePage = monRang !== null && monRang > debutPage && monRang <= debutPage + TAILLE_PAGE
+  const jeSuisHorsPage = monRang !== null && !jeSuisSurCettePage
+
+  const construireUrlPage = (p: number) => {
+    const params = new URLSearchParams()
+    if (ligueSelectionnee) params.set('ligue', String(ligueSelectionnee.id))
+    params.set('page', String(p))
+    return `/classement?${params.toString()}`
+  }
 
   const styleBordure = (rang: number) => {
     if (rang === 1) return '#EF9F27'
@@ -107,24 +158,66 @@ export default async function Classement() {
           fontWeight: 700,
           textShadow: '0 0 18px rgba(200,53,46,0.65)',
         }}>
-          Classement général
+          {ligueSelectionnee ? `Classement — ${ligueSelectionnee.nom}` : 'Classement général'}
         </h1>
-        <p style={{ fontSize: 12, color: '#9fb0c9', marginTop: 4, marginBottom: 20 }}>Saison 2026-2027</p>
+        <p style={{ fontSize: 12, color: '#9fb0c9', marginTop: 4, marginBottom: 16 }}>Saison 2026-2027</p>
+
+        {mesLigues.length > 0 && (
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 20, flexWrap: 'wrap' }}>
+            <Link
+              href="/classement"
+              style={{
+                padding: '7px 16px',
+                borderRadius: 20,
+                fontSize: 12,
+                fontWeight: 700,
+                textDecoration: 'none',
+                background: !ligueSelectionnee ? 'rgba(200,53,46,0.2)' : 'rgba(255,255,255,0.04)',
+                border: !ligueSelectionnee ? '1px solid rgba(200,53,46,0.6)' : '1px solid rgba(255,255,255,0.15)',
+                color: !ligueSelectionnee ? 'white' : 'rgba(255,255,255,0.7)',
+              }}
+            >
+              Général
+            </Link>
+            {mesLigues.map((ligue) => {
+              const actif = ligueSelectionnee?.id === ligue.id
+              return (
+                <Link
+                  key={ligue.id}
+                  href={`/classement?ligue=${ligue.id}`}
+                  style={{
+                    padding: '7px 16px',
+                    borderRadius: 20,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    background: actif ? 'rgba(200,53,46,0.2)' : 'rgba(255,255,255,0.04)',
+                    border: actif ? '1px solid rgba(200,53,46,0.6)' : '1px solid rgba(255,255,255,0.15)',
+                    color: actif ? 'white' : 'rgba(255,255,255,0.7)',
+                  }}
+                >
+                  {ligue.nom}
+                </Link>
+              )
+            })}
+          </div>
+        )}
 
         {classement.length === 0 ? (
           <p>Aucun résultat pour le moment.</p>
         ) : (
+          <>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {top10.map((joueur, index) => (
+            {classementPage.map((joueur, index) => (
               <LigneJoueur
                 key={joueur.utilisateur_id}
                 joueur={joueur}
-                rang={index + 1}
+                rang={debutPage + index + 1}
                 moi={joueur.utilisateur_id === user.id}
               />
             ))}
 
-            {jeSuisHorsTop10 && monRang !== null && (
+            {jeSuisHorsPage && monRang !== null && (
               <>
                 <div style={{ textAlign: 'center', color: '#5a6b85', fontSize: 14, letterSpacing: 3, margin: '4px 0' }}>
                   •••
@@ -137,6 +230,29 @@ export default async function Classement() {
               </>
             )}
           </div>
+
+          {totalPages > 1 && (
+            <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <Link
+                  key={p}
+                  href={construireUrlPage(p)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 6,
+                    textDecoration: 'none',
+                    color: 'white',
+                    backgroundColor: p === pageCorrigee ? '#C8352E' : '#16233F',
+                    fontSize: 13,
+                    fontWeight: 700,
+                  }}
+                >
+                  {p}
+                </Link>
+              ))}
+            </div>
+          )}
+          </>
         )}
       </div>
     </div>

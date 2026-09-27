@@ -42,3 +42,10 @@ export const COULEURS_EQUIPES: Record<string, TeamColor> = {
 export function getCouleurEquipe(code: string): TeamColor {
   return COULEURS_EQUIPES[code] ?? { primary: '#333333', primaryRgb: '51, 51, 51', dark: '#1a1a1a' }
 }
+export function estCouleurClaire(hex: string): boolean {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  const luminance = (r * 299 + g * 587 + b * 114) / 1000
+  return luminance >= 128
+}

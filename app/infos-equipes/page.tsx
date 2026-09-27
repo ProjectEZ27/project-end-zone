@@ -35,6 +35,23 @@ export default async function InfosEquipes() {
             {GLOSSAIRE['power ranking']}
           </InfoToggle>
         </p>
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <span style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            borderRadius: 20,
+            padding: '6px 14px',
+            fontSize: 11,
+            fontWeight: 600,
+            color: '#c9cdd6',
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ee892', display: 'inline-block' }} />
+            Mis à jour le 24 sept. · prochaine mise à jour mercredi, 19h
+          </span>
+        </div>
 
         {classement.length === 0 ? (
           <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)' }}>

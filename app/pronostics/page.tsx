@@ -10,6 +10,7 @@ import { estSemaineOuverte, calculerDateOuverture } from '@/lib/semaineOuverture
 import { getPowerIndexRanking } from '@/lib/powerIndex'
 import { RESUMES_EQUIPES } from '@/lib/resumesEquipes'
 import { calculerBilanEquipes } from '@/lib/bilanEquipes'
+import ToggleAllInfos from '@/components/ToggleAllInfos'
 
 export default async function Pronostics({ searchParams }: { searchParams: Promise<{ semaine?: string }> }) {
   const { semaine: semaineParam } = await searchParams
@@ -237,7 +238,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
       }}>
         <span style={{ fontSize: 20 }}>🏈</span>
         <span style={{ flex: 1, textAlign: 'left', fontSize: 13, fontWeight: 700 }}>
-          Un doute sur un match ? Compare les deux équipes
+          Voir le power ranking complet des 32 équipes
         </span>
         <span style={{ fontSize: 16, color: '#ff9088' }}>→</span>
       </a>
@@ -296,6 +297,15 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
           </div>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', lineHeight: 1.5, margin: 0 }}>
             {infosPlaceholderPlayoffs[semaine.nom?.toLowerCase().trim() ?? '']?.texte}
+          </p>
+        </div>
+      )}
+
+      {nombreTotal > 0 && !estSemainePlayoffsVide && (
+        <div style={{ marginBottom: 16 }}>
+          <ToggleAllInfos />
+          <p style={{ color: '#5f6a80', fontSize: 10, textAlign: 'center', margin: '6px 0 0' }}>
+            Affiche, match par match, le résumé des deux équipes qui s'affrontent
           </p>
         </div>
       )}

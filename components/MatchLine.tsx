@@ -1,6 +1,6 @@
 import styles from './MatchLine.module.css'
 import { selectPronostic } from '@/app/pronostics/actions'
-import { getCouleurEquipe } from '@/lib/teamColors'
+import { getCouleurEquipe, estCouleurClaire } from '@/lib/teamColors'
 
 interface MatchLineProps {
   matchId: string
@@ -79,6 +79,8 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
   const color2 = getCouleurEquipe(team2.code)
 
   const chosenLeft = selectedTeam === team1.code
+  const fondClairEquipe2 = estCouleurClaire(color2.primary)
+  const maisonEnClair = fondClairEquipe2 && !(chosenLeft && !finished)
   const chosenRight = selectedTeam === team2.code
   const won = finished && !!selectedTeam && selectedTeam === equipeGagnante
   const lost = finished && !!selectedTeam && selectedTeam !== equipeGagnante
@@ -225,12 +227,17 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
         {finished && chosenRight && (
           <div className={`${styles.resultBadge} ${won ? styles.resultCheck : styles.resultCross}`} />
         )}
+        <div className={`${styles.homeIcon} ${maisonEnClair ? styles.homeIconClair : styles.homeIconSombre}`}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z" />
+          </svg>
+        </div>
       </div>
       </div>
 
       {!finished && (rank1 != null || rank2 != null) && (
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: 6 }}>
-          <details className={styles.infoDetails}>
+          <details className={styles.infoDetails} data-info-toggle>
             <summary className={styles.infoIcon}>i</summary>
             <div className={styles.infoPanel}>
               {rank1 != null && (

@@ -50,6 +50,7 @@ export default function EquipeFavoriteEditor({ currentEquipe }: EquipeFavoriteEd
       {editing && (
         <form
           action={changerEquipeFavorite}
+          onSubmit={() => setEditing(false)}
           style={{
             marginTop: 12,
             background: '#16233F',

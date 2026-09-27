@@ -169,7 +169,9 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
         inset: 0,
         zIndex: -1,
         
-        backgroundImage: 'url(/fonds/Fond-Profil.webp)',
+backgroundImage: profile?.equipe_favorite
+  ? `url(/fond-profils/Profil_${profile.equipe_favorite}.webp)`
+  : 'url(/fonds/Fond-Profil.webp)',
         backgroundSize: 'cover',
         backgroundPosition: 'right center',
         backgroundRepeat: 'no-repeat',

@@ -48,8 +48,8 @@ export async function changerPseudo(formData: FormData) {
     redirect('/profile?error=' + encodeURIComponent(message))
   }
 
-  revalidatePath('/profile')
   revalidatePath('/')
+  redirect('/profile')
   revalidatePath('/classement')
 }
 

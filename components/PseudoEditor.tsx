@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { changerPseudo } from '@/app/profile/actions'
+import { TbPencil } from 'react-icons/tb'
 
 interface PseudoEditorProps {
   currentPseudo: string
@@ -24,11 +25,13 @@ export default function PseudoEditor({ currentPseudo }: PseudoEditorProps) {
             border: '1px solid rgba(255,255,255,0.2)',
             background: 'rgba(255,255,255,0.05)',
             color: 'rgba(255,255,255,0.7)',
-            fontSize: 13,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             cursor: 'pointer',
           }}
         >
-          ✏️
+          <TbPencil size={14} />
         </button>
       </div>
 

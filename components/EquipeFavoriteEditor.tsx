@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { changerEquipeFavorite } from '@/app/profile/actions'
 import { NOMS_EQUIPES } from '@/lib/teamBadge'
 import { getCouleurAccent } from '@/lib/teamColors'
+import { TbPencil } from 'react-icons/tb'
 
 const EQUIPES_NFL = [
   'ARI','ATL','BAL','BUF','CAR','CHI','CIN','CLE','DAL','DEN','DET','GB',
@@ -31,20 +32,19 @@ export default function EquipeFavoriteEditor({ currentEquipe }: EquipeFavoriteEd
           onClick={() => setEditing(!editing)}
           aria-label="Modifier l'équipe favorite"
           style={{
-            width: 16,
-            height: 16,
+            width: 18,
+            height: 18,
             borderRadius: '50%',
             border: 'none',
             background: 'rgba(255,255,255,0.1)',
             color: '#9fb0c9',
-            fontSize: 9,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
           }}
         >
-          ✎
+          <TbPencil size={11} />
         </button>
       </div>
 

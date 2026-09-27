@@ -4,6 +4,7 @@ import UserAvatar from '@/components/UserAvatar'
 import { NOMS_EQUIPES } from '@/lib/teamBadge'
 import { TbTargetArrow, TbTrendingUp, TbBallAmericanFootball, TbCalendarCheck, TbTrophy, TbCalendar, TbClock } from 'react-icons/tb'
 import { calculerClassementSaison } from '@/lib/scoring'
+import { getCouleurAccent } from '@/lib/teamColors'
 
 export default async function PublicProfile({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -158,6 +159,8 @@ export default async function PublicProfile({ params }: { params: Promise<{ id: 
     return date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Europe/Paris' })
   }
 
+  const accentColor = profile.equipe_favorite ? getCouleurAccent(profile.equipe_favorite) : '#C8352E'
+
   return (
     <div style={{ position: 'relative', minHeight: '100dvh' }}>
       <div style={{
@@ -165,7 +168,9 @@ export default async function PublicProfile({ params }: { params: Promise<{ id: 
         inset: 0,
         zIndex: -1,
         
-        backgroundImage: 'url(/fonds/Fond-Profil.webp)',
+backgroundImage: profile.equipe_favorite
+  ? `url(/fond-profils/Profil_${profile.equipe_favorite}.webp)`
+  : 'url(/fonds/Fond-Profil.webp)',
         backgroundSize: 'cover',
         backgroundPosition: 'right center',
         backgroundRepeat: 'no-repeat',
@@ -183,7 +188,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ id: 
         {profile.equipe_favorite && (
           <p style={{ fontSize: 12, color: '#9fb0c9', marginTop: 4 }}>
             Équipe favorite :{' '}
-            <span style={{ color: '#C8352E', fontWeight: 600 }}>
+            <span style={{ color: accentColor, fontWeight: 600 }}>
               {NOMS_EQUIPES[profile.equipe_favorite] ?? profile.equipe_favorite}
             </span>
           </p>
@@ -205,7 +210,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ id: 
             }}>
               <div style={{
                 width: 38, height: 38, borderRadius: '50%',
-                background: '#2a1418', color: '#E8544C',
+                background: '#2a1418', color: accentColor,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
                 {s.icon}
@@ -214,7 +219,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ id: 
                 <div style={{ fontSize: 19, fontWeight: 700 }}>{s.valeur}</div>
                 <div style={{ fontSize: 10, color: '#9fb0c9' }}>{s.label}</div>
               </div>
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, background: '#C8352E' }} />
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, background: accentColor }} />
             </div>
           ))}
         </div>
@@ -226,7 +231,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ id: 
             </div>
 
             {pronosSuperBowlAvantPlayoffs ? (
-              <div style={{ background: '#16233F', borderRadius: 10, borderBottom: '2px solid #C8352E', marginBottom: 10, overflow: 'hidden' }}>
+              <div style={{ background: '#16233F', borderRadius: 10, borderBottom: `2px solid ${accentColor}`, marginBottom: 10, overflow: 'hidden' }}>
                 <div style={{ padding: '10px 12px 0', color: '#7a8aa5', fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                   🏆 Vainqueur du Super Bowl
                 </div>
@@ -244,12 +249,12 @@ export default async function PublicProfile({ params }: { params: Promise<{ id: 
               </div>
             ) : pronosSuperBowlPreseason ? (
               <div style={{ display: 'grid', gridTemplateColumns: pronosMvp ? '1fr 1fr' : '1fr', gap: 10, marginBottom: pronosMvp ? 10 : 0 }}>
-                <div style={{ background: '#16233F', borderRadius: 10, padding: '14px 12px', borderBottom: '2px solid #C8352E' }}>
+                <div style={{ background: '#16233F', borderRadius: 10, padding: '14px 12px', borderBottom: `2px solid ${accentColor}` }}>
                   <div style={{ color: '#7a8aa5', fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>🏆 Super Bowl</div>
                   <div style={{ color: 'white', fontSize: 15, fontWeight: 700 }}>{pronosSuperBowlPreseason}</div>
                 </div>
                 {pronosMvp && (
-                  <div style={{ background: '#16233F', borderRadius: 10, padding: '14px 12px', borderBottom: '2px solid #C8352E' }}>
+                  <div style={{ background: '#16233F', borderRadius: 10, padding: '14px 12px', borderBottom: `2px solid ${accentColor}` }}>
                     <div style={{ color: '#7a8aa5', fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>⭐ MVP</div>
                     <div style={{ color: 'white', fontSize: 15, fontWeight: 700 }}>{pronosMvp}</div>
                   </div>
@@ -258,7 +263,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ id: 
             ) : null}
 
             {pronosSuperBowlAvantPlayoffs && pronosMvp && (
-              <div style={{ background: '#16233F', borderRadius: 10, padding: '14px 12px', borderBottom: '2px solid #C8352E' }}>
+              <div style={{ background: '#16233F', borderRadius: 10, padding: '14px 12px', borderBottom: `2px solid ${accentColor}` }}>
                 <div style={{ color: '#7a8aa5', fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>⭐ MVP</div>
                 <div style={{ color: 'white', fontSize: 15, fontWeight: 700 }}>{pronosMvp}</div>
               </div>
@@ -323,9 +328,9 @@ export default async function PublicProfile({ params }: { params: Promise<{ id: 
                       <text x="0" y="13" fontSize="7" fill="#5a6b85">{axisMax}%</text>
                       <text x="4" y="53" fontSize="7" fill="#5a6b85">{axisMid}%</text>
                       <text x="6" y="93" fontSize="7" fill="#5a6b85">{axisMin}%</text>
-                      <polyline points={polyline} fill="none" stroke="#C8352E" strokeWidth="2.5" />
+                      <polyline points={polyline} fill="none" stroke={accentColor} strokeWidth="2.5" />
                       {points.map((p, i) => (
-                        <circle key={i} cx={p.x} cy={p.y} r={i === points.length - 1 ? 4 : 3} fill={i === points.length - 1 ? '#EF9F27' : '#C8352E'} />
+                        <circle key={i} cx={p.x} cy={p.y} r={i === points.length - 1 ? 4 : 3} fill={i === points.length - 1 ? '#EF9F27' : accentColor} />
                       ))}
                     </svg>
                   )

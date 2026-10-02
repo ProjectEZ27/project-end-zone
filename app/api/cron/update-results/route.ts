@@ -1,6 +1,7 @@
 import { BigBallSportsClient } from '@bigballsdata/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 const CORRESPONDANCE_EQUIPES: Record<string, string> = {
   'Arizona Cardinals': 'ARI', 'Atlanta Falcons': 'ATL', 'Baltimore Ravens': 'BAL', 'Buffalo Bills': 'BUF',
   'Carolina Panthers': 'CAR', 'Chicago Bears': 'CHI', 'Cincinnati Bengals': 'CIN', 'Cleveland Browns': 'CLE',
@@ -96,6 +97,12 @@ export async function GET(request: Request) {
       }
     }
   }
-
+  
+  if (miseAJourTotal > 0) {
+    revalidatePath('/pronostics')
+    revalidatePath('/classement')
+    revalidatePath('/profile')
+    revalidatePath('/')
+  }
   return NextResponse.json({ miseAJourTotal, resultats })
 }

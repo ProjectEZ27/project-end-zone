@@ -260,6 +260,11 @@ backgroundImage: profile.equipe_favorite
                   </div>
                 )}
               </div>
+            ) : pronosMvp ? (
+              <div style={{ background: '#16233F', borderRadius: 10, padding: '14px 12px', borderBottom: `2px solid ${accentColor}` }}>
+                <div style={{ color: '#7a8aa5', fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>⭐ MVP</div>
+                <div style={{ color: 'white', fontSize: 15, fontWeight: 700 }}>{pronosMvp}</div>
+              </div>
             ) : null}
 
             {pronosSuperBowlAvantPlayoffs && pronosMvp && (

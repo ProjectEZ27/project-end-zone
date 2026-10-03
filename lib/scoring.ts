@@ -38,6 +38,7 @@ export async function calculerClassementSaison(
     .from('pronostics')
     .select('*')
     .in('match_id', matchIds)
+    .range(0, 9999)
 
   if (!pronostics || pronostics.length === 0) return []
 
@@ -173,6 +174,7 @@ export async function calculerClassementSemaine(
     .from('pronostics')
     .select('*')
     .in('match_id', matchIds)
+    .range(0, 9999)
 
   if (!pronostics || pronostics.length === 0) return []
 

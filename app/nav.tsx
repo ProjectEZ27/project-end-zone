@@ -24,9 +24,7 @@ export default function Nav() {
         right: 0,
         display: 'flex',
         justifyContent: 'space-around',
-        backgroundImage: 'linear-gradient(rgba(5,10,20,0.78), rgba(5,10,20,0.78)), url(/image.navbar/Fond-Nav.webp)',
-        backgroundSize: '100% 100%, 100% 100%',
-        backgroundPosition: 'center',
+        backgroundColor: '#16233F',
         borderTop: '1px solid #33415a',
         padding: '10px 0',
         zIndex: 100,
@@ -42,31 +40,22 @@ export default function Nav() {
             style={{
               textDecoration: 'none',
               textAlign: 'center',
-              color: isActive ? '#f0c040' : 'rgba(255,255,255,0.65)',
+              color: isActive ? 'white' : '#9fb0c9',
             }}
           >
-              <Icon size={20} style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))' }} />
+            <Icon size={20} />
             <div
               style={{
                 fontSize: 10,
                 marginTop: 2,
                 textTransform: 'uppercase',
                 letterSpacing: 0.5,
+                textDecoration: isActive ? 'underline' : 'none',
+                textUnderlineOffset: 4,
               }}
             >
               {label}
             </div>
-            {isActive && (
-              <div
-                style={{
-                  width: 20,
-                  height: 2,
-                  background: '#f0c040',
-                  borderRadius: 2,
-                  margin: '4px auto 0',
-                }}
-              />
-            )}
           </Link>
         )
       })}

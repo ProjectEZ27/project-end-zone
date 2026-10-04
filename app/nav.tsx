@@ -24,8 +24,8 @@ export default function Nav() {
         right: 0,
         display: 'flex',
         justifyContent: 'space-around',
-        backgroundImage: 'url(/image.navbar/Fond-Nav.webp)',
-        backgroundSize: 'cover',
+        backgroundImage: 'linear-gradient(rgba(5,10,20,0.78), rgba(5,10,20,0.78)), url(/image.navbar/Fond-Nav.webp)',
+        backgroundSize: '100% 100%, 100% 100%',
         backgroundPosition: 'center',
         borderTop: '1px solid #33415a',
         padding: '10px 0',
@@ -45,7 +45,7 @@ export default function Nav() {
               color: isActive ? '#f0c040' : 'rgba(255,255,255,0.65)',
             }}
           >
-            <Icon size={20} />
+              <Icon size={20} style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))' }} />
             <div
               style={{
                 fontSize: 10,

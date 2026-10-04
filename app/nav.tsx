@@ -24,7 +24,9 @@ export default function Nav() {
         right: 0,
         display: 'flex',
         justifyContent: 'space-around',
-        backgroundColor: '#16233F',
+        backgroundImage: 'url(/image.navbar/Fond-Nav.webp)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
         borderTop: '1px solid #33415a',
         padding: '10px 0',
         zIndex: 100,
@@ -40,7 +42,7 @@ export default function Nav() {
             style={{
               textDecoration: 'none',
               textAlign: 'center',
-              color: isActive ? 'white' : '#9fb0c9',
+              color: isActive ? '#f0c040' : 'rgba(255,255,255,0.65)',
             }}
           >
             <Icon size={20} />
@@ -50,12 +52,21 @@ export default function Nav() {
                 marginTop: 2,
                 textTransform: 'uppercase',
                 letterSpacing: 0.5,
-                textDecoration: isActive ? 'underline' : 'none',
-                textUnderlineOffset: 4,
               }}
             >
               {label}
             </div>
+            {isActive && (
+              <div
+                style={{
+                  width: 20,
+                  height: 2,
+                  background: '#f0c040',
+                  borderRadius: 2,
+                  margin: '4px auto 0',
+                }}
+              />
+            )}
           </Link>
         )
       })}

@@ -36,6 +36,7 @@ export default function Nav() {
           <Link
             key={href}
             href={href}
+            prefetch={false}
             style={{
               textDecoration: 'none',
               textAlign: 'center',

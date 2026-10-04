@@ -193,7 +193,7 @@ export default async function LeaguePronostics({
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {matchs?.map((match) => {
-          const verrouille = match.statut !== 'a_venir'
+const verrouille = match.statut !== 'a_venir' || new Date() >= new Date(match.coup_envoi)
           const termine = match.statut === 'termine'
           const team1 = { code: match.equipe_a, name: NOMS_EQUIPES[match.equipe_a] ?? match.equipe_a }
           const team2 = { code: match.equipe_b, name: NOMS_EQUIPES[match.equipe_b] ?? match.equipe_b }

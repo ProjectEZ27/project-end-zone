@@ -1,3 +1,6 @@
+'use client'
+
+import { useOptimistic, startTransition } from 'react'
 import styles from './MatchLine.module.css'
 import { selectPronostic } from '@/app/pronostics/actions'
 import { getCouleurEquipe, estCouleurClaire } from '@/lib/teamColors'
@@ -73,23 +76,24 @@ export default function MatchLine({
   bilan1,
   bilan2,
 }: MatchLineProps) {
+  const [optimisticSelectedTeam, setOptimisticSelectedTeam] = useOptimistic(selectedTeam)
 const AFFICHER_SCORE_EN_DIRECT = false // désactivé le 21/09 : actualisations trop espacées, à réactiver une fois le polling navigateur en place
 const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA != null && scoreDirectB != null
   const color1 = getCouleurEquipe(team1.code)
   const color2 = getCouleurEquipe(team2.code)
 
-  const chosenLeft = selectedTeam === team1.code
+  const chosenLeft = optimisticSelectedTeam === team1.code
   const fondClairEquipe2 = estCouleurClaire(color2.primary)
   const maisonEnClair = fondClairEquipe2 && !(chosenLeft && !finished)
-  const chosenRight = selectedTeam === team2.code
-  const won = finished && !!selectedTeam && selectedTeam === equipeGagnante
-  const lost = finished && !!selectedTeam && selectedTeam !== equipeGagnante
+  const chosenRight = optimisticSelectedTeam === team2.code
+  const won = finished && !!optimisticSelectedTeam && optimisticSelectedTeam === equipeGagnante
+  const lost = finished && !!optimisticSelectedTeam && optimisticSelectedTeam !== equipeGagnante
 
   const team1EstGagnant = finished && equipeGagnante === team1.code
   const team2EstGagnant = finished && equipeGagnante === team2.code
 
   const canClick = ouvert && !locked && !finished
-  const isPending = canClick && !selectedTeam
+  const isPending = canClick && !optimisticSelectedTeam
   const notYetOpen = !ouvert && !locked && !finished
 
   const matchClasses = [
@@ -158,7 +162,11 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
           <form action={selectPronostic} style={{ width: '100%', height: '100%' }}>
             <input type="hidden" name="match_id" value={matchId} />
             <input type="hidden" name="equipe" value={team1.code} />
-            <button type="submit" className={styles.teamButton}>
+            <button
+              type="submit"
+              className={styles.teamButton}
+              onClick={() => startTransition(() => setOptimisticSelectedTeam(team1.code))}
+            >
               <div className={styles.teamContent}>
                 <div>
                   <div className={styles.teamCode}>{team1.code}</div>
@@ -200,7 +208,11 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
           <form action={selectPronostic} style={{ width: '100%', height: '100%' }}>
             <input type="hidden" name="match_id" value={matchId} />
             <input type="hidden" name="equipe" value={team2.code} />
-            <button type="submit" className={styles.teamButton}>
+            <button
+              type="submit"
+              className={styles.teamButton}
+              onClick={() => startTransition(() => setOptimisticSelectedTeam(team2.code))}
+            >
               <div className={styles.teamContent}>
                 <div>
                   <div className={styles.teamCode}>{team2.code}</div>

@@ -108,15 +108,14 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   ])
   const matchs = matchsResult.data
   const saison = saisonResult.data
-  const bilanParEquipe = saison ? await calculerBilanEquipes(supabase, saison.id) : {}
-
   const estSemainePlayoffsVide =
     (!matchs || matchs.length === 0) &&
     (estSemaineWildCard || estSemaineDivisionnaire || estSemaineFinaleConference || estSemaineSuperBowl)
 
   const matchIds = (matchs ?? []).map((m) => m.id)
 
-  const [mesPronosticsResult, pronosSpeciauxResult] = await Promise.all([
+  const [bilanParEquipe, mesPronosticsResult, pronosSpeciauxResult] = await Promise.all([
+    saison ? calculerBilanEquipes(supabase, saison.id) : Promise.resolve({} as Record<string, { victoires: number; defaites: number }>),
     supabase.from('pronostics').select('*').eq('utilisateur_id', user.id).in('match_id', matchIds),
     saison
       ? supabase.from('pronostics_speciaux').select('type, choix').eq('utilisateur_id', user.id).eq('saison_id', saison.id)

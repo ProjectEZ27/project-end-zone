@@ -180,10 +180,11 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
       <p>
         +{regles.bonus_1} pt dès {regles.seuil_bonus_1} bons pronos · +{regles.bonus_2} pts dès {regles.seuil_bonus_2} · Perfect week +{regles.bonus_perfect}
       </p>
-      {matchsNuls.length > 0 && (
-        <p style={{ fontSize: 12, color: '#f0c869', margin: '4px 0 0' }}>
-          {nombreMatchsComptes} matchs comptés · {matchsNuls.length}{' '}
-          {matchsNuls.length > 1 ? 'matchs nuls non comptabilisés' : 'match nul non comptabilisé'}
+      {(matchs?.length ?? 0) > 0 && (
+        <p style={{ fontSize: 12, color: matchsNuls.length > 0 ? '#f0c869' : 'rgba(255,255,255,0.6)', margin: '4px 0 0' }}>
+          {matchsNuls.length > 0
+            ? `${nombreMatchsComptes} matchs comptés · ${matchsNuls.length} ${matchsNuls.length > 1 ? 'matchs nuls non comptabilisés' : 'match nul non comptabilisé'}`
+            : `${nombreMatchsComptes} ${nombreMatchsComptes > 1 ? 'matchs' : 'match'} cette semaine`}
         </p>
       )}
       {nombreTotal > 0 && (

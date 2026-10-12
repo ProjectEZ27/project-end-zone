@@ -8,6 +8,7 @@ import { TbTargetArrow, TbTrendingUp, TbBallAmericanFootball, TbCalendarCheck, T
 import { calculerClassementSaison } from '@/lib/scoring'
 import EquipeFavoriteEditor from '@/components/EquipeFavoriteEditor'
 import { getCouleurAccent } from '@/lib/teamColors'
+import { estMatchNul } from '@/lib/matchNul'
 
 export default async function Profile({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error: errorMessage } = await searchParams
@@ -92,7 +93,7 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
 
     totalPronostics = pronostics.filter((p) => {
       const match = matchMap.get(p.match_id)
-      return match && match.statut === 'termine'
+      return match && match.statut === 'termine' && !estMatchNul(match)
     }).length
 
     totalCorrects = pronostics.filter((p) => {
@@ -104,8 +105,12 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
       const matchsDeLaSemaine = matchs.filter((m) => m.semaine_id === semaine.id)
       const matchsTermines = matchsDeLaSemaine.filter((m) => m.statut === 'termine')
       if (matchsTermines.length === matchsDeLaSemaine.length && matchsDeLaSemaine.length > 0) {
+        // Les matchs nuls ne comptent pas dans la semaine
+        const matchsComptes = matchsDeLaSemaine.filter((m) => !estMatchNul(m))
+        if (matchsComptes.length === 0) continue
+
         const mesPronosSemaine = pronostics.filter((p) =>
-          matchsDeLaSemaine.some((m) => m.id === p.match_id)
+          matchsComptes.some((m) => m.id === p.match_id)
         )
         const corrects = mesPronosSemaine.filter((p) => {
           const match = matchMap.get(p.match_id)
@@ -113,12 +118,12 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
         }).length
 
         if (corrects > meilleureSemaine) meilleureSemaine = corrects
-        if (corrects === matchsDeLaSemaine.length) semainesParfaites++
+        if (corrects === matchsComptes.length) semainesParfaites++
 
-        resultatsParSemaine.push({ nom: semaine.nom, corrects, total: matchsDeLaSemaine.length })
+        resultatsParSemaine.push({ nom: semaine.nom, corrects, total: matchsComptes.length })
       }
     }
-
+    
     return { totalPronostics, totalCorrects, meilleureSemaine, semainesParfaites, resultatsParSemaine }
   }
 

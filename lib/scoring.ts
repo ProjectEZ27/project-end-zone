@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js'
+import { estMatchNul, seuilsSemaine } from '@/lib/matchNul'
 
 type ScoreJoueur = {
   utilisateur_id: string
@@ -64,6 +65,10 @@ export async function calculerClassementSaison(
     const matchsTermines = matchsDeLaSemaine.filter((m) => m.statut === 'termine')
     const semaineComplete = matchsDeLaSemaine.length > 0 && matchsTermines.length === matchsDeLaSemaine.length
 
+    // Les matchs nuls ne comptent pas : la semaine a un match de moins
+    const matchsComptes = matchsDeLaSemaine.filter((m) => !estMatchNul(m))
+    const regles = seuilsSemaine(semaine, matchsComptes.length, matchsDeLaSemaine.length)
+
     // Pour chaque utilisateur ayant pronostiqué cette semaine
     for (const userId of userIds) {
       const mesPronosSemaine = pronostics.filter(
@@ -82,12 +87,12 @@ export async function calculerClassementSaison(
 
       // Bonus, seulement si tous les matchs de la semaine sont terminés
       if (semaineComplete) {
-        if (corrects === matchsDeLaSemaine.length) {
-          scoreSemaine += semaine.bonus_perfect ?? 0
-        } else if (semaine.seuil_bonus_2 && corrects >= semaine.seuil_bonus_2) {
-          scoreSemaine += semaine.bonus_2 ?? 0
-        } else if (semaine.seuil_bonus_1 && corrects >= semaine.seuil_bonus_1) {
-          scoreSemaine += semaine.bonus_1 ?? 0
+        if (matchsComptes.length > 0 && corrects === matchsComptes.length) {
+          scoreSemaine += regles.bonus_perfect ?? 0
+        } else if (regles.seuil_bonus_2 && corrects >= regles.seuil_bonus_2) {
+          scoreSemaine += regles.bonus_2 ?? 0
+        } else if (regles.seuil_bonus_1 && corrects >= regles.seuil_bonus_1) {
+          scoreSemaine += regles.bonus_1 ?? 0
         }
       }
 
@@ -101,9 +106,9 @@ export async function calculerClassementSaison(
       }
       detailParUtilisateur.get(userId)!.set(semaine.id, {
         complete: semaineComplete,
-        // Vraiment parfaite = semaine complète ET tous les pronostics corrects
-        parfaite: semaineComplete && matchsDeLaSemaine.length > 0 && corrects === matchsDeLaSemaine.length,
-        pourcentage: matchsDeLaSemaine.length > 0 ? (corrects / matchsDeLaSemaine.length) * 100 : 0,
+        // Vraiment parfaite = semaine complète ET tous les pronostics corrects (hors matchs nuls)
+        parfaite: semaineComplete && matchsComptes.length > 0 && corrects === matchsComptes.length,
+        pourcentage: matchsComptes.length > 0 ? (corrects / matchsComptes.length) * 100 : 0,
       })
     }
   }
@@ -170,6 +175,10 @@ export async function calculerClassementSemaine(
   const matchIds = matchs.map((m) => m.id)
   const matchsTermines = matchs.filter((m) => m.statut === 'termine')
 
+  // Les matchs nuls ne comptent pas : la semaine a un match de moins
+  const matchsComptes = matchs.filter((m) => !estMatchNul(m))
+  const regles = seuilsSemaine(semaine, matchsComptes.length, matchs.length)
+
   const { data: pronostics } = await supabase
     .from('pronostics')
     .select('*')
@@ -199,12 +208,12 @@ export async function calculerClassementSemaine(
     let score = corrects * (semaine.points_par_pronostic ?? 1)
 
     if (matchsTermines.length === matchs.length && matchs.length > 0) {
-      if (corrects === matchs.length) {
-        score += semaine.bonus_perfect ?? 0
-      } else if (semaine.seuil_bonus_2 && corrects >= semaine.seuil_bonus_2) {
-        score += semaine.bonus_2 ?? 0
-      } else if (semaine.seuil_bonus_1 && corrects >= semaine.seuil_bonus_1) {
-        score += semaine.bonus_1 ?? 0
+      if (matchsComptes.length > 0 && corrects === matchsComptes.length) {
+        score += regles.bonus_perfect ?? 0
+      } else if (regles.seuil_bonus_2 && corrects >= regles.seuil_bonus_2) {
+        score += regles.bonus_2 ?? 0
+      } else if (regles.seuil_bonus_1 && corrects >= regles.seuil_bonus_1) {
+        score += regles.bonus_1 ?? 0
       }
     }
 

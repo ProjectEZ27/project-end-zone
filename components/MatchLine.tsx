@@ -86,8 +86,9 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
   const fondClairEquipe2 = estCouleurClaire(color2.primary)
   const maisonEnClair = fondClairEquipe2 && !(chosenLeft && !finished)
   const chosenRight = optimisticSelectedTeam === team2.code
-  const won = finished && !!optimisticSelectedTeam && optimisticSelectedTeam === equipeGagnante
-  const lost = finished && !!optimisticSelectedTeam && optimisticSelectedTeam !== equipeGagnante
+  const estNul = finished && score1 != null && score2 != null && score1 === score2
+  const won = finished && !estNul && !!optimisticSelectedTeam && optimisticSelectedTeam === equipeGagnante
+  const lost = finished && !estNul && !!optimisticSelectedTeam && optimisticSelectedTeam !== equipeGagnante
 
   const team1EstGagnant = finished && equipeGagnante === team1.code
   const team2EstGagnant = finished && equipeGagnante === team2.code
@@ -103,6 +104,7 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
     finished ? styles.finished : '',
     finished && won ? styles.won : '',
     finished && lost ? styles.lost : '',
+        estNul ? styles.draw : '',
     isPending ? styles.pending : '',
     notYetOpen ? styles.notOpen : '',
   ].filter(Boolean).join(' ')
@@ -190,7 +192,7 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
           </div>
         )}
         <div className={styles.check} />
-        {finished && chosenLeft && (
+        {finished && !estNul && chosenLeft && (
           <div className={`${styles.resultBadge} ${won ? styles.resultCheck : styles.resultCross}`} />
         )}
       </div>
@@ -236,7 +238,7 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
           </div>
         )}
         <div className={styles.check} />
-        {finished && chosenRight && (
+        {finished && !estNul && chosenRight && (
           <div className={`${styles.resultBadge} ${won ? styles.resultCheck : styles.resultCross}`} />
         )}
         <div className={`${styles.homeIcon} ${maisonEnClair ? styles.homeIconClair : styles.homeIconSombre}`}>
@@ -247,6 +249,11 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
       </div>
       </div>
 
+      {estNul && (
+        <div className={styles.drawBanner}>
+          Match nul : ne compte ni comme victoire ni comme défaite
+        </div>
+      )}
       {!finished && (rank1 != null || rank2 != null) && (
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: 6 }}>
           <details className={styles.infoDetails} data-info-toggle>

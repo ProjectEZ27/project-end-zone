@@ -516,3 +516,28 @@
 .homeIconSombre {
   color: rgba(255,255,255,0.75);
 }
+
+/* ===== Match nul : carte ambre, sans marqueur ===== */
+.match.finished.draw {
+  border-color: rgba(245, 180, 60, 0.45);
+}
+
+.match.finished.draw .teamLeft {
+  background: linear-gradient(135deg, #7a5a1c, #6a4f19) !important;
+}
+
+.match.finished.draw .teamRight {
+  background: linear-gradient(225deg, #5f4617, #523c14) !important;
+}
+
+.drawBanner {
+  margin-top: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  color: #f5c969;
+  background: rgba(245, 180, 60, 0.15);
+  border: 1px solid rgba(245, 180, 60, 0.4);
+}

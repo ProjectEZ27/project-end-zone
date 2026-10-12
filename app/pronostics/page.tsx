@@ -11,6 +11,7 @@ import { getPowerIndexRanking } from '@/lib/powerIndex'
 import { RESUMES_EQUIPES } from '@/lib/resumesEquipes'
 import { calculerBilanEquipes } from '@/lib/bilanEquipes'
 import ToggleAllInfos from '@/components/ToggleAllInfos'
+import { estMatchNul, seuilsSemaine } from '@/lib/matchNul'
 
 export default async function Pronostics({ searchParams }: { searchParams: Promise<{ semaine?: string }> }) {
   const { semaine: semaineParam } = await searchParams
@@ -125,8 +126,13 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   const mesPronosSpeciaux = pronosSpeciauxResult.data ?? []
 
   const mesPronosticsMap = new Map((mesPronostics ?? []).map((p) => [p.match_id, p]))
-  const nombreFaits = mesPronostics?.length ?? 0
-  const nombreTotal = matchs?.length ?? 0
+  const matchsNuls = (matchs ?? []).filter(estMatchNul)
+  const idsMatchsNuls = new Set(matchsNuls.map((m) => m.id))
+  const nombreMatchsComptes = (matchs?.length ?? 0) - matchsNuls.length
+  const regles = seuilsSemaine(semaine, nombreMatchsComptes, matchs?.length ?? 0)
+
+  const nombreFaits = (mesPronostics ?? []).filter((p) => !idsMatchsNuls.has(p.match_id)).length
+  const nombreTotal = nombreMatchsComptes
 
   const premierMatch = matchs && matchs.length > 0 ? matchs[0] : null
   const semaineOuverte = estPremiereSemaine
@@ -172,8 +178,14 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
       <SelecteurSemaine semaines={toutesLesSemaines ?? []} semaineActuelle={semaine.id} />
       <h1>🏈 {semaine.nom}</h1>
       <p>
-        +{semaine.bonus_1} pt dès {semaine.seuil_bonus_1} bons pronos · +{semaine.bonus_2} pts dès {semaine.seuil_bonus_2} · Perfect week +{semaine.bonus_perfect}
+        +{regles.bonus_1} pt dès {regles.seuil_bonus_1} bons pronos · +{regles.bonus_2} pts dès {regles.seuil_bonus_2} · Perfect week +{regles.bonus_perfect}
       </p>
+      {matchsNuls.length > 0 && (
+        <p style={{ fontSize: 12, color: '#f0c869', margin: '4px 0 0' }}>
+          {nombreMatchsComptes} matchs comptés · {matchsNuls.length}{' '}
+          {matchsNuls.length > 1 ? 'matchs nuls non comptabilisés' : 'match nul non comptabilisé'}
+        </p>
+      )}
       {nombreTotal > 0 && (
         nombreFaits === 0 ? (
           <div style={{

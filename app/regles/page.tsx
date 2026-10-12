@@ -127,6 +127,19 @@ export default function ReglesPage() {
           </tbody>
         </table>
       </RulesAccordion>
+      
+      {/* MATCH NUL */}
+      <RulesAccordion title="🤝 Match nul">
+        <p>
+          Si un match se termine sur une égalité, il ne compte ni comme une victoire ni comme une défaite : personne
+          ne marque de point dessus.
+        </p>
+        <p>
+          Le match est retiré du total de la semaine. Une semaine de 15 matchs avec un match nul passe donc à 14
+          matchs, et les bonus s'appliquent selon la ligne « 14 matchs » du tableau ci-dessus. Pour la Perfect week,
+          il suffit d'avoir tout bon sur les autres matchs.
+        </p>
+      </RulesAccordion>
 
       {/* PLAYOFFS */}
       <RulesAccordion title="🏆 Barème des playoffs">

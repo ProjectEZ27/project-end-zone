@@ -14,10 +14,16 @@ export default function MatchHeaderReadOnly({ team1, team2, finished, equipeGagn
   const color1 = getCouleurEquipe(team1.code)
   const color2 = getCouleurEquipe(team2.code)
 
+  const estNul = finished && score1 != null && score2 != null && score1 === score2
+
   const team1EstGagnant = finished && equipeGagnante === team1.code
   const team2EstGagnant = finished && equipeGagnante === team2.code
 
-  const matchClasses = [styles.match, finished ? styles.finished : ''].filter(Boolean).join(' ')
+  const matchClasses = [
+    styles.match,
+    finished ? styles.finished : '',
+    estNul ? styles.draw : '',
+  ].filter(Boolean).join(' ')
 
   const cssVars = {
     '--t1-primary': color1.primary,
@@ -43,30 +49,38 @@ export default function MatchHeaderReadOnly({ team1, team2, finished, equipeGagn
   ].filter(Boolean).join(' ')
 
   return (
-    <div className={matchClasses} style={cssVars}>
-      <div className={teamLeftClasses}>
-        <div className={styles.teamContent}>
-          <div>
-            <div className={styles.teamCode}>{team1.code}</div>
-            <div className={styles.teamName}>{team1.name}</div>
+    <>
+      <div className={matchClasses} style={cssVars}>
+        <div className={teamLeftClasses}>
+          <div className={styles.teamContent}>
+            <div>
+              <div className={styles.teamCode}>{team1.code}</div>
+              <div className={styles.teamName}>{team1.name}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.vs}>
+          {finished && score1 != null && score2 != null
+            ? <span className={styles.scoreFinal}>{score1}-{score2}</span>
+            : 'VS'}
+        </div>
+
+        <div className={teamRightClasses}>
+          <div className={styles.teamContent}>
+            <div>
+              <div className={styles.teamCode}>{team2.code}</div>
+              <div className={styles.teamName}>{team2.name}</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className={styles.vs}>
-        {finished && score1 != null && score2 != null
-          ? <span className={styles.scoreFinal}>{score1}-{score2}</span>
-          : 'VS'}
-      </div>
-
-      <div className={teamRightClasses}>
-        <div className={styles.teamContent}>
-          <div>
-            <div className={styles.teamCode}>{team2.code}</div>
-            <div className={styles.teamName}>{team2.name}</div>
-          </div>
+      {estNul && (
+        <div className={styles.drawBanner}>
+          Match nul : ne compte ni comme victoire ni comme défaite
         </div>
-      </div>
-    </div>
+      )}
+    </>
   )
 }

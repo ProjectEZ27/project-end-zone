@@ -6,170 +6,170 @@ export interface ResumeEquipe {
 }
 
 export const RESUMES_EQUIPES: Record<string, ResumeEquipe> = {
-  SEA: {
-    texte: "Une réaction immédiate après la défaite surprise face à Washington : large domination des Chargers (27-6), même si la pression a été relâchée un peu trop tôt en fin de match.",
-    forces: ['Défense', 'Fin de saison'],
-    faiblesses: ['Régularité en début de saison'],
-    historique: "🏆 Vainqueur du Super Bowl LX (saison 2025), leur 2e titre après celui de 2013.",
-  },
-  LA: {
-    texte: "Longtemps menés à Philadelphie, les Rams ont signé une remontée spectaculaire au dernier quart-temps — Matthew Stafford doit cependant hausser son niveau de jeu.",
-    forces: ['Régularité', 'Défense', 'Expérience au poste de quarterback'],
-    historique: "⭐ Matthew Stafford, élu MVP de la ligue pour la saison 2025.",
-  },
-  BUF: {
-    texte: "Une 2e semaine déconcertante : séparation surprise avec James Cook, trop de gros jeux concédés aux Patriots, et une perte de balle au pire moment pour Josh Allen lors de la défaite.",
-    forces: ['Quarterback', 'Jeu aérien', 'Rythme offensif'],
-    faiblesses: ['Défense sur les gros matchs'],
-    historique: "⭐ Josh Allen, élu MVP de la ligue pour la saison 2024.",
-  },
-  BAL: {
-    texte: "Une large domination des Titans en 1re mi-temps (24-7), ternie par la sortie sur blessure de Lamar Jackson à la cheville — un motif d'inquiétude pour la suite.",
-    forces: ['Attaque au sol', 'Quarterback mobile'],
-    faiblesses: ['Régularité en playoffs'],
-    historique: "⭐ Lamar Jackson, élu MVP de la ligue pour la saison 2023 (son 2e titre de MVP).",
+  SF: {
+    texte: "Une victoire à Seattle (32-29) portée par une défense qui continue de surpasser les attentes malgré un score final trompeur — un vrai atout de confiance pour un prétendant au Super Bowl.",
+    forces: ['Polyvalence offensive', 'Défense qui dépasse les attentes'],
+    faiblesses: ['Fragilité (blessures récurrentes)'],
   },
   KC: {
-    texte: "Une victoire arrachée de justesse face à des Raiders combatifs, portée par des actions décisives au dernier quart-temps et une attaque équilibrée.",
-    forces: ['Fin de match', 'Expérience', 'Régularité en playoffs'],
+    texte: "Une semaine de repos bienvenue pour se restructurer après la perte de receveurs précieux — l'une des équipes les plus complètes de la ligue reste solidement installée sur le podium.",
+    forces: ['Expérience', 'Régularité en playoffs'],
     faiblesses: ['Ligne offensive'],
     historique: "🏆 Vainqueur du Super Bowl à l'issue de la saison 2023, l'une des équipes les plus titrées de la décennie.",
   },
-  PHI: {
-    texte: "Un nouveau point bas offensif face aux Rams, aggravé par la sortie prématurée de Saquon Barkley — la défense n'a pas non plus été à la hauteur.",
-    forces: ['Ligne offensive', 'Talent individuel'],
-    faiblesses: ['Régularité défensive'],
-    historique: "🏆 Vainqueur du Super Bowl à l'issue de la saison 2024, leur 2e titre après celui de 2017.",
+  SEA: {
+    texte: "Une défaite serrée face aux 49ers, premiers du classement, après avoir manqué de peu un 1er essai décisif en fin de match — Sam Darnold doit hausser son niveau, mais le jeu au sol reste aussi à corriger.",
+    forces: ['Défense', 'Fin de saison'],
+    faiblesses: ['Jeu au sol', 'Régularité au poste de quarterback'],
+    historique: "🏆 Vainqueur du Super Bowl LX (saison 2025), leur 2e titre après celui de 2013.",
   },
-  NE: {
-    texte: "Un vrai retournement de situation : Drake Maye a retrouvé son niveau pour une victoire importante à l'extérieur face à Buffalo, dans la course au titre de la division.",
-    forces: ['Défense', 'Expérience collective'],
-    faiblesses: ['Fin de match sur les tout gros matchs'],
-    historique: "🥈 Finaliste du Super Bowl LX à l'issue de la saison 2025, battus par les Seahawks.",
+  BAL: {
+    texte: "Une victoire à l'extérieur avec un quarterback remplaçant, obtenue en limitant Bijan Robinson — la plus belle victoire à ce jour pour le coordinateur défensif Jesse Minter.",
+    forces: ['Attaque au sol', 'Culture de la gagne'],
+    faiblesses: ['Profondeur au poste de quarterback'],
+    historique: "⭐ Lamar Jackson, élu MVP de la ligue pour la saison 2023 (son 2e titre de MVP).",
   },
-  DET: {
-    texte: "Sans un Jahmyr Gibbs à son meilleur niveau, l'attaque s'est enlisée en fin de match et la défense n'a pas su contenir Bryce Young lors de la défaite.",
-    forces: ['Attaque au sol', 'Créativité offensive', 'Ligne offensive'],
-    faiblesses: ["Matchs à l'extérieur"],
+  JAX: {
+    texte: "Une victoire chanceuse à Londres face à Philadelphie sur un field goal décisif de Cam Little, obtenue malgré des circonstances compliquées (long-snapper de fortune) — toutes les victoires comptent.",
+    forces: ['Talent individuel'],
+    faiblesses: ['Régularité collective', 'Gestion des imprévus'],
   },
-  DAL: {
-    texte: "Un touchdown inscrit dans la dernière minute pour vaincre Houston — l'attaque reste explosive mais la défense continue de poser question.",
-    forces: ['Attaque explosive'],
-    faiblesses: ['Défense', 'Constance'],
-  },
-  CIN: {
-    texte: "La sortie de Ja'Marr Chase en 1re mi-temps a plombé Joe Burrow, auteur de deux interceptions dans une prestation brouillonne face à Jacksonville.",
-    forces: ['Jeu aérien', 'Capacité à revenir au score'],
-    faiblesses: ['Fragilité (blessures récurrentes)'],
-  },
-  MIA: {
-    texte: "Toujours sans victoire mais des signes d'amélioration chaque semaine, cette fois face à des Vikings pourtant portés par leur défense.",
-    forces: ['Vitesse', 'Jeu vertical'],
-    faiblesses: ['Jeu par mauvais temps/froid'],
-  },
-  HOU: {
-    texte: "Une 2e semaine de suite où C.J. Stroud donne l'avantage en fin de match sans que la défense parvienne à le préserver — l'étiquette 'élite' n'est plus de mise.",
-    forces: ['Quarterback', 'Progression rapide'],
-    faiblesses: ['Expérience en playoffs'],
-  },
-  PIT: {
-    texte: "Un sursaut tardif de Rodgers et Metcalf a permis d'égaliser face à Cleveland, mais la défense n'a pas réussi à faire pression sur Deshaun Watson.",
-    forces: ['Défense', 'Discipline tactique'],
-    faiblesses: ['Créativité offensive'],
-  },
-  LAC: {
-    texte: "Toujours sans victoire : une attaque en panne, un Justin Herbert pas encore à l'aise dans le système McDaniel, aggravé par des blessures sur la ligne offensive.",
-    forces: ['Équilibre offense/défense'],
-    faiblesses: ['Manque de régularité'],
+  BUF: {
+    texte: "Une victoire en prolongation face aux Rams portée par les équipes spéciales et un Josh Allen décisif, malgré un début de match poussif et des pertes de balle évitées de justesse.",
+    forces: ['Quarterback', 'Combativité', 'Fin de match'],
+    faiblesses: ['Protection du ballon (James Cook)'],
+    historique: "⭐ Josh Allen, élu MVP de la ligue pour la saison 2024.",
   },
   MIN: {
-    texte: "Invaincus mais toujours aussi trompeurs : l'attaque reste catastrophique, seule la défense continue de porter l'équipe, cette fois face aux Dolphins.",
+    texte: "Toujours invaincus : l'attaque a enfin montré des signes de vie en 2e période face aux Saints, Kyler Murray trouvant Justin Jefferson pour un touchdown et 17 points inscrits sur le dernier quart.",
     forces: ['Défense agressive', 'Turnovers créés'],
-    faiblesses: ['Régularité offensive'],
+    faiblesses: ['Régularité offensive (encore des réglages à faire)'],
   },
   DEN: {
-    texte: "Une belle bataille à Santa Clara mais les mêmes erreurs répétées en fin de match, aggravées par la perte des deux cornerbacks titulaires sur blessure.",
+    texte: "Une victoire poussive (224 yards au total) obtenue grâce à une bonne position de terrain et une défense qui a porté le comeback, malgré quelques décisions de gestion de match discutables.",
     forces: ['Ligne défensive'],
-    faiblesses: ['Expérience au poste de quarterback'],
+    faiblesses: ['Efficacité offensive', 'Gestion de match'],
   },
-  ARI: {
-    texte: "Une mauvaise passe en fin de match a de nouveau coûté cher face aux Giants, malgré une défense qui a fait sa part en début de rencontre.",
-    forces: ["Coups d'éclat offensifs"],
-    faiblesses: ['Régularité'],
+  CIN: {
+    texte: "Une victoire plus large que ne le laisse penser le score final à Miami, portée par Joe Burrow et une action spectaculaire de Ja'Marr Chase — une petite inquiétude émerge toutefois dans le jeu au sol.",
+    forces: ['Jeu aérien', 'Leaders expérimentés'],
+    faiblesses: ['Profondeur au poste de running back'],
   },
-  TB: {
-    texte: "La situation continue de se dégrader : une nouvelle défaite de trois points malgré quelques actions correctes du rookie Jalon Daniels.",
-    forces: ['Jeu aérien précis'],
-    faiblesses: ['Défense'],
+  NE: {
+    texte: "Une victoire éclatante face aux Raiders (536 yards d'attaque) portée par Drake Maye et une armada de receveurs, couplée à une défense qui a muselé Las Vegas en début de match.",
+    forces: ['Jeu aérien', 'Profondeur offensive'],
+    faiblesses: ['Régularité d\'une semaine à l\'autre'],
   },
-  ATL: {
-    texte: "Bijan et Brian Robinson ont inscrit cinq touchdowns au sol à eux deux pour écraser la Nouvelle-Orléans — prudence de mise avant un calendrier exigeant (Baltimore, Chicago, SF).",
-    forces: ['Attaque au sol'],
-    faiblesses: ['Expérience au poste de quarterback'],
+  DET: {
+    texte: "Une domination totale des Cardinals sur les trois derniers quarts-temps, Jared Goff distribuant le ballon pour 271 yards et trois touchdowns — la défense a enfin répondu présent.",
+    forces: ['Jeu aérien', 'Créativité offensive'],
+    faiblesses: ['Constance défensive (à confirmer)'],
   },
-  IND: {
-    texte: "Une victoire profitant en partie de la sortie de Marcus Mariota côté adverse, malgré deux nouvelles pertes de balle de Daniel Jones.",
-    forces: ['Vitesse'],
-    faiblesses: ['Constance'],
+  LA: {
+    texte: "Une attaque retrouvée mais toujours des largesses défensives contre la course et des pénalités mal placées, aggravées par une gestion de fin de match hasardeuse qui a coûté la victoire à Buffalo.",
+    forces: ['Jeu aérien', 'Expérience au poste de quarterback'],
+    faiblesses: ['Défense contre la course', 'Gestion de fin de match'],
+    historique: "⭐ Matthew Stafford, élu MVP de la ligue pour la saison 2025.",
   },
   CHI: {
-    texte: "Une domination totale face aux Jets portée par Case Keenum pour la 2e semaine consécutive — la marque de fabrique de l'entraîneur Ben Johnson.",
-    forces: ['Potentiel au poste de quarterback'],
-    faiblesses: ['Défense'],
-  },
-  NYJ: {
-    texte: "Un revers cinglant face à Chicago (32 actions jouées contre 89), qui impose une profonde introspection à toute l'équipe.",
-    forces: ['Ligne défensive'],
-    faiblesses: ['Régularité offensive'],
-  },
-  WAS: {
-    texte: "Une situation qui se complique avec la blessure de Marcus Mariota, mais la défense continue de dépasser toutes les attentes malgré les 30 points encaissés.",
-    forces: ['Audace offensive', 'Progression'],
-    faiblesses: ['Expérience défensive'],
-  },
-  NO: {
-    texte: "Une véritable passoire défensive face à Atlanta (205 yards au sol concédés), qui assombrit sérieusement les espoirs de la Nouvelle-Orléans après 4 semaines.",
-    forces: ['Discipline tactique'],
-    faiblesses: ['Profondeur offensive'],
-  },
-  NYG: {
-    texte: "Une remontée spectaculaire après un déficit de 14-3, portée par une défense en net progrès et un Jameis Winston toujours irrégulier.",
-    forces: ['Ligne défensive', 'Pression sur le QB'],
-    faiblesses: ['Attaque'],
+    texte: "Sans Caleb Williams, l'attaque s'est enlisée (246 yards) face à une défense de Green Bay devenue perméable, confirmant que l'entraîneur Ben Johnson n'est pas magicien sans un vrai quarterback.",
+    forces: ['Système offensif (avec le bon QB)'],
+    faiblesses: ['Profondeur au poste de quarterback', 'Secondaire défensif'],
   },
   CAR: {
-    texte: "Bryce Young a retrouvé son meilleur niveau (329 yards, 2 TD) pour la victoire la plus impressionnante de la saison, malgré l'absence de plusieurs joueurs clés.",
+    texte: "Une semaine de repos bien méritée après la belle victoire face à Detroit — Bryce Young continue de prendre de la valeur avant un déplacement à Philadelphie puis un choc de division face à Tampa Bay.",
     forces: ['Progression offensive'],
     faiblesses: ['Défense'],
   },
-  JAX: {
-    texte: "Une identité offensive bien affirmée (jeu au sol puis Trevor Lawrence) qui a permis une victoire importante à Cincinnati, ternie par 13 pénalités à corriger.",
-    forces: ['Talent individuel'],
-    faiblesses: ['Régularité collective'],
-  },
-  LV: {
-    texte: "Pas de victoire morale, mais une vraie fierté : les Raiders ont tenu tête à Kansas City pendant 4 quart-temps et ont failli infliger aux Chiefs leur première défaite.",
-    forces: ['Renouveau'],
-    faiblesses: ["Manque d'identité de jeu"],
-  },
-  TEN: {
-    texte: "Une attaque toujours en phase d'adaptation au système de Brian Daboll, Cam Ward peinant à trouver ses marques — une marge d'erreur devenue infime.",
+  ATL: {
+    texte: "Une fin de match qui a tourné court après la blessure aux côtes de Michael Penix Jr., Tua Tagovailoa reprenant le relais en prolongation — Bijan Robinson a aussi été moins tranchant que d'habitude.",
     forces: ['Attaque au sol'],
-    faiblesses: ['Jeu aérien'],
-  },
-  CLE: {
-    texte: "Trois victoires d'affilée et une identité défensive retrouvée, Deshaun Watson et l'attaque ayant aussi trouvé leur rythme avant le dernier quart-temps.",
-    forces: ['Historique défensif'],
-    faiblesses: ['Attaque'],
-  },
-  SF: {
-    texte: "Des difficultés face à Denver, mais les stars (Purdy, Samuel, McCaffrey, Kittle) ont relancé l'attaque en 2e période pour une victoire précieuse face à un vrai prétendant.",
-    forces: ['Polyvalence offensive', 'Ligne défensive'],
-    faiblesses: ['Fragilité (blessures récurrentes)'],
+    faiblesses: ['Profondeur au poste de quarterback'],
   },
   GB: {
-    texte: "Une victoire laborieuse à Tampa malgré la blessure d'Edgerrin Cooper pour le reste de la saison — le jeu au sol progresse enfin légèrement.",
-    forces: ['Défense (secondaire)', 'Progression au poste de quarterback'],
+    texte: "L'attaque enfin attendue en 2026 : Jordan Love a trouvé Christian Watson à deux reprises pour 367 yards au total, démolissant la défense de Chicago — l'arrivée de Micah Parsons en fait une équipe à surveiller.",
+    forces: ['Jeu aérien', 'Talent individuel (Love, Watson, Parsons)'],
+    faiblesses: ['Constance (retrouvée récemment)'],
+  },
+  NYG: {
+    texte: "Un match nul qui a des allures de victoire manquée : remontée de deux touchdowns en 4e quart-temps forcée en prolongation, puis un fumble qui coûte la victoire — du mieux en 2e mi-temps pour Jameis Winston.",
+    forces: ['Capacité à revenir au score'],
+    faiblesses: ['Défense (contre les QB mobiles)'],
+  },
+  DAL: {
+    texte: "Une défaite désastreuse face à des Buccaneers jusque-là invaincus de victoire, l'attaque habituellement explosive ne marquant que 16 points — un vrai coup porté à la confiance sur cette équipe.",
+    forces: ['Attaque explosive (quand ça fonctionne)'],
+    faiblesses: ['Défense', 'Constance'],
+  },
+  LV: {
+    texte: "Enfin l'équipe moyenne que beaucoup attendaient : plus de 500 yards concédés et une ligne incapable de protéger Kirk Cousins dans une lourde défaite — un premier vrai coup dur après un bon début de saison.",
+    forces: ['Renouveau'],
+    faiblesses: ['Ligne offensive', 'Jeu au sol'],
+  },
+  NYJ: {
+    texte: "Une victoire poussive sous la pluie, portée par un pass rush agressif (8 sacks) qui a muselé Cleveland, avec Braelon Allen et Garrett Wilson auteurs de belles prestations malgré les conditions.",
+    forces: ['Pass rush'],
     faiblesses: ['Régularité offensive'],
+  },
+  CLE: {
+    texte: "Une fin de match catastrophique (snap manqué sur un punt, dernière possession désastreuse) a fait chuter les Browns, qui ne parviennent toujours pas à développer leur jeu au sol.",
+    forces: ['Historique défensif'],
+    faiblesses: ['Jeu au sol', 'Fin de match'],
+  },
+  PIT: {
+    texte: "Une victoire face à Indianapolis portée par un retour aux sources sur Jaylen Warren et le jeu au sol — une méthode à conserver pour viser plus de régularité d'une semaine à l'autre.",
+    forces: ['Jeu au sol (quand il est utilisé)'],
+    faiblesses: ['Régularité une semaine sur deux'],
+  },
+  TB: {
+    texte: "Une performance inspirée pour bloquer l'attaque de Dallas, portée par Bucky Irving (165 yards au sol) et une prestation solide du rookie Jalon Daniels en l'absence de Baker Mayfield.",
+    forces: ['Jeu au sol (Irving)', 'Défense opportuniste'],
+    faiblesses: ['Expérience au poste de quarterback'],
+  },
+  IND: {
+    texte: "Une défaite qui illustre les limites actuelles : un groupe de receveurs trop dépendant de Josh Downs, une ligne offensive décevante, et une incapacité à conclure les séries malgré de bons moments.",
+    forces: ['Protection du ballon (Daniel Jones)'],
+    faiblesses: ['Groupe de receveurs', 'Ligne offensive'],
+  },
+  HOU: {
+    texte: "Une victoire logique face au plus faible adversaire de la ligue, C.J. Stroud poursuivant sa belle saison de rebond et le jeu au sol progressant un peu malgré la blessure de David Montgomery.",
+    forces: ['Quarterback', 'Progression rapide'],
+    faiblesses: ['Profondeur au poste de running back'],
+  },
+  PHI: {
+    texte: "Une défaite particulièrement douloureuse à Londres : une avance tardive effacée en quelques secondes sur un retour de coup d'envoi suivi d'un field goal de 57 yards de Jacksonville.",
+    forces: ['Talent individuel', 'Capacité à revenir au score'],
+    faiblesses: ['Fin de match', 'Stabilité de la ligne offensive'],
+    historique: "🏆 Vainqueur du Super Bowl à l'issue de la saison 2024, leur 2e titre après celui de 2017.",
+  },
+  NO: {
+    texte: "Une attaque à l'arrêt (moins de 150 yards nets) et deux interceptions de Tyler Shough face à la défense du Minnesota — des doutes sérieux sur les ambitions de division des Saints.",
+    forces: ['Discipline tactique'],
+    faiblesses: ['Attaque', 'Jeu sous pression défensive'],
+  },
+  WAS: {
+    texte: "Jayden Daniels de retour a relancé l'attaque, mais un effondrement en 4e quart-temps a permis à Washington d'offrir un match nul à l'adversaire après avoir eu la victoire en main.",
+    forces: ['Audace offensive (retour de Daniels)'],
+    faiblesses: ['Gestion de fin de match'],
+  },
+  MIA: {
+    texte: "Toujours sans victoire, mais des jeunes qui sortent du lot (Ollie Gordon II, Jacob Rodriguez) malgré les largesses défensives qui ont permis à Cincinnati d'enchaîner les séries.",
+    forces: ['Jeunes talents prometteurs'],
+    faiblesses: ['Défense', 'Expérience au poste de quarterback'],
+  },
+  LAC: {
+    texte: "Une défaite accablante : une ligne offensive diminuée, Justin Herbert auteur d'un fumble et d'une interception coûteux en fin de match — un match gagnable offert à l'adversaire.",
+    forces: ['Expérience au poste de quarterback (malgré la série en cours)'],
+    faiblesses: ['Ligne offensive', 'Gestion de la pression'],
+  },
+  ARI: {
+    texte: "Une attaque totalement muselée (un seul point marqué) qui a forcé les Cardinals à multiplier les passes longues en désespoir de cause, écartant Jeremiyah Love du plan de jeu.",
+    forces: ['Début de saison prometteur (à confirmer)'],
+    faiblesses: ['Attaque', 'Discipline défensive'],
+  },
+  TEN: {
+    texte: "Toujours sans victoire, la pire attaque de la ligue en yards par match et une défense surchargée — les questions commencent à se poser sur l'avenir de Cam Ward comme titulaire.",
+    forces: ['Jeu au sol (relatif)'],
+    faiblesses: ['Attaque', 'Jeu aérien'],
   },
 }

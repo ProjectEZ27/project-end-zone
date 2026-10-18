@@ -5,6 +5,7 @@ import { NOMS_EQUIPES } from '@/lib/teamBadge'
 import MatchHeaderReadOnly from '@/components/MatchHeaderReadOnly'
 import PicksColumns from '@/components/PicksColumns'
 import LeagueSubNav from '@/components/LeagueSubNav'
+import { orienter } from '@/lib/domicile'
 
 export default async function LeaguePronostics({
   params,
@@ -195,8 +196,10 @@ export default async function LeaguePronostics({
         {matchs?.map((match) => {
 const verrouille = match.statut !== 'a_venir' || new Date() >= new Date(match.coup_envoi)
           const termine = match.statut === 'termine'
-          const team1 = { code: match.equipe_a, name: NOMS_EQUIPES[match.equipe_a] ?? match.equipe_a }
-          const team2 = { code: match.equipe_b, name: NOMS_EQUIPES[match.equipe_b] ?? match.equipe_b }
+          const [codeG, codeD] = orienter(match.equipe_a, match.equipe_b)
+          const [scoreG, scoreD] = orienter(match.score_a, match.score_b)
+          const team1 = { code: codeG, name: NOMS_EQUIPES[codeG] ?? codeG }
+          const team2 = { code: codeD, name: NOMS_EQUIPES[codeD] ?? codeD }
 
           const pronosticsDuMatch = pronosticsParMatch.get(match.id) ?? []
           const idsAyantPronostique = new Set(pronosticsDuMatch.map((p) => p.utilisateur_id))
@@ -228,8 +231,8 @@ const verrouille = match.statut !== 'a_venir' || new Date() >= new Date(match.co
                 team2={team2}
                 finished={termine}
                 equipeGagnante={match.equipe_gagnante}
-                score1={match.score_a}
-                score2={match.score_b}
+                score1={scoreG}
+                score2={scoreD}
               />
 
               {verrouille ? (

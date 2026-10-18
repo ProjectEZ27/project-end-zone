@@ -12,6 +12,7 @@ import { RESUMES_EQUIPES } from '@/lib/resumesEquipes'
 import { calculerBilanEquipes } from '@/lib/bilanEquipes'
 import ToggleAllInfos from '@/components/ToggleAllInfos'
 import { estMatchNul, seuilsSemaine } from '@/lib/matchNul'
+import { orienter } from '@/lib/domicile'
 
 export default async function Pronostics({ searchParams }: { searchParams: Promise<{ semaine?: string }> }) {
   const { semaine: semaineParam } = await searchParams
@@ -338,27 +339,30 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
                   const monPronostic = mesPronosticsMap.get(match.id)
                   const verrouille = match.statut !== 'a_venir' || new Date() >= new Date(match.coup_envoi)
                   const termine = match.statut === 'termine'
+                  const [codeG, codeD] = orienter(match.equipe_a, match.equipe_b)
+                  const [scoreG, scoreD] = orienter(match.score_a, match.score_b)
+                  const [directG, directD] = orienter(match.score_a_direct, match.score_b_direct)
                   return (
                     <MatchLine
                       key={match.id}
                       matchId={match.id}
-                      team1={{ code: match.equipe_a, name: NOMS_EQUIPES[match.equipe_a] ?? match.equipe_a }}
-                      team2={{ code: match.equipe_b, name: NOMS_EQUIPES[match.equipe_b] ?? match.equipe_b }}
-                      score1={match.score_a}
-                      score2={match.score_b}
+                      team1={{ code: codeG, name: NOMS_EQUIPES[codeG] ?? codeG }}
+                      team2={{ code: codeD, name: NOMS_EQUIPES[codeD] ?? codeD }}
+                      score1={scoreG}
+                      score2={scoreD}
                       selectedTeam={monPronostic?.equipe_choisie ?? null}
                       locked={verrouille}
                       finished={termine}
                       equipeGagnante={match.equipe_gagnante}
-                      scoreDirectA={match.score_a_direct}
-                      scoreDirectB={match.score_b_direct}
+                      scoreDirectA={directG}
+                      scoreDirectB={directD}
                       quartTemps={match.quart_temps}
-                      rank1={rangParEquipe.get(match.equipe_a) ?? null}
-                      rank2={rangParEquipe.get(match.equipe_b) ?? null}
-                      desc1={descCourte(match.equipe_a)}
-                      desc2={descCourte(match.equipe_b)}
-                      bilan1={bilanParEquipe[match.equipe_a] ?? null}
-                      bilan2={bilanParEquipe[match.equipe_b] ?? null}
+                      rank1={rangParEquipe.get(codeG) ?? null}
+                      rank2={rangParEquipe.get(codeD) ?? null}
+                      desc1={descCourte(codeG)}
+                      desc2={descCourte(codeD)}
+                      bilan1={bilanParEquipe[codeG] ?? null}
+                      bilan2={bilanParEquipe[codeD] ?? null}
                     />
                   )
                 })}
@@ -367,27 +371,31 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
           ))
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
-            {(matchs ?? []).map((match) => (
-              <MatchLine
-                key={match.id}
-                matchId={match.id}
-                team1={{ code: match.equipe_a, name: NOMS_EQUIPES[match.equipe_a] ?? match.equipe_a }}
-                team2={{ code: match.equipe_b, name: NOMS_EQUIPES[match.equipe_b] ?? match.equipe_b }}
-                score1={match.score_a}
-                score2={match.score_b}
-                selectedTeam={null}
-                locked={false}
-                finished={false}
-                equipeGagnante={null}
-                ouvert={false}
-                rank1={rangParEquipe.get(match.equipe_a) ?? null}
-                rank2={rangParEquipe.get(match.equipe_b) ?? null}
-                desc1={descCourte(match.equipe_a)}
-                desc2={descCourte(match.equipe_b)}
-                bilan1={bilanParEquipe[match.equipe_a] ?? null}
-                bilan2={bilanParEquipe[match.equipe_b] ?? null}
-              />
-            ))}
+            {(matchs ?? []).map((match) => {
+              const [codeG, codeD] = orienter(match.equipe_a, match.equipe_b)
+              const [scoreG, scoreD] = orienter(match.score_a, match.score_b)
+              return (
+                <MatchLine
+                  key={match.id}
+                  matchId={match.id}
+                  team1={{ code: codeG, name: NOMS_EQUIPES[codeG] ?? codeG }}
+                  team2={{ code: codeD, name: NOMS_EQUIPES[codeD] ?? codeD }}
+                  score1={scoreG}
+                  score2={scoreD}
+                  selectedTeam={null}
+                  locked={false}
+                  finished={false}
+                  equipeGagnante={null}
+                  ouvert={false}
+                  rank1={rangParEquipe.get(codeG) ?? null}
+                  rank2={rangParEquipe.get(codeD) ?? null}
+                  desc1={descCourte(codeG)}
+                  desc2={descCourte(codeD)}
+                  bilan1={bilanParEquipe[codeG] ?? null}
+                  bilan2={bilanParEquipe[codeD] ?? null}
+                />
+              )
+            })}
           </div>
         )}
       </div>

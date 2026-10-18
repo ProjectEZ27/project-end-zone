@@ -4,6 +4,7 @@ import { useOptimistic, startTransition } from 'react'
 import styles from './MatchLine.module.css'
 import { selectPronostic } from '@/app/pronostics/actions'
 import { getCouleurEquipe, estCouleurClaire } from '@/lib/teamColors'
+import { DOMICILE_A_GAUCHE } from '@/lib/domicile'
 
 interface MatchLineProps {
   matchId: string
@@ -83,9 +84,17 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
   const color2 = getCouleurEquipe(team2.code)
 
   const chosenLeft = optimisticSelectedTeam === team1.code
-  const fondClairEquipe2 = estCouleurClaire(color2.primary)
-  const maisonEnClair = fondClairEquipe2 && !(chosenLeft && !finished)
   const chosenRight = optimisticSelectedTeam === team2.code
+  const fondClairDomicile = DOMICILE_A_GAUCHE ? estCouleurClaire(color1.primary) : estCouleurClaire(color2.primary)
+  const domicileAssombri = DOMICILE_A_GAUCHE ? (chosenRight && !finished) : (chosenLeft && !finished)
+  const maisonEnClair = fondClairDomicile && !domicileAssombri
+  const iconeDomicile = (
+    <div className={`${styles.homeIcon} ${DOMICILE_A_GAUCHE ? styles.homeIconGauche : ''} ${maisonEnClair ? styles.homeIconClair : styles.homeIconSombre}`}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z" />
+      </svg>
+    </div>
+  )
   const estNul = finished && score1 != null && score2 != null && score1 === score2
   const won = finished && !estNul && !!optimisticSelectedTeam && optimisticSelectedTeam === equipeGagnante
   const lost = finished && !estNul && !!optimisticSelectedTeam && optimisticSelectedTeam !== equipeGagnante
@@ -195,6 +204,7 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
         {finished && !estNul && chosenLeft && (
           <div className={`${styles.resultBadge} ${won ? styles.resultCheck : styles.resultCross}`} />
         )}
+        {DOMICILE_A_GAUCHE && iconeDomicile}
       </div>
 
       <div className={styles.vs}>
@@ -241,11 +251,7 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
         {finished && !estNul && chosenRight && (
           <div className={`${styles.resultBadge} ${won ? styles.resultCheck : styles.resultCross}`} />
         )}
-        <div className={`${styles.homeIcon} ${maisonEnClair ? styles.homeIconClair : styles.homeIconSombre}`}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z" />
-          </svg>
-        </div>
+        {!DOMICILE_A_GAUCHE && iconeDomicile}
       </div>
       </div>
 

@@ -541,3 +541,8 @@
   background: rgba(245, 180, 60, 0.15);
   border: 1px solid rgba(245, 180, 60, 0.4);
 }
+
+.homeIconGauche {
+  right: auto;
+  left: 8px;
+}

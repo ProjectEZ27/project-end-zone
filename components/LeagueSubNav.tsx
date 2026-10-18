@@ -1,6 +1,7 @@
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
+import LeagueMenu from './LeagueMenu'
 import {
-  TbArrowLeft,
   TbBallAmericanFootball,
   TbTrophy,
   TbUsers,
@@ -8,7 +9,7 @@ import {
   TbSettings,
 } from 'react-icons/tb'
 
-export default function LeagueSubNav({
+export default async function LeagueSubNav({
   ligueId,
   ligueNom,
   actif,
@@ -19,6 +20,27 @@ export default function LeagueSubNav({
   actif: 'pronostics' | 'classement' | 'membres' | 'historique' | 'parametres'
   estCommissaire?: boolean
 }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const parId = new Map<string, { id: number | string; nom: string }>()
+  if (user) {
+    const { data: adhesions } = await supabase
+      .from('adhesions')
+      .select('ligues(id, nom)')
+      .eq('utilisateur_id', user.id)
+      .eq('statut', 'actif')
+
+    for (const a of (adhesions ?? []) as any[]) {
+      const l = Array.isArray(a.ligues) ? a.ligues[0] : a.ligues
+      if (l) parId.set(String(l.id), { id: l.id, nom: l.nom })
+    }
+  }
+  if (!parId.has(String(ligueId))) {
+    parId.set(String(ligueId), { id: ligueId, nom: ligueNom })
+  }
+  const ligues = [...parId.values()].sort((a, b) => a.nom.localeCompare(b.nom, 'fr'))
+
   const pastilles = [
     { key: 'pronostics', href: `/leagues/${ligueId}/pronostics`, label: 'Pronostics', Icon: TbBallAmericanFootball },
     { key: 'classement', href: `/leagues/${ligueId}/classement`, label: 'Classement', Icon: TbTrophy },
@@ -31,20 +53,7 @@ export default function LeagueSubNav({
 
   return (
     <div style={{ marginBottom: 20 }}>
-      <Link
-        href={`/leagues/${ligueId}`}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 4,
-          color: '#9fb0c9',
-          textDecoration: 'none',
-          fontSize: 12,
-          marginBottom: 14,
-        }}
-      >
-        <TbArrowLeft size={14} /> {ligueNom}
-      </Link>
+      <LeagueMenu ligueActuelleId={String(ligueId)} ligues={ligues} actif={actif} />
 
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto' }}>
         {pastilles.map(({ key, href, label, Icon }) => {

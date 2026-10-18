@@ -7,6 +7,7 @@ import LandingPage from '@/components/LandingPage'
 import LeagueLogo from '@/components/LeagueLogo'
 import { calculerClassementSaison } from '@/lib/scoring'
 import CountdownBadge from './CountdownBadge'
+import AnnonceBanner from '@/components/AnnonceBanner'
 
 export const dynamic = 'force-dynamic'
 export default async function Home({
@@ -22,12 +23,17 @@ export default async function Home({
     return <LandingPage />
   }
 
-  const [profileResult, adhesionsResult, saisonResult, prochainMatchGlobalResult] = await Promise.all([
+  const [profileResult, adhesionsResult, saisonResult, prochainMatchGlobalResult, annoncesResult] = await Promise.all([
     supabase.from('profiles').select('pseudo').eq('id', user.id).maybeSingle(),
     supabase.from('adhesions').select('ligue_id, ligues(id, nom, logo_id, commissaire_id)').eq('utilisateur_id', user.id).eq('statut', 'actif'),
     supabase.from('saisons').select('id').eq('statut', 'en_cours').single(),
     supabase.from('matchs').select('semaine_id').neq('statut', 'termine').order('coup_envoi', { ascending: true }).limit(1).maybeSingle(),
+    supabase.from('annonces').select('id, titre, message, date_fin').eq('actif', true).order('id', { ascending: false }).limit(5),
   ])
+
+  const annonceActive = (annoncesResult.data ?? []).find(
+    (a) => !a.date_fin || new Date(a.date_fin) > new Date()
+  ) ?? null
 
   const profile = profileResult.data
   if (!profile) {
@@ -288,7 +294,9 @@ export default async function Home({
           </div>
         </div>
 
-
+        {annonceActive && (
+          <AnnonceBanner id={annonceActive.id} titre={annonceActive.titre} message={annonceActive.message} />
+        )}
         <div style={{ marginTop: 32, textAlign: 'left' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
             <div style={{ width: 3, height: 14, background: '#C8352E' }} />

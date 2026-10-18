@@ -3,34 +3,9 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { TbChevronDown, TbCheck } from 'react-icons/tb'
+import LeagueLogo from '@/components/LeagueLogo'
 
-type Option = { id: number | string; nom: string }
-
-const COULEURS = ['#3b5b9c', '#9c6b1f', '#2f7a5a', '#8a3b6e', '#a14a3b', '#4a7a8a']
-
-function Pastille({ id, nom }: { id: number | string; nom: string }) {
-  const n = Number(id)
-  const couleur = COULEURS[(Number.isFinite(n) ? Math.abs(n) : 0) % COULEURS.length]
-  return (
-    <span
-      style={{
-        width: 28,
-        height: 28,
-        borderRadius: '50%',
-        background: couleur,
-        color: 'white',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: 12,
-        fontWeight: 700,
-        flexShrink: 0,
-      }}
-    >
-      {(nom.trim().charAt(0) || '?').toUpperCase()}
-    </span>
-  )
-}
+type Option = { id: number | string; nom: string; logo_id?: number | null }
 
 export default function LeagueMenu({
   ligueActuelleId,
@@ -71,7 +46,7 @@ export default function LeagueMenu({
     background: '#16233F',
     border: '1px solid #33415a',
     borderRadius: 10,
-    padding: '10px 12px',
+    padding: '8px 12px',
     color: 'white',
     fontSize: 15,
     fontWeight: 600,
@@ -81,13 +56,13 @@ export default function LeagueMenu({
     <div ref={ref} style={{ position: 'relative', maxWidth: 260, margin: '0 auto 14px' }}>
       {peutChanger ? (
         <button type="button" onClick={() => setOuvert(!ouvert)} style={{ ...boutonStyle, cursor: 'pointer' }}>
-          <Pastille id={actuelle.id} nom={actuelle.nom} />
+          <LeagueLogo logoId={actuelle.logo_id ?? 1} size={32} leagueName={actuelle.nom} />
           <span>{actuelle.nom}</span>
           <TbChevronDown size={18} color="#9fb0c9" />
         </button>
       ) : (
         <div style={boutonStyle}>
-          <Pastille id={actuelle.id} nom={actuelle.nom} />
+          <LeagueLogo logoId={actuelle.logo_id ?? 1} size={32} leagueName={actuelle.nom} />
           <span>{actuelle.nom}</span>
         </div>
       )}
@@ -118,7 +93,7 @@ export default function LeagueMenu({
                   display: 'flex',
                   alignItems: 'center',
                   gap: 10,
-                  padding: '10px 12px',
+                  padding: '8px 12px',
                   color: 'white',
                   fontSize: 14,
                   textDecoration: 'none',
@@ -126,7 +101,7 @@ export default function LeagueMenu({
                   background: estActuelle ? '#1b2a4a' : 'transparent',
                 }}
               >
-                <Pastille id={l.id} nom={l.nom} />
+                <LeagueLogo logoId={l.logo_id ?? 1} size={32} leagueName={l.nom} />
                 <span style={{ flex: 1 }}>{l.nom}</span>
                 {estActuelle && <TbCheck size={16} color="#9fb0c9" />}
               </Link>

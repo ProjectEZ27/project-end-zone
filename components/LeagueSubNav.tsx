@@ -23,17 +23,17 @@ export default async function LeagueSubNav({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const parId = new Map<string, { id: number | string; nom: string }>()
+  const parId = new Map<string, { id: number | string; nom: string; logo_id?: number | null }>()
   if (user) {
     const { data: adhesions } = await supabase
       .from('adhesions')
-      .select('ligues(id, nom)')
+      .select('ligues(id, nom, logo_id)')
       .eq('utilisateur_id', user.id)
       .eq('statut', 'actif')
 
     for (const a of (adhesions ?? []) as any[]) {
       const l = Array.isArray(a.ligues) ? a.ligues[0] : a.ligues
-      if (l) parId.set(String(l.id), { id: l.id, nom: l.nom })
+      if (l) parId.set(String(l.id), { id: l.id, nom: l.nom, logo_id: l.logo_id })
     }
   }
   if (!parId.has(String(ligueId))) {

@@ -122,9 +122,10 @@ export default async function ClassementLigue({
 
   const idsPourAvatars = lignes.map((j) => j.utilisateur_id)
   const { data: profils } = idsPourAvatars.length > 0
-    ? await supabase.from('profiles').select('id, avatar_id').in('id', idsPourAvatars)
+    ? await supabase.from('profiles').select('id, avatar_id, photo_chemin').in('id', idsPourAvatars)
     : { data: [] as any[] }
   const avatarMap = new Map((profils ?? []).map((p) => [p.id, p.avatar_id ?? 1]))
+  const photoMap = new Map((profils ?? []).map((p) => [p.id, p.photo_chemin ?? null]))
 
   const totalPages = Math.max(1, Math.ceil(lignes.length / TAILLE_PAGE))
   const pageCorrigee = Math.min(pageActuelle, totalPages)
@@ -178,7 +179,7 @@ export default async function ClassementLigue({
       <span style={{ fontSize: 13, fontWeight: 700, color: moi ? '#E8544C' : styleChiffre(rang), width: 20 }}>
         {rang}
       </span>
-      <UserAvatar avatarId={avatarMap.get(joueur.utilisateur_id) ?? 1} size={45} />
+      <UserAvatar avatarId={avatarMap.get(joueur.utilisateur_id) ?? 1} size={45} photoChemin={photoMap.get(joueur.utilisateur_id) ?? null} />
       <div style={{ flex: 1, textAlign: 'left' }}>
         <div style={{ fontSize: 13, fontWeight: 600 }}>
           {joueur.pseudo} {moi && <span style={{ color: '#E8544C', fontSize: 10, fontWeight: 700 }}>(TOI)</span>}

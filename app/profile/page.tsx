@@ -29,6 +29,14 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
   const profile = profileResult.data
   const saison = saisonResult.data
   const prochainMatchData = prochainMatchResult.data
+    const { data: photoEnAttenteData } = await supabase
+    .from('photos_perso')
+    .select('id')
+    .eq('type', 'profil')
+    .eq('cible', user.id)
+    .eq('statut', 'en_attente')
+    .limit(1)
+  const photoEnAttente = (photoEnAttenteData ?? []).length > 0
 
   let pronosSuperBowlPreseason: string | null = null
   let pronosSuperBowlAvantPlayoffs: string | null = null
@@ -208,7 +216,12 @@ backgroundImage: profile?.equipe_favorite
       </div>
 
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '24px 24px 100px', textAlign: 'center', color: 'white' }}>
-        <AvatarEditor currentAvatarId={profile?.avatar_id ?? 1}>
+        <AvatarEditor
+          currentAvatarId={profile?.avatar_id ?? 1}
+          photoChemin={profile?.photo_chemin ?? null}
+          photoEnAttente={photoEnAttente}
+          userId={user.id}
+        >
           <PseudoEditor currentPseudo={profile?.pseudo ?? 'Profil'} />
         </AvatarEditor>
 

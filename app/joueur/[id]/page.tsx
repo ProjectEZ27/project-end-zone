@@ -187,7 +187,7 @@ backgroundImage: profile.equipe_favorite
         }} />
       </div>
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '24px 24px 100px', textAlign: 'center', color: 'white' }}>
-        <UserAvatar avatarId={profile.avatar_id ?? 1} size={110} userName={profile.pseudo} />
+        <UserAvatar avatarId={profile.avatar_id ?? 1} size={110} userName={profile.pseudo} photoChemin={profile.photo_chemin ?? null} />
         <h1 style={{ fontSize: 24, fontWeight: 700, marginTop: 8 }}>{profile.pseudo}</h1>
 
         {profile.equipe_favorite && (

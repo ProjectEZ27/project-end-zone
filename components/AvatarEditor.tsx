@@ -2,23 +2,36 @@
 
 import { useState } from 'react'
 import { changerAvatar } from '@/app/profile/actions'
+import { retirerPhotoProfil } from '@/app/photos/actions'
 import AvatarSelector from './AvatarSelector'
 import UserAvatar from './UserAvatar'
+import PhotoUploader from './PhotoUploader'
 
 interface AvatarEditorProps {
   currentAvatarId: number
+  photoChemin?: string | null
+  photoEnAttente?: boolean
+  userId?: string
   children?: React.ReactNode
 }
 
-export default function AvatarEditor({ currentAvatarId, children }: AvatarEditorProps) {
+export default function AvatarEditor({
+  currentAvatarId,
+  photoChemin = null,
+  photoEnAttente = false,
+  userId,
+  children,
+}: AvatarEditorProps) {
   const [open, setOpen] = useState(false)
   const [selectedAvatar, setSelectedAvatar] = useState(currentAvatarId)
+  const [montrerPhoto, setMontrerPhoto] = useState(false)
 
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 16 }}>
         <UserAvatar
           avatarId={currentAvatarId}
+          photoChemin={photoChemin}
           size={80}
           clickable
           onClick={() => setOpen(!open)}
@@ -68,6 +81,7 @@ export default function AvatarEditor({ currentAvatarId, children }: AvatarEditor
               onClick={() => {
                 setOpen(false)
                 setSelectedAvatar(currentAvatarId)
+                setMontrerPhoto(false)
               }}
               style={{
                 padding: '8px 16px',
@@ -81,6 +95,56 @@ export default function AvatarEditor({ currentAvatarId, children }: AvatarEditor
               Annuler
             </button>
           </form>
+
+          {userId && (
+            <div style={{ borderTop: '1px solid #33415a', marginTop: 16, paddingTop: 14, textAlign: 'center' }}>
+              <p style={{ margin: '0 0 8px', fontSize: 13, color: '#9fb0c9' }}>Ou utilise ta propre photo</p>
+
+              {photoEnAttente && (
+                <p style={{ margin: '0 0 10px', fontSize: 12, color: '#f5c969' }}>
+                  Une photo est en attente de validation. Ton avatar actuel reste affiché en attendant.
+                </p>
+              )}
+
+              {!montrerPhoto ? (
+                <button
+                  type="button"
+                  onClick={() => setMontrerPhoto(true)}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: 'transparent',
+                    color: 'white',
+                    border: '1px dashed #C8352E',
+                    borderRadius: 4,
+                    cursor: 'pointer',
+                    fontSize: 13,
+                  }}
+                >
+                  {photoChemin ? 'Changer ma photo' : 'Ajouter ma photo'}
+                </button>
+              ) : (
+                <PhotoUploader type="profil" cible={userId} onTermine={() => setMontrerPhoto(false)} />
+              )}
+
+              {photoChemin && (
+                <form action={retirerPhotoProfil} style={{ marginTop: 12 }}>
+                  <button
+                    type="submit"
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#9fb0c9',
+                      fontSize: 12,
+                      textDecoration: 'underline',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Retirer ma photo et revenir à l'avatar
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

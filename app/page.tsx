@@ -8,6 +8,7 @@ import LeagueLogo from '@/components/LeagueLogo'
 import { calculerClassementSaison } from '@/lib/scoring'
 import CountdownBadge from './CountdownBadge'
 import AnnonceBanner from '@/components/AnnonceBanner'
+import { ADMIN_ID } from '@/lib/admin'
 
 export const dynamic = 'force-dynamic'
 export default async function Home({
@@ -25,7 +26,7 @@ export default async function Home({
 
   const [profileResult, adhesionsResult, saisonResult, prochainMatchGlobalResult, annoncesResult] = await Promise.all([
     supabase.from('profiles').select('pseudo').eq('id', user.id).maybeSingle(),
-    supabase.from('adhesions').select('ligue_id, ligues(id, nom, logo_id, commissaire_id)').eq('utilisateur_id', user.id).eq('statut', 'actif'),
+.select('ligue_id, ligues(id, nom, logo_id, photo_chemin, commissaire_id)')
     supabase.from('saisons').select('id').eq('statut', 'en_cours').single(),
     supabase.from('matchs').select('semaine_id').neq('statut', 'termine').order('coup_envoi', { ascending: true }).limit(1).maybeSingle(),
     supabase.from('annonces').select('id, titre, message, date_fin').eq('actif', true).order('id', { ascending: false }).limit(5),
@@ -34,6 +35,15 @@ export default async function Home({
   const annonceActive = (annoncesResult.data ?? []).find(
     (a) => !a.date_fin || new Date(a.date_fin) > new Date()
   ) ?? null
+
+  let photosAValider = 0
+  if (user.id === ADMIN_ID) {
+    const { count } = await supabase
+      .from('photos_perso')
+      .select('id', { count: 'exact', head: true })
+      .eq('statut', 'en_attente')
+    photosAValider = count ?? 0
+  }
 
   const profile = profileResult.data
   if (!profile) {
@@ -293,6 +303,27 @@ export default async function Home({
             <div style={{ fontSize: 9, color: '#9fb0c9' }}>{tauxReussite}% réussite</div>
           </div>
         </div>
+        
+        {photosAValider > 0 && (
+          <Link
+            href="/admin/photos"
+            style={{
+              display: 'block',
+              background: 'rgba(200,53,46,0.15)',
+              border: '1px solid rgba(200,53,46,0.5)',
+              borderRadius: 10,
+              padding: 12,
+              margin: '16px 0',
+              color: '#ff8f87',
+              fontSize: 13,
+              fontWeight: 700,
+              textDecoration: 'none',
+              textAlign: 'center',
+            }}
+          >
+            {photosAValider} photo{photosAValider > 1 ? 's' : ''} à valider →
+          </Link>
+        )}
 
         {annonceActive && (
           <AnnonceBanner id={annonceActive.id} titre={annonceActive.titre} message={annonceActive.message} />
@@ -370,7 +401,7 @@ export default async function Home({
                         {demandesParLigue.get(ligue.id)}
                       </div>
                     )}
-                    <LeagueLogo logoId={ligue.logo_id ?? 1} size={56} leagueName={ligue.nom} />
+                    <LeagueLogo logoId={ligue.logo_id ?? 1} size={56} leagueName={ligue.nom} photoChemin={ligue.photo_chemin ?? null} />
                     <div style={{ fontSize: 11, fontWeight: 700, textAlign: 'center', lineHeight: 1.2 }}>
                       {ligue.nom}
                     </div>

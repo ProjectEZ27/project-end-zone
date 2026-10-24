@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { TbChevronDown, TbCheck } from 'react-icons/tb'
 import LeagueLogo from '@/components/LeagueLogo'
 
-type Option = { id: number | string; nom: string; logo_id?: number | null }
+type Option = { id: number | string; nom: string; logo_id?: number | null; photo_chemin?: string | null }
 
 export default function LeagueMenu({
   ligueActuelleId,
@@ -56,13 +56,23 @@ export default function LeagueMenu({
     <div ref={ref} style={{ position: 'relative', maxWidth: 260, margin: '0 auto 14px' }}>
       {peutChanger ? (
         <button type="button" onClick={() => setOuvert(!ouvert)} style={{ ...boutonStyle, cursor: 'pointer' }}>
-          <LeagueLogo logoId={actuelle.logo_id ?? 1} size={32} leagueName={actuelle.nom} />
+          <LeagueLogo
+            logoId={actuelle.logo_id ?? 1}
+            size={32}
+            leagueName={actuelle.nom}
+            photoChemin={actuelle.photo_chemin ?? null}
+          />
           <span>{actuelle.nom}</span>
           <TbChevronDown size={18} color="#9fb0c9" />
         </button>
       ) : (
         <div style={boutonStyle}>
-          <LeagueLogo logoId={actuelle.logo_id ?? 1} size={32} leagueName={actuelle.nom} />
+          <LeagueLogo
+            logoId={actuelle.logo_id ?? 1}
+            size={32}
+            leagueName={actuelle.nom}
+            photoChemin={actuelle.photo_chemin ?? null}
+          />
           <span>{actuelle.nom}</span>
         </div>
       )}
@@ -101,7 +111,12 @@ export default function LeagueMenu({
                   background: estActuelle ? '#1b2a4a' : 'transparent',
                 }}
               >
-                <LeagueLogo logoId={l.logo_id ?? 1} size={32} leagueName={l.nom} />
+                <LeagueLogo
+                  logoId={l.logo_id ?? 1}
+                  size={32}
+                  leagueName={l.nom}
+                  photoChemin={l.photo_chemin ?? null}
+                />
                 <span style={{ flex: 1 }}>{l.nom}</span>
                 {estActuelle && <TbCheck size={16} color="#9fb0c9" />}
               </Link>

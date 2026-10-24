@@ -13,6 +13,7 @@ import { calculerBilanEquipes } from '@/lib/bilanEquipes'
 import ToggleAllInfos from '@/components/ToggleAllInfos'
 import { estMatchNul, seuilsSemaine } from '@/lib/matchNul'
 import { orienter } from '@/lib/domicile'
+import DirectRafraichisseur from '@/components/DirectRafraichisseur'
 
 export default async function Pronostics({ searchParams }: { searchParams: Promise<{ semaine?: string }> }) {
   const { semaine: semaineParam } = await searchParams
@@ -146,6 +147,12 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
     return jour.charAt(0).toUpperCase() + jour.slice(1)
   }
 
+  const maintenant = Date.now()
+  const directActif = (matchs ?? []).some((m) => {
+    const debutMatch = new Date(m.coup_envoi).getTime()
+    return m.statut !== 'termine' && maintenant >= debutMatch - 15 * 60 * 1000 && maintenant - debutMatch < 5 * 3600 * 1000
+  })
+
   const creneaux = grouperMatchsParCreneau(matchs ?? [])
 
   return (
@@ -177,6 +184,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
       </div>
 
       <SelecteurSemaine semaines={toutesLesSemaines ?? []} semaineActuelle={semaine.id} />
+      <DirectRafraichisseur actif={directActif} />
       <h1>🏈 {semaine.nom}</h1>
       <p>
         +{regles.bonus_1} pt dès {regles.seuil_bonus_1} bons pronos · +{regles.bonus_2} pts dès {regles.seuil_bonus_2} · Perfect week +{regles.bonus_perfect}
@@ -357,6 +365,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
                       scoreDirectA={directG}
                       scoreDirectB={directD}
                       quartTemps={match.quart_temps}
+                      tempsRestant={match.temps_restant}
                       rank1={rangParEquipe.get(codeG) ?? null}
                       rank2={rangParEquipe.get(codeD) ?? null}
                       desc1={descCourte(codeG)}

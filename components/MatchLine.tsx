@@ -20,6 +20,7 @@ interface MatchLineProps {
   scoreDirectA?: number | null
   scoreDirectB?: number | null
   quartTemps?: string | null
+  tempsRestant?: string | null
   rank1?: number | null
   rank2?: number | null
   desc1?: string | null
@@ -70,6 +71,7 @@ export default function MatchLine({
   scoreDirectA,
   scoreDirectB,
   quartTemps,
+  tempsRestant,
   rank1,
   rank2,
   desc1,
@@ -78,8 +80,14 @@ export default function MatchLine({
   bilan2,
 }: MatchLineProps) {
   const [optimisticSelectedTeam, setOptimisticSelectedTeam] = useOptimistic(selectedTeam)
-const AFFICHER_SCORE_EN_DIRECT = false // désactivé le 21/09 : actualisations trop espacées, à réactiver une fois le polling navigateur en place
+const AFFICHER_SCORE_EN_DIRECT = true // réactivé : mise à jour toutes les 30 s via /api/direct (ESPN)
 const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA != null && scoreDirectB != null
+const numeroQT = Number(quartTemps)
+const libelleQT = tempsRestant === 'Mi-temps'
+  ? 'Mi-temps'
+  : quartTemps
+  ? `${isNaN(numeroQT) ? quartTemps : numeroQT > 4 ? 'Prolongation' : numeroQT === 1 ? '1er QT' : `${numeroQT}e QT`}${tempsRestant ? ` · ${tempsRestant}` : ''}`
+  : null
   const color1 = getCouleurEquipe(team1.code)
   const color2 = getCouleurEquipe(team2.code)
 
@@ -158,7 +166,7 @@ const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA
           color: '#ff8f87',
         }}>
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff4444', display: 'inline-block' }} />
-          EN DIRECT
+          EN DIRECT{libelleQT ? ` · ${libelleQT}` : ''}
         </div>
       )}
       <div className={matchClasses} style={cssVars}>

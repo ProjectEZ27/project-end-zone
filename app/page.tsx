@@ -26,7 +26,7 @@ export default async function Home({
 
   const [profileResult, adhesionsResult, saisonResult, prochainMatchGlobalResult, annoncesResult] = await Promise.all([
     supabase.from('profiles').select('pseudo').eq('id', user.id).maybeSingle(),
-.select('ligue_id, ligues(id, nom, logo_id, photo_chemin, commissaire_id)')
+    supabase.from('adhesions').select('ligue_id, ligues(id, nom, logo_id, photo_chemin, commissaire_id)').eq('utilisateur_id', user.id).eq('statut', 'actif'),
     supabase.from('saisons').select('id').eq('statut', 'en_cours').single(),
     supabase.from('matchs').select('semaine_id').neq('statut', 'termine').order('coup_envoi', { ascending: true }).limit(1).maybeSingle(),
     supabase.from('annonces').select('id, titre, message, date_fin').eq('actif', true).order('id', { ascending: false }).limit(5),
@@ -76,7 +76,7 @@ export default async function Home({
     membresParLigue.get(m.ligue_id)!.push(m.utilisateur_id)
   }
 
-    // Demandes en attente sur les ligues dont je suis commissaire
+  // Demandes en attente sur les ligues dont je suis commissaire
   const ligueIdsCommissaire = mesLigues.filter((l: any) => l.commissaire_id === user.id).map((l: any) => l.id)
   const { data: demandesEnAttente } = ligueIdsCommissaire.length > 0
     ? await supabase.from('adhesions').select('ligue_id').in('ligue_id', ligueIdsCommissaire).eq('statut', 'en_attente')
@@ -303,7 +303,7 @@ export default async function Home({
             <div style={{ fontSize: 9, color: '#9fb0c9' }}>{tauxReussite}% réussite</div>
           </div>
         </div>
-        
+
         {photosAValider > 0 && (
           <Link
             href="/admin/photos"
@@ -328,6 +328,7 @@ export default async function Home({
         {annonceActive && (
           <AnnonceBanner id={annonceActive.id} titre={annonceActive.titre} message={annonceActive.message} />
         )}
+
         <div style={{ marginTop: 32, textAlign: 'left' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
             <div style={{ width: 3, height: 14, background: '#C8352E' }} />
@@ -401,7 +402,12 @@ export default async function Home({
                         {demandesParLigue.get(ligue.id)}
                       </div>
                     )}
-                    <LeagueLogo logoId={ligue.logo_id ?? 1} size={56} leagueName={ligue.nom} photoChemin={ligue.photo_chemin ?? null} />
+                    <LeagueLogo
+                      logoId={ligue.logo_id ?? 1}
+                      size={56}
+                      leagueName={ligue.nom}
+                      photoChemin={ligue.photo_chemin ?? null}
+                    />
                     <div style={{ fontSize: 11, fontWeight: 700, textAlign: 'center', lineHeight: 1.2 }}>
                       {ligue.nom}
                     </div>

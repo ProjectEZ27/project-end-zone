@@ -7,6 +7,8 @@ import { NOMS_EQUIPES } from '@/lib/teamBadge'
 import { TbTargetArrow, TbTrendingUp, TbBallAmericanFootball, TbCalendarCheck, TbTrophy, TbCalendar, TbClock } from 'react-icons/tb'
 import { calculerClassementSaison } from '@/lib/scoring'
 import EquipeFavoriteEditor from '@/components/EquipeFavoriteEditor'
+import SloganIntro, { SloganBanner } from '@/components/SloganIntro'
+import IntroAnimationToggle from '@/components/IntroAnimationToggle'
 import { getCouleurAccent } from '@/lib/teamColors'
 import { estMatchNul } from '@/lib/matchNul'
 
@@ -194,8 +196,14 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
 
   const accentColor = profile?.equipe_favorite ? getCouleurAccent(profile.equipe_favorite) : '#C8352E'
 
+  // Réglage « Animation d'arrivée sur les profils » (activé par défaut)
+  const animationActive = profile?.intro_animation ?? true
+
   return (
     <div style={{ position: 'relative', minHeight: '100dvh' }}>
+      {/* Explosion du slogan à l'arrivée (rejouée à chaque visite) */}
+      <SloganIntro key={user.id} team={profile?.equipe_favorite ?? null} enabled={animationActive} />
+
       <div style={{
         position: 'fixed',
         inset: 0,
@@ -230,6 +238,7 @@ backgroundImage: profile?.equipe_favorite
         )}
         <div style={{ marginTop: 4 }}>
           <EquipeFavoriteEditor currentEquipe={profile?.equipe_favorite ?? null} />
+          <IntroAnimationToggle actif={animationActive} />
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 24 }}>
@@ -261,6 +270,10 @@ backgroundImage: profile?.equipe_favorite
             </div>
           ))}
         </div>
+
+        {/* Bandeau du slogan de l'équipe favorite */}
+        <SloganBanner team={profile?.equipe_favorite ?? null} anime={animationActive} />
+
         {(pronosSuperBowlPreseason || pronosMvp) && (
           <div style={{ marginTop: 16, textAlign: 'left' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>

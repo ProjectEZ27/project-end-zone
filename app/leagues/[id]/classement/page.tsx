@@ -4,9 +4,11 @@ import Link from 'next/link'
 import { calculerClassementSaison, calculerClassementSemaine, calculerHistoriqueSemaines } from '@/lib/scoring'
 import LeagueSubNav from '@/components/LeagueSubNav'
 import UserAvatar from '@/components/UserAvatar'
+import TeamStripe, { largeurBandes } from '@/components/TeamStripe'
 import { TbChevronRight } from 'react-icons/tb'
 
 const TAILLE_PAGE = 50
+const HAUTEUR_LIGNE = 67
 
 export default async function ClassementLigue({
   params,
@@ -122,10 +124,11 @@ export default async function ClassementLigue({
 
   const idsPourAvatars = lignes.map((j) => j.utilisateur_id)
   const { data: profils } = idsPourAvatars.length > 0
-    ? await supabase.from('profiles').select('id, avatar_id, photo_chemin').in('id', idsPourAvatars)
+    ? await supabase.from('profiles').select('id, avatar_id, photo_chemin, equipe_favorite').in('id', idsPourAvatars)
     : { data: [] as any[] }
   const avatarMap = new Map((profils ?? []).map((p) => [p.id, p.avatar_id ?? 1]))
   const photoMap = new Map((profils ?? []).map((p) => [p.id, p.photo_chemin ?? null]))
+  const equipeMap = new Map((profils ?? []).map((p) => [p.id, p.equipe_favorite ?? null]))
 
   const totalPages = Math.max(1, Math.ceil(lignes.length / TAILLE_PAGE))
   const pageCorrigee = Math.min(pageActuelle, totalPages)
@@ -161,34 +164,43 @@ export default async function ClassementLigue({
     return '#7a8aa5'
   }
 
-  const LigneJoueur = ({ joueur, rang, moi }: { joueur: typeof lignes[number]; rang: number; moi: boolean }) => (
-    <Link
-      href={`/joueur/${joueur.utilisateur_id}`}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        background: moi ? '#22160e' : '#16233F',
-        border: `1px solid ${moi ? '#C8352E' : styleBordure(rang)}`,
-        borderRadius: 10,
-        padding: '10px 12px',
-        textDecoration: 'none',
-        color: 'white',
-      }}
-    >
-      <span style={{ fontSize: 13, fontWeight: 700, color: moi ? '#E8544C' : styleChiffre(rang), width: 20 }}>
-        {rang}
-      </span>
-      <UserAvatar avatarId={avatarMap.get(joueur.utilisateur_id) ?? 1} size={45} photoChemin={photoMap.get(joueur.utilisateur_id) ?? null} />
-      <div style={{ flex: 1, textAlign: 'left' }}>
-        <div style={{ fontSize: 13, fontWeight: 600 }}>
-          {joueur.pseudo} {moi && <span style={{ color: '#E8544C', fontSize: 10, fontWeight: 700 }}>(TOI)</span>}
+  const LigneJoueur = ({ joueur, rang, moi }: { joueur: typeof lignes[number]; rang: number; moi: boolean }) => {
+    const equipe = equipeMap.get(joueur.utilisateur_id) ?? null
+    const paddingDroite = equipe ? largeurBandes(HAUTEUR_LIGNE) + 8 : 12
+    return (
+      <Link
+        href={`/joueur/${joueur.utilisateur_id}`}
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          boxSizing: 'border-box',
+          height: HAUTEUR_LIGNE,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          background: moi ? '#22160e' : '#16233F',
+          border: `1px solid ${moi ? '#C8352E' : styleBordure(rang)}`,
+          borderRadius: 10,
+          padding: `0 ${paddingDroite}px 0 12px`,
+          textDecoration: 'none',
+          color: 'white',
+        }}
+      >
+        <TeamStripe team={equipe} rowHeight={HAUTEUR_LIGNE} />
+        <span style={{ fontSize: 13, fontWeight: 700, color: moi ? '#E8544C' : styleChiffre(rang), width: 20 }}>
+          {rang}
+        </span>
+        <UserAvatar avatarId={avatarMap.get(joueur.utilisateur_id) ?? 1} size={45} photoChemin={photoMap.get(joueur.utilisateur_id) ?? null} />
+        <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+          <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {joueur.pseudo} {moi && <span style={{ color: '#E8544C', fontSize: 10, fontWeight: 700 }}>(TOI)</span>}
+          </div>
+          <div style={{ fontSize: 10, color: '#9fb0c9' }}>{joueur.score} pts</div>
         </div>
-        <div style={{ fontSize: 10, color: '#9fb0c9' }}>{joueur.score} pts</div>
-      </div>
-      <TbChevronRight size={16} color={moi ? '#E8544C' : '#7a8aa5'} />
-    </Link>
-  )
+        <TbChevronRight size={16} color={moi ? '#E8544C' : '#7a8aa5'} />
+      </Link>
+    )
+  }
 
   return (
     <div style={{ position: 'relative', minHeight: '100dvh' }}>

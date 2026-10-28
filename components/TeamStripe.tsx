@@ -1,4 +1,7 @@
 // Bandes diagonales aux couleurs de l'équipe favorite (sans logo officiel)
+import { Anton } from 'next/font/google'
+
+const anton = Anton({ weight: '400', subsets: ['latin'] })
 
 type StripeTeam = { c1: string; c2: string; share: number }
 
@@ -39,6 +42,7 @@ export const TEAM_STRIPES: Record<string, StripeTeam> = {
 
 const TOTAL = 34 // largeur totale des bandes (px)
 const ANGLE = 31 // degrés
+const TAILLE_TEXTE = 14 // px
 
 // Largeur occupée à droite de la ligne (à utiliser pour le padding-right)
 export function largeurBandes(rowHeight: number): number {
@@ -49,7 +53,7 @@ export function largeurBandes(rowHeight: number): number {
 
 export default function TeamStripe({
   team,
-  rowHeight = 66,
+  rowHeight = 67,
 }: {
   team?: string | null
   rowHeight?: number
@@ -62,7 +66,7 @@ export default function TeamStripe({
   const w1 = Math.round((TOTAL * t.share) / 100) // couleur dominante (à gauche)
   const w2 = TOTAL - w1 // couleur secondaire (au bord droit)
   const poly = `polygon(${sh}px 0, 100% 0, calc(100% - ${sh}px) 100%, 0 100%)`
-  const cx = Math.round(sh / 2 + TOTAL / 2)
+  const cxDominante = Math.round(sh / 2 + w2 + w1 / 2)
 
   return (
     <>
@@ -85,13 +89,13 @@ export default function TeamStripe({
       <div
         aria-hidden
         style={{
-          position: 'absolute', top: '50%', right: cx,
+          position: 'absolute', top: '50%', right: cxDominante,
           transform: `translate(50%, -50%) rotate(-${90 - ANGLE}deg)`,
-          fontSize: 12, fontWeight: 500, fontStyle: 'italic',
-          letterSpacing: 0.5, lineHeight: 1, whiteSpace: 'nowrap',
-          color: '#fff',
-          WebkitTextStroke: '2.5px rgba(0,0,0,0.55)',
-          paintOrder: 'stroke fill',
+          fontFamily: anton.style.fontFamily,
+          fontWeight: 400, fontStyle: 'normal',
+          fontSize: TAILLE_TEXTE, letterSpacing: 1,
+          lineHeight: 1, whiteSpace: 'nowrap',
+          color: '#111',
         }}
       >
         {team}

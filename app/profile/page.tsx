@@ -241,6 +241,9 @@ backgroundImage: profile?.equipe_favorite
           <IntroAnimationToggle actif={animationActive} />
         </div>
 
+        {/* Bandeau du slogan de l'équipe favorite */}
+        <SloganBanner team={profile?.equipe_favorite ?? null} anime={animationActive} />
+        
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 24 }}>
           {stats.map((s, i) => (
             <div key={i} style={{
@@ -271,8 +274,6 @@ backgroundImage: profile?.equipe_favorite
           ))}
         </div>
 
-        {/* Bandeau du slogan de l'équipe favorite */}
-        <SloganBanner team={profile?.equipe_favorite ?? null} anime={animationActive} />
 
         {(pronosSuperBowlPreseason || pronosMvp) && (
           <div style={{ marginTop: 16, textAlign: 'left' }}>

@@ -6,22 +6,36 @@ import { TbTargetArrow, TbTrendingUp, TbBallAmericanFootball, TbCalendarCheck, T
 import { calculerClassementSaison } from '@/lib/scoring'
 import { getCouleurAccent } from '@/lib/teamColors'
 import { estMatchNul } from '@/lib/matchNul'
+import SloganIntro, { SloganBanner } from '@/components/SloganIntro'
 
 export default async function PublicProfile({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
 
-  const [profileResult, saisonResult, prochainMatchResult] = await Promise.all([
+  const [profileResult, saisonResult, prochainMatchResult, userResult] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', id).single(),
     supabase.from('saisons').select('*').eq('statut', 'en_cours').single(),
     supabase.from('matchs').select('coup_envoi, semaine_id').neq('statut', 'termine').order('coup_envoi', { ascending: true }).limit(1).maybeSingle(),
+    supabase.auth.getUser(),
   ])
   const profile = profileResult.data
   const saison = saisonResult.data
   const prochainMatchData = prochainMatchResult.data
+  const visiteur = userResult.data.user
 
   if (!profile) {
     notFound()
+  }
+
+  // Réglage « Animation d'arrivée sur les profils » du joueur connecté (activé par défaut)
+  let animationActive = true
+  if (visiteur) {
+    const { data: monProfil } = await supabase
+      .from('profiles')
+      .select('intro_animation')
+      .eq('id', visiteur.id)
+      .single()
+    animationActive = monProfil?.intro_animation ?? true
   }
 
   let semaineActuelleData: { id: number; nom: string } | null = null
@@ -168,6 +182,9 @@ export default async function PublicProfile({ params }: { params: Promise<{ id: 
 
   return (
     <div style={{ position: 'relative', minHeight: '100dvh' }}>
+      {/* Explosion du slogan à l'arrivée (rejouée à chaque profil visité) */}
+      <SloganIntro key={profile.id} team={profile.equipe_favorite ?? null} enabled={animationActive} />
+
       <div style={{
         position: 'fixed',
         inset: 0,
@@ -198,6 +215,9 @@ backgroundImage: profile.equipe_favorite
             </span>
           </p>
         )}
+
+        {/* Bandeau du slogan de l'équipe favorite */}
+        <SloganBanner team={profile.equipe_favorite ?? null} anime={animationActive} />
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 24 }}>
           {stats.map((s, i) => (

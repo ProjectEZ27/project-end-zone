@@ -1,6 +1,6 @@
 export const CLASSEMENT_MANUEL: string[] = [
-  'SF', 'KC', 'BUF', 'MIN', 'JAX', 'CIN', 'NE', 'BAL',
-  'DEN', 'SEA', 'CHI', 'DET', 'CAR', 'HOU', 'GB', 'CLE',
-  'PIT', 'LV', 'ATL', 'NO', 'NYG', 'ARI', 'WAS', 'LA',
-  'NYJ', 'DAL', 'TB', 'PHI', 'TEN', 'IND', 'MIA', 'LAC',
+  'MIN', 'BUF', 'SF', 'SEA', 'CIN', 'JAX', 'KC', 'DEN',
+  'CHI', 'NE', 'DET', 'CLE', 'ATL', 'PIT', 'GB', 'BAL',
+  'NYG', 'HOU', 'TB', 'CAR', 'LA', 'DAL', 'NO', 'WAS',
+  'LV', 'MIA', 'TEN', 'PHI', 'NYJ', 'ARI', 'IND', 'LAC',
 ]

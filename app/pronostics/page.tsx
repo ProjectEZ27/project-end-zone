@@ -14,6 +14,7 @@ import ToggleAllInfos from '@/components/ToggleAllInfos'
 import { estMatchNul, seuilsSemaine } from '@/lib/matchNul'
 import { orienter } from '@/lib/domicile'
 import DirectRafraichisseur from '@/components/DirectRafraichisseur'
+import ResultatsRafraichisseur from '@/components/ResultatsRafraichisseur'
 
 export default async function Pronostics({ searchParams }: { searchParams: Promise<{ semaine?: string }> }) {
   const { semaine: semaineParam } = await searchParams
@@ -152,6 +153,10 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
     const debutMatch = new Date(m.coup_envoi).getTime()
     return m.statut !== 'termine' && maintenant >= debutMatch - 15 * 60 * 1000 && maintenant - debutMatch < 5 * 3600 * 1000
   })
+  const resultatsAttendus = (matchs ?? []).some((m) => {
+    const debutMatch = new Date(m.coup_envoi).getTime()
+    return m.statut !== 'termine' && maintenant - debutMatch > 2.5 * 3600 * 1000 && maintenant - debutMatch < 48 * 3600 * 1000
+  })
 
   const creneaux = grouperMatchsParCreneau(matchs ?? [])
 
@@ -185,6 +190,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
 
       <SelecteurSemaine semaines={toutesLesSemaines ?? []} semaineActuelle={semaine.id} />
       <DirectRafraichisseur actif={directActif} />
+      <ResultatsRafraichisseur actif={resultatsAttendus} />
       <h1>🏈 {semaine.nom}</h1>
       <p>
         +{regles.bonus_1} pt dès {regles.seuil_bonus_1} bons pronos · +{regles.bonus_2} pts dès {regles.seuil_bonus_2} · Perfect week +{regles.bonus_perfect}

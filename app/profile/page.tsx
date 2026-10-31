@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import RappelPerso from './RappelPerso'
+import RappelsPerso from '@/components/RappelsPerso'
 import AvatarEditor from '@/components/AvatarEditor'
 import PseudoEditor from '@/components/PseudoEditor'
 import { NOMS_EQUIPES } from '@/lib/teamBadge'
@@ -425,7 +425,12 @@ backgroundImage: profile?.equipe_favorite
         </div>
 
         <div style={{ marginTop: 16, padding: 16, background: '#16233F', border: '0.5px solid #33415a', borderRadius: 12, textAlign: 'left' }}>
-          <RappelPerso actif={profile?.rappel_perso_actif ?? false} />
+          <RappelsPerso
+            r1Actif={profile?.rappel_1_actif ?? false}
+            r1Heures={profile?.rappel_1_heures ?? 24}
+            r2Actif={profile?.rappel_2_actif ?? false}
+            r2Heures={profile?.rappel_2_heures ?? 3}
+          />
         </div>
       </div>
     </div>

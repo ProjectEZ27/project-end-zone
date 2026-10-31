@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
-import { modifierLigue, relancerRetardataires } from './actions'
+import { modifierLigue } from './actions'
 import LeagueSubNav from '@/components/LeagueSubNav'
 import DeleteLeagueButton from '@/components/DeleteLeagueButton'
 
@@ -98,8 +98,6 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
         }
       }
     }
-  } else if (adhesions && adhesions.length > 0) {
-    // pas de semaine ouverte : on laisse retardataires vide, le JSX gèrera l'affichage
   }
 
   return (
@@ -139,18 +137,16 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
                 <li key={r.id}>{r.pseudo} — {r.fait}/{r.total} pronostics faits</li>
               ))}
             </ul>
-            <form action={relancerRetardataires}>
-              <input type="hidden" name="ligue_id" value={id} />
-              <button type="submit" style={{ padding: '8px 16px', marginTop: 8 }}>
-                📧 Relancer les retardataires
-              </button>
-            </form>
           </>
         )}
       </div>
 
       <form action={modifierLigue} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 24 }}>
         <input type="hidden" name="ligue_id" value={id} />
+        {(league.config_rappels?.rappel_1_actif ?? true) && <input type="hidden" name="rappel_1_actif" value="on" />}
+        <input type="hidden" name="delai_1" value={league.config_rappels?.delais_heures?.[0] ?? 24} />
+        {(league.config_rappels?.rappel_2_actif ?? true) && <input type="hidden" name="rappel_2_actif" value="on" />}
+        <input type="hidden" name="delai_2" value={league.config_rappels?.delais_heures?.[1] ?? 3} />
 
         <label style={{ textAlign: 'left' }}>
           Nom de la ligue
@@ -161,27 +157,6 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
           Taille maximum
           <input type="number" name="taille_max" defaultValue={league.taille_max} min={2} max={50} style={{ padding: 8, width: '100%', marginTop: 4 }} />
         </label>
-
-        <label style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <input type="checkbox" name="rappel_1_actif" defaultChecked={league.config_rappels?.rappel_1_actif ?? true} />
-          Premier rappel
-        </label>
-        <select name="delai_1" defaultValue={league.config_rappels?.delais_heures?.[0] ?? 24} style={{ padding: 8, width: '100%', marginTop: -8 }}>
-          <option value={48}>48h avant</option>
-          <option value={24}>24h avant</option>
-          <option value={12}>12h avant</option>
-          <option value={6}>6h avant</option>
-        </select>
-
-        <label style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-          <input type="checkbox" name="rappel_2_actif" defaultChecked={league.config_rappels?.rappel_2_actif ?? true} />
-          Second rappel
-        </label>
-        <select name="delai_2" defaultValue={league.config_rappels?.delais_heures?.[1] ?? 3} style={{ padding: 8, width: '100%', marginTop: -8 }}>
-          <option value={6}>6h avant</option>
-          <option value={3}>3h avant</option>
-          <option value={1}>1h avant</option>
-        </select>
 
         <button type="submit" style={{ padding: 10, marginTop: 8 }}>
           Enregistrer les modifications

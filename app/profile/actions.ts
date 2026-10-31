@@ -104,3 +104,37 @@ export async function changerEquipeFavorite(formData: FormData) {
   revalidatePath('/profile')
   revalidatePath('/')
 }
+
+export async function enregistrerRappels(
+  r1Actif: boolean,
+  r1Heures: number,
+  r2Actif: boolean,
+  r2Heures: number
+): Promise<{ ok: boolean; message?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { ok: false, message: 'Tu dois être connecté.' }
+
+  const autorisees = [36, 24, 12, 6, 3, 1]
+  if (!autorisees.includes(r1Heures) || !autorisees.includes(r2Heures)) {
+    return { ok: false, message: 'Heure invalide.' }
+  }
+  if (r1Heures === r2Heures) {
+    return { ok: false, message: 'Choisis deux heures différentes.' }
+  }
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      rappel_1_actif: !!r1Actif,
+      rappel_1_heures: r1Heures,
+      rappel_2_actif: !!r2Actif,
+      rappel_2_heures: r2Heures,
+    })
+    .eq('id', user.id)
+
+  if (error) return { ok: false, message: "L'enregistrement a échoué, réessaie." }
+
+  revalidatePath('/profile')
+  return { ok: true }
+}

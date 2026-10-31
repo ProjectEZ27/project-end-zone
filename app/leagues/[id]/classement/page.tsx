@@ -143,7 +143,7 @@ export default async function ClassementLigue({
     .eq('id', user.id)
     .maybeSingle()
   const animationsActives = monProfil?.intro_animation !== false
-  const animer = (!!semaineRef?.terminee || user.id === 'a713d976-513a-43d3-a66e-7859a0377e8c') && animationsActives
+  const animer = !!semaineRef?.terminee && animationsActives
   const cleAnimation = `pez-mvt-${user.id}-ligue-${id}-${semaineRef?.id ?? 0}`
 
   const idsPourAvatars = lignes.map((j) => j.utilisateur_id)

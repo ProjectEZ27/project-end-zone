@@ -244,7 +244,7 @@ export default async function Home({
 
           return (
             <Link
-              href="/pronostics"
+              href={`/pronostics?semaine=${semaineActuelle.id}`}
               style={{
                 display: 'block',
                 background: style.degrade,

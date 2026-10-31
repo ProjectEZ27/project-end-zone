@@ -1,9 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { calculerClassementSaison } from '@/lib/scoring'
+import { trouverSemaineReference, calculerDeltas } from '@/lib/mouvements'
 import Link from 'next/link'
 import UserAvatar from '@/components/UserAvatar'
 import TeamStripe, { largeurBandes } from '@/components/TeamStripe'
+import MouvementFleche from '@/components/MouvementFleche'
 import { TbChevronRight } from 'react-icons/tb'
 
 const TAILLE_PAGE = 50
@@ -59,6 +61,7 @@ export default async function Classement({
 
   const classementComplet = await calculerClassementSaison(supabase, saison.id)
 
+  let membresLigueIds: Set<string> | null = null
   let classement = classementComplet
   if (ligueSelectionnee) {
     const { data: adhesionsLigue } = await supabase
@@ -67,9 +70,34 @@ export default async function Classement({
       .eq('ligue_id', ligueSelectionnee.id)
       .eq('statut', 'actif')
 
-    const membresLigueIds = new Set((adhesionsLigue ?? []).map((a) => a.utilisateur_id))
-    classement = classementComplet.filter((j) => membresLigueIds.has(j.utilisateur_id))
+    const membres = new Set((adhesionsLigue ?? []).map((a) => a.utilisateur_id))
+    membresLigueIds = membres
+    classement = classementComplet.filter((j) => membres.has(j.utilisateur_id))
   }
+
+  // Flèches : places gagnées ou perdues depuis le début de la semaine en cours
+  const membresFiltre = membresLigueIds
+  const semaineRef = await trouverSemaineReference(supabase, saison.id)
+  let deltas = new Map<string, number>()
+  if (semaineRef) {
+    const avantComplet = await calculerClassementSaison(supabase, saison.id, { avantSemaineId: semaineRef.id })
+    const avantFiltre = avantComplet.filter((j) => membresFiltre === null || membresFiltre.has(j.utilisateur_id))
+    deltas = calculerDeltas(
+      classement.map((j) => j.utilisateur_id),
+      avantFiltre.map((j) => j.utilisateur_id)
+    )
+  }
+
+  // Animation du mardi : seulement si la semaine est complète et si le joueur n'a pas désactivé les animations
+  const { data: monProfil } = await supabase
+    .from('profiles')
+    .select('intro_animation')
+    .eq('id', user.id)
+    .maybeSingle()
+  const animationsActives = monProfil?.intro_animation !== false
+  const animer = !!semaineRef?.terminee && animationsActives
+  const scope = ligueSelectionnee ? `ligue-${ligueSelectionnee.id}` : 'general'
+  const cleAnimation = `pez-mvt-${user.id}-${scope}-${semaineRef?.id ?? 0}`
 
   const userIds = classement.map((j) => j.utilisateur_id)
   const { data: profils } = userIds.length > 0
@@ -112,6 +140,7 @@ export default async function Classement({
   const LigneJoueur = ({ joueur, rang, moi }: { joueur: typeof classement[number]; rang: number; moi: boolean }) => {
     const equipe = equipeMap.get(joueur.utilisateur_id) ?? null
     const paddingDroite = equipe ? largeurBandes(HAUTEUR_LIGNE) + 8 : 12
+    const delta = deltas.get(joueur.utilisateur_id) ?? 0
     return (
       <Link
         href={`/joueur/${joueur.utilisateur_id}`}
@@ -142,6 +171,9 @@ export default async function Classement({
           </div>
           <div style={{ fontSize: 10, color: '#9fb0c9' }}>{joueur.score_saison} pts</div>
         </div>
+        {delta !== 0 && (
+          <MouvementFleche delta={delta} moi={moi} cleAnimation={cleAnimation} animer={animer} />
+        )}
         <TbChevronRight size={16} color={moi ? '#E8544C' : '#7a8aa5'} />
       </Link>
     )

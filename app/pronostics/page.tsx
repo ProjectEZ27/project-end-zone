@@ -16,6 +16,10 @@ import { orienter } from '@/lib/domicile'
 import DirectRafraichisseur from '@/components/DirectRafraichisseur'
 import ResultatsRafraichisseur from '@/components/ResultatsRafraichisseur'
 
+// Après la fin d'une semaine, on reste sur ses résultats pendant ce nombre d'heures
+// (compté depuis le dernier coup d'envoi de la semaine), sauf si la semaine suivante a déjà commencé.
+const HEURES_MAINTIEN_SEMAINE_TERMINEE = 36
+
 export default async function Pronostics({ searchParams }: { searchParams: Promise<{ semaine?: string }> }) {
   const { semaine: semaineParam } = await searchParams
   const supabase = await createClient()
@@ -39,12 +43,15 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
     return RESUMES_EQUIPES[code]?.texte ?? null
   }
 
+  // Si on affiche par défaut la semaine qui vient de se terminer, on garde ici la semaine suivante à proposer
+  let semaineAPasser: { id: number; nom: string } | null = null
+
   if (!semaine) {
     // Semaine par défaut = celle du prochain match non terminé (chronologiquement),
     // sinon la toute dernière semaine si tout est déjà joué.
     const { data: prochainMatch } = await supabase
       .from('matchs')
-      .select('semaine_id')
+      .select('semaine_id, coup_envoi')
       .neq('statut', 'termine')
       .order('coup_envoi', { ascending: true })
       .limit(1)
@@ -57,6 +64,38 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
         .eq('id', prochainMatch.semaine_id)
         .single()
       semaine = semaineTrouvee
+
+      // Si la semaine précédente vient de se terminer, on reste sur ses résultats
+      const indexNouvelle = toutesLesSemaines?.findIndex((s) => s.id === semaineTrouvee?.id) ?? -1
+      if (semaineTrouvee && toutesLesSemaines && indexNouvelle > 0) {
+        const precedente = toutesLesSemaines[indexNouvelle - 1]
+        const { data: matchsPrecedente } = await supabase
+          .from('matchs')
+          .select('statut, coup_envoi')
+          .eq('semaine_id', precedente.id)
+
+        const liste = matchsPrecedente ?? []
+        const toutTermine = liste.length > 0 && liste.every((m) => m.statut === 'termine')
+
+        if (toutTermine) {
+          const dernierCoupEnvoi = Math.max(...liste.map((m) => new Date(m.coup_envoi).getTime()))
+          const maintenantMs = Date.now()
+          const dansLeMaintien = maintenantMs - dernierCoupEnvoi < HEURES_MAINTIEN_SEMAINE_TERMINEE * 3600 * 1000
+          const nouvelleSemaineCommencee = maintenantMs >= new Date(prochainMatch.coup_envoi).getTime()
+
+          if (dansLeMaintien && !nouvelleSemaineCommencee) {
+            const { data: semainePrecedenteComplete } = await supabase
+              .from('semaines')
+              .select('*')
+              .eq('id', precedente.id)
+              .single()
+            if (semainePrecedenteComplete) {
+              semaine = semainePrecedenteComplete
+              semaineAPasser = { id: semaineTrouvee.id, nom: semaineTrouvee.nom }
+            }
+          }
+        }
+      }
     } else {
       const { data: derniereSemaine } = await supabase
         .from('semaines')
@@ -202,7 +241,35 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
             : `${nombreMatchsComptes} ${nombreMatchsComptes > 1 ? 'matchs' : 'match'} cette semaine`}
         </p>
       )}
-      {nombreTotal > 0 && (
+      {semaineAPasser ? (
+        <div style={{
+          border: '1px solid rgba(200,53,46,0.5)',
+          background: 'rgba(200,53,46,0.12)',
+          borderRadius: 10,
+          padding: '12px 14px',
+          margin: '12px 0',
+        }}>
+          <div style={{ fontSize: 13, fontWeight: 700 }}>
+            {semaine.nom} terminée, voici tous les résultats
+          </div>
+          <a
+            href={`/pronostics?semaine=${semaineAPasser.id}`}
+            style={{
+              display: 'block',
+              marginTop: 10,
+              background: '#C8352E',
+              color: 'white',
+              borderRadius: 8,
+              padding: 10,
+              fontSize: 13,
+              fontWeight: 700,
+              textDecoration: 'none',
+            }}
+          >
+            Passer aux pronostics de la {semaineAPasser.nom} →
+          </a>
+        </div>
+      ) : nombreTotal > 0 && (
         nombreFaits === 0 ? (
           <div style={{
             background: 'rgba(200,53,46,0.12)',

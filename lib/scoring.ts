@@ -12,15 +12,24 @@ type ScoreJoueur = {
 
 export async function calculerClassementSaison(
   supabase: SupabaseClient,
-  saison_id: number
+  saison_id: number,
+  options?: { avantSemaineId?: number }
 ): Promise<ScoreJoueur[]> {
   // 1. Toutes les semaines de cette saison (régulière ET playoffs, aucune distinction)
-  const { data: semaines } = await supabase
+  const { data: toutesSemaines } = await supabase
     .from('semaines')
     .select('*')
     .eq('saison_id', saison_id)
 
-  if (!semaines || semaines.length === 0) return []
+  if (!toutesSemaines || toutesSemaines.length === 0) return []
+
+  // Option : ne garder que les semaines AVANT une semaine donnée (pour comparer les classements)
+  const avantId = options?.avantSemaineId
+  const semaines = avantId != null
+    ? toutesSemaines.filter((s) => s.id < avantId)
+    : toutesSemaines
+
+  if (semaines.length === 0) return []
 
   const semaineIds = semaines.map((s) => s.id)
 

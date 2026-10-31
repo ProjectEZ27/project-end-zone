@@ -12,7 +12,7 @@ function echapper(texte: string) {
 }
 
 export async function GET(request: NextRequest) {
-  const secret = process.env.CRON_SECRET
+  const secret = process.env.RAPPELS_SECRET ?? process.env.CRON_SECRET
   const autorise =
     !!secret &&
     (request.headers.get('authorization') === `Bearer ${secret}` ||

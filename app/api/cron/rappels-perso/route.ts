@@ -20,6 +20,18 @@ export async function GET(request: NextRequest) {
   if (!autorise) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
+    // ?test_email=adresse : envoie un seul e-mail de test à cette adresse
+  const emailTest = request.nextUrl.searchParams.get('test_email')
+  if (emailTest) {
+    const resendTest = new Resend(process.env.RESEND_API_KEY)
+    const { data, error } = await resendTest.emails.send({
+      from: process.env.RESEND_FROM ?? 'Project End Zone <onboarding@resend.dev>',
+      to: emailTest,
+      subject: 'Test des rappels Project End Zone',
+      html: '<p>Si tu lis ce message, les rappels par e-mail fonctionnent.</p>',
+    })
+    return NextResponse.json({ test: true, envoye: !error, erreur: error?.message ?? null, id: data?.id ?? null })
+  }
 
   // ?simulation=1 : montre qui recevrait un e-mail, sans rien envoyer
   const simulation = request.nextUrl.searchParams.get('simulation') === '1'

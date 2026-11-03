@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { TbChartBar, TbInfoCircle, TbX } from 'react-icons/tb'
+import { MISE_A_JOUR_INFOS } from '@/lib/miseAJourInfos'
 
 const bouton = {
   display: 'flex',
@@ -62,6 +63,23 @@ export default function BarreActionsSemaine({ avecInfos }: { avecInfos: boolean 
           {open ? <TbX size={17} /> : <TbInfoCircle size={17} />}
           Infos équipes
         </button>
+      )}
+      {avecInfos && open && (
+        <p
+          style={{
+            gridColumn: '1 / -1',
+            margin: 0,
+            fontSize: 11,
+            color: '#9fb0c9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
+          }}
+        >
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ee892' }} />
+          {MISE_A_JOUR_INFOS}
+        </p>
       )}
     </div>
   )

@@ -4,6 +4,7 @@ import "./globals.css";
 import Nav from "./nav";
 import AuthRecoveryListener from "./AuthRecoveryListener";
 import NotificationBell from "@/components/NotificationBell";
+import BoutonRetour from "@/components/BoutonRetour";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,6 +53,7 @@ export default function RootLayout({
           <div style={{ paddingBottom: 70 }}>{children}</div>
           <Nav />
           <NotificationBell />
+          <BoutonRetour />
         </body>
     </html>
   );

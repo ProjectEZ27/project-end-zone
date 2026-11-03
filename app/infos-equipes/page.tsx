@@ -5,6 +5,7 @@ import RulesAccordion from '@/components/RulesAccordion'
 import { RESUMES_EQUIPES } from '@/lib/resumesEquipes'
 import InfoToggle from '@/components/InfoToggle'
 import { GLOSSAIRE } from '@/lib/glossaire'
+import { MISE_A_JOUR_INFOS } from '@/lib/miseAJourInfos'
 
 export default async function InfosEquipes() {
   const annee = new Date().getFullYear()
@@ -49,7 +50,7 @@ export default async function InfosEquipes() {
             color: '#c9cdd6',
           }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ee892', display: 'inline-block' }} />
-            Mis à jour le 28 oct. · prochaine mise à jour mercredi, 19h
+            {MISE_A_JOUR_INFOS}
           </span>
         </div>
 

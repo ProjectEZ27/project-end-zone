@@ -98,8 +98,6 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   }
 
   const indexActuel = toutesLesSemaines?.findIndex((s) => s.id === semaine.id) ?? -1
-  const semainePrecedente = indexActuel > 0 ? toutesLesSemaines?.[indexActuel - 1] : null
-  const semaineSuivante = indexActuel !== -1 && indexActuel < (toutesLesSemaines?.length ?? 0) - 1 ? toutesLesSemaines?.[indexActuel + 1] : null
   const estPremiereSemaine = semaine.nom?.toLowerCase().trim() === 'week 1'
   const estSemaineWildCard = semaine.nom?.toLowerCase().trim() === 'wild card'
   const estSemaineSuperBowl = semaine.nom?.toLowerCase().trim() === 'super bowl'
@@ -214,8 +212,6 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
       <SelecteurSemaine
         semaines={toutesLesSemaines ?? []}
         semaineActuelle={semaine.id}
-        precedente={semainePrecedente ?? null}
-        suivante={semaineSuivante ?? null}
       />
       <DirectRafraichisseur actif={directActif} />
       <ResultatsRafraichisseur actif={resultatsAttendus} />

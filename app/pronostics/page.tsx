@@ -15,10 +15,9 @@ import { estMatchNul, seuilsSemaine } from '@/lib/matchNul'
 import { orienter } from '@/lib/domicile'
 import DirectRafraichisseur from '@/components/DirectRafraichisseur'
 import ResultatsRafraichisseur from '@/components/ResultatsRafraichisseur'
-
-// Après la fin d'une semaine, on reste sur ses résultats pendant ce nombre d'heures
-// (compté depuis le dernier coup d'envoi de la semaine), sauf si la semaine suivante a déjà commencé.
-const HEURES_MAINTIEN_SEMAINE_TERMINEE = 36
+import RecapSemaine from '@/components/RecapSemaine'
+import { trouverRecapAAfficher } from '@/lib/recapSemaine'
+import { calculerClassementSemaine } from '@/lib/scoring'
 
 export default async function Pronostics({ searchParams }: { searchParams: Promise<{ semaine?: string }> }) {
   const { semaine: semaineParam } = await searchParams
@@ -27,6 +26,15 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
 
   if (!user) {
     redirect('/login')
+  }
+
+  // Récap de la semaine terminée : montré une seule fois par joueur, jusqu'à 24 h avant la semaine suivante
+  if (!semaineParam) {
+    const { data: saisonRecap } = await supabase.from('saisons').select('id').eq('statut', 'en_cours').single()
+    if (saisonRecap) {
+      const recap = await trouverRecapAAfficher(supabase, user.id, saisonRecap.id)
+      if (recap) return <RecapSemaine {...recap} />
+    }
   }
 
   const [toutesLesSemainesResult, semaineParamResult, classement] = await Promise.all([
@@ -42,9 +50,6 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   const descCourte = (code: string) => {
     return RESUMES_EQUIPES[code]?.texte ?? null
   }
-
-  // Si on affiche par défaut la semaine qui vient de se terminer, on garde ici la semaine suivante à proposer
-  let semaineAPasser: { id: number; nom: string } | null = null
 
   if (!semaine) {
     // Semaine par défaut = celle du prochain match non terminé (chronologiquement),
@@ -65,37 +70,6 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
         .single()
       semaine = semaineTrouvee
 
-      // Si la semaine précédente vient de se terminer, on reste sur ses résultats
-      const indexNouvelle = toutesLesSemaines?.findIndex((s) => s.id === semaineTrouvee?.id) ?? -1
-      if (semaineTrouvee && toutesLesSemaines && indexNouvelle > 0) {
-        const precedente = toutesLesSemaines[indexNouvelle - 1]
-        const { data: matchsPrecedente } = await supabase
-          .from('matchs')
-          .select('statut, coup_envoi')
-          .eq('semaine_id', precedente.id)
-
-        const liste = matchsPrecedente ?? []
-        const toutTermine = liste.length > 0 && liste.every((m) => m.statut === 'termine')
-
-        if (toutTermine) {
-          const dernierCoupEnvoi = Math.max(...liste.map((m) => new Date(m.coup_envoi).getTime()))
-          const maintenantMs = Date.now()
-          const dansLeMaintien = maintenantMs - dernierCoupEnvoi < HEURES_MAINTIEN_SEMAINE_TERMINEE * 3600 * 1000
-          const nouvelleSemaineCommencee = maintenantMs >= new Date(prochainMatch.coup_envoi).getTime()
-
-          if (dansLeMaintien && !nouvelleSemaineCommencee) {
-            const { data: semainePrecedenteComplete } = await supabase
-              .from('semaines')
-              .select('*')
-              .eq('id', precedente.id)
-              .single()
-            if (semainePrecedenteComplete) {
-              semaine = semainePrecedenteComplete
-              semaineAPasser = { id: semaineTrouvee.id, nom: semaineTrouvee.nom }
-            }
-          }
-        }
-      }
     } else {
       const { data: derniereSemaine } = await supabase
         .from('semaines')
@@ -176,6 +150,19 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   const nombreFaits = (mesPronostics ?? []).filter((p) => !idsMatchsNuls.has(p.match_id)).length
   const nombreTotal = nombreMatchsComptes
 
+  // Score du joueur sur une semaine terminée (rien tant que la semaine n'est pas finie)
+  const semaineTerminee = (matchs ?? []).length > 0 && (matchs ?? []).every((m) => m.statut === 'termine')
+  let scoreSemaineTexte: string | null = null
+  if (semaineTerminee) {
+    if ((mesPronostics ?? []).length === 0) {
+      scoreSemaineTexte = "Tu n'as pas pronostiqué cette semaine"
+    } else {
+      const classementSemaine = await calculerClassementSemaine(supabase, semaine.id)
+      const monScore = classementSemaine.find((j) => j.utilisateur_id === user.id)?.score_semaine ?? 0
+      scoreSemaineTexte = `Tu as fait ${monScore} ${monScore > 1 ? 'points' : 'point'} cette semaine`
+    }
+  }
+
   const premierMatch = matchs && matchs.length > 0 ? matchs[0] : null
   const semaineOuverte = estPremiereSemaine
     ? true
@@ -241,35 +228,10 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
             : `${nombreMatchsComptes} ${nombreMatchsComptes > 1 ? 'matchs' : 'match'} cette semaine`}
         </p>
       )}
-      {semaineAPasser ? (
-        <div style={{
-          border: '1px solid rgba(200,53,46,0.5)',
-          background: 'rgba(200,53,46,0.12)',
-          borderRadius: 10,
-          padding: '12px 14px',
-          margin: '12px 0',
-        }}>
-          <div style={{ fontSize: 13, fontWeight: 700 }}>
-            {semaine.nom} terminée, voici tous les résultats
-          </div>
-          <a
-            href={`/pronostics?semaine=${semaineAPasser.id}`}
-            style={{
-              display: 'block',
-              marginTop: 10,
-              background: '#C8352E',
-              color: 'white',
-              borderRadius: 8,
-              padding: 10,
-              fontSize: 13,
-              fontWeight: 700,
-              textDecoration: 'none',
-            }}
-          >
-            Passer aux pronostics de la {semaineAPasser.nom} →
-          </a>
-        </div>
-      ) : nombreTotal > 0 && (
+      {scoreSemaineTexte && (
+        <p style={{ fontSize: 15, fontWeight: 700, margin: '12px 0 0' }}>{scoreSemaineTexte}</p>
+      )}
+      {nombreTotal > 0 && (
         nombreFaits === 0 ? (
           <div style={{
             background: 'rgba(200,53,46,0.12)',

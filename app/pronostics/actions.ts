@@ -101,3 +101,32 @@ export async function submitSpecialPick(formData: FormData) {
 
   revalidatePath('/pronostics')
 }
+
+// Enregistre que le joueur a lu le récap d'une semaine, puis l'envoie là où il a cliqué.
+export async function marquerRecapLu(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/login')
+  }
+
+  const semaineId = Number(formData.get('semaine_id'))
+  const destination = formData.get('destination')
+
+  if (!Number.isInteger(semaineId)) {
+    redirect('/pronostics')
+  }
+
+  await supabase
+    .from('recaps_lus')
+    .upsert(
+      { utilisateur_id: user.id, semaine_id: semaineId },
+      { onConflict: 'utilisateur_id,semaine_id', ignoreDuplicates: true }
+    )
+
+  if (destination === 'resultats') {
+    redirect(`/pronostics?semaine=${semaineId}`)
+  }
+  // Récap lu : /pronostics ouvre maintenant directement la semaine suivante
+  redirect('/pronostics')
+}

@@ -8,7 +8,6 @@ import LeagueLogo from '@/components/LeagueLogo'
 import { calculerClassementSaison } from '@/lib/scoring'
 import CountdownBadge from './CountdownBadge'
 import AnnonceBanner from '@/components/AnnonceBanner'
-import { ADMIN_ID } from '@/lib/admin'
 
 export const dynamic = 'force-dynamic'
 export default async function Home({
@@ -35,15 +34,6 @@ export default async function Home({
   const annonceActive = (annoncesResult.data ?? []).find(
     (a) => !a.date_fin || new Date(a.date_fin) > new Date()
   ) ?? null
-
-  let photosAValider = 0
-  if (user.id === ADMIN_ID) {
-    const { count } = await supabase
-      .from('photos_perso')
-      .select('id', { count: 'exact', head: true })
-      .eq('statut', 'en_attente')
-    photosAValider = count ?? 0
-  }
 
   const profile = profileResult.data
   if (!profile) {
@@ -303,27 +293,6 @@ export default async function Home({
             <div style={{ fontSize: 9, color: '#9fb0c9' }}>{tauxReussite}% réussite</div>
           </div>
         </div>
-
-        {photosAValider > 0 && (
-          <Link
-            href="/admin/photos"
-            style={{
-              display: 'block',
-              background: 'rgba(200,53,46,0.15)',
-              border: '1px solid rgba(200,53,46,0.5)',
-              borderRadius: 10,
-              padding: 12,
-              margin: '16px 0',
-              color: '#ff8f87',
-              fontSize: 13,
-              fontWeight: 700,
-              textDecoration: 'none',
-              textAlign: 'center',
-            }}
-          >
-            {photosAValider} photo{photosAValider > 1 ? 's' : ''} à valider →
-          </Link>
-        )}
 
         {annonceActive && (
           <AnnonceBanner id={annonceActive.id} titre={annonceActive.titre} message={annonceActive.message} />

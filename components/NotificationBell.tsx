@@ -23,7 +23,7 @@ const CATEGORIES: Record<string, { label: string; Icon: typeof TbBell; couleur: 
   badge: { label: 'Badges', Icon: TbTrophy, couleur: COULEUR, fond: FOND },
   ligue: { label: 'Ligues', Icon: TbUsers, couleur: COULEUR, fond: FOND },
   photo: { label: 'Photos', Icon: TbPhoto, couleur: COULEUR, fond: FOND },
-  site: { label: 'Site', Icon: TbSpeakerphone, couleur: COULEUR, fond: FOND },
+  site: { label: 'Générale', Icon: TbSpeakerphone, couleur: COULEUR, fond: FOND },
 }
 
 function ilYA(dateIso: string) {

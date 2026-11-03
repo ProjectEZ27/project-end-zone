@@ -39,11 +39,11 @@ function creneauActuel(): Creneau | null {
  *   ?creneau=jeudi       force le créneau (jeudi ou dimanche), quel que soit le jour
  */
 export async function GET(request: NextRequest) {
-  const secret = process.env.RAPPELS_SECRET ?? process.env.CRON_SECRET
-  const autorise =
-    !!secret &&
-    (request.headers.get('authorization') === `Bearer ${secret}` ||
-      request.nextUrl.searchParams.get('secret') === secret)
+  // Accepte RAPPELS_SECRET (appel manuel ou service externe) et CRON_SECRET (tâche planifiée Vercel)
+  const secrets = [process.env.RAPPELS_SECRET, process.env.CRON_SECRET].filter((s): s is string => !!s)
+  const entete = request.headers.get('authorization')
+  const parametre = request.nextUrl.searchParams.get('secret')
+  const autorise = secrets.some((s) => entete === `Bearer ${s}` || parametre === s)
   if (!autorise) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }

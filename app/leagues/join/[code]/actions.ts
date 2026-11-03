@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Resend } from 'resend'
+import { creerNotification } from '@/lib/notifications'
 
 export async function joinLeague(formData: FormData) {
   const supabase = await createClient()
@@ -54,6 +55,24 @@ export async function joinLeague(formData: FormData) {
       ? 'Tu es déjà membre ou en attente pour cette ligue'
       : error.message
     redirect('/leagues/' + ligue_id + '?error=' + encodeURIComponent(message))
+  }
+
+  // Notifier le commissaire dans la cloche
+  const { data: ligueDemandee } = await supabase
+    .from('ligues')
+    .select('nom, commissaire_id')
+    .eq('id', Number(ligue_id))
+    .maybeSingle()
+  if (ligueDemandee?.commissaire_id && ligueDemandee.commissaire_id !== user.id) {
+    const { data: demandeur } = await supabase.from('profiles').select('pseudo').eq('id', user.id).maybeSingle()
+    await creerNotification({
+      userId: ligueDemandee.commissaire_id,
+      type: 'ligue',
+      titre: "Nouvelle demande d'adhésion",
+      message: `${demandeur?.pseudo ?? 'Un joueur'} veut rejoindre ta ligue ${ligueDemandee.nom}.`,
+      lien: `/leagues/${ligue_id}`,
+      cle: `demande-adhesion:${ligue_id}:${user.id}`,
+    })
   }
 
   // Notifier le commissaire par e-mail

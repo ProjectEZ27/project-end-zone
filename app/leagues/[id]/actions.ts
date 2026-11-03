@@ -4,20 +4,35 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { Resend } from 'resend'
+import { creerNotification, marquerNotificationLue } from '@/lib/notifications'
 
 export async function acceptMembership(formData: FormData) {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
   const adhesion_id = formData.get('adhesion_id') as string
 
   const { data: adhesion } = await supabase
     .from('adhesions')
     .update({ statut: 'actif' })
     .eq('id', adhesion_id)
-    .select('ligue_id')
+    .select('ligue_id, utilisateur_id')
     .single()
 
   if (adhesion) {
     revalidatePath('/leagues/' + adhesion.ligue_id)
+
+    const { data: ligue } = await supabase.from('ligues').select('nom').eq('id', adhesion.ligue_id).maybeSingle()
+    await creerNotification({
+      userId: adhesion.utilisateur_id,
+      type: 'ligue',
+      titre: 'Demande acceptée',
+      message: `Tu fais maintenant partie de la ligue ${ligue?.nom ?? ''}. Bon jeu !`.replace('  ', ' '),
+      lien: `/leagues/${adhesion.ligue_id}`,
+      cle: `adhesion-resultat:${adhesion.ligue_id}:${adhesion.utilisateur_id}`,
+    })
+    if (user) {
+      await marquerNotificationLue(user.id, `demande-adhesion:${adhesion.ligue_id}:${adhesion.utilisateur_id}`)
+    }
 
     const resend = new Resend(process.env.RESEND_API_KEY)
     await resend.emails.send({
@@ -31,17 +46,31 @@ export async function acceptMembership(formData: FormData) {
 
 export async function rejectMembership(formData: FormData) {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
   const adhesion_id = formData.get('adhesion_id') as string
 
   const { data: adhesion } = await supabase
     .from('adhesions')
     .update({ statut: 'refuse' })
     .eq('id', adhesion_id)
-    .select('ligue_id')
+    .select('ligue_id, utilisateur_id')
     .single()
 
   if (adhesion) {
     revalidatePath('/leagues/' + adhesion.ligue_id)
+
+    const { data: ligue } = await supabase.from('ligues').select('nom').eq('id', adhesion.ligue_id).maybeSingle()
+    await creerNotification({
+      userId: adhesion.utilisateur_id,
+      type: 'ligue',
+      titre: 'Demande refusée',
+      message: `Le commissaire n'a pas retenu ta demande pour la ligue ${ligue?.nom ?? ''}.`.replace('  ', ' '),
+      lien: '/',
+      cle: `adhesion-resultat:${adhesion.ligue_id}:${adhesion.utilisateur_id}`,
+    })
+    if (user) {
+      await marquerNotificationLue(user.id, `demande-adhesion:${adhesion.ligue_id}:${adhesion.utilisateur_id}`)
+    }
 
     const resend = new Resend(process.env.RESEND_API_KEY)
     await resend.emails.send({

@@ -43,6 +43,7 @@ export default function SelecteurSemaine({
         gridTemplateColumns: '1fr 1.6fr 1fr',
         gap: 8,
         alignItems: 'center',
+        marginTop: 28, // laisse la place à la cloche de notification (en haut à droite)
         marginBottom: 16,
       }}
     >

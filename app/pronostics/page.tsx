@@ -10,8 +10,8 @@ import { estSemaineOuverte, calculerDateOuverture } from '@/lib/semaineOuverture
 import { getPowerIndexRanking } from '@/lib/powerIndex'
 import { RESUMES_EQUIPES } from '@/lib/resumesEquipes'
 import { calculerBilanEquipes } from '@/lib/bilanEquipes'
-import ToggleAllInfos from '@/components/ToggleAllInfos'
-import { estMatchNul, seuilsSemaine } from '@/lib/matchNul'
+import BarreActionsSemaine from '@/components/BarreActionsSemaine'
+import { estMatchNul } from '@/lib/matchNul'
 import { orienter } from '@/lib/domicile'
 import DirectRafraichisseur from '@/components/DirectRafraichisseur'
 import ResultatsRafraichisseur from '@/components/ResultatsRafraichisseur'
@@ -152,7 +152,6 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   const matchsNuls = (matchs ?? []).filter(estMatchNul)
   const idsMatchsNuls = new Set(matchsNuls.map((m) => m.id))
   const nombreMatchsComptes = (matchs?.length ?? 0) - matchsNuls.length
-  const regles = seuilsSemaine(semaine, nombreMatchsComptes, matchs?.length ?? 0)
 
   const nombreFaits = (mesPronostics ?? []).filter((p) => !idsMatchsNuls.has(p.match_id)).length
   const nombreTotal = nombreMatchsComptes
@@ -212,99 +211,54 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
         }} />
       </div>
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '40px 24px 100px', textAlign: 'center', color: 'white' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        {semainePrecedente ? (
-          <a href={`/pronostics?semaine=${semainePrecedente.id}`} style={{ padding: 8 }}>← {semainePrecedente.nom}</a>
-        ) : <span />}
-        {semaineSuivante ? (
-          <a href={`/pronostics?semaine=${semaineSuivante.id}`} style={{ padding: 8 }}>{semaineSuivante.nom} →</a>
-        ) : <span />}
-      </div>
-
-      <SelecteurSemaine semaines={toutesLesSemaines ?? []} semaineActuelle={semaine.id} />
+      <SelecteurSemaine
+        semaines={toutesLesSemaines ?? []}
+        semaineActuelle={semaine.id}
+        precedente={semainePrecedente ?? null}
+        suivante={semaineSuivante ?? null}
+      />
       <DirectRafraichisseur actif={directActif} />
       <ResultatsRafraichisseur actif={resultatsAttendus} />
-      <h1>🏈 {semaine.nom}</h1>
-      <p>
-        +{regles.bonus_1} pt dès {regles.seuil_bonus_1} bons pronos · +{regles.bonus_2} pts dès {regles.seuil_bonus_2} · Perfect week +{regles.bonus_perfect}
-      </p>
-      {(matchs?.length ?? 0) > 0 && (
-        <p style={{ fontSize: 12, color: matchsNuls.length > 0 ? '#f0c869' : 'rgba(255,255,255,0.6)', margin: '4px 0 0' }}>
-          {matchsNuls.length > 0
-            ? `${nombreMatchsComptes} matchs comptés · ${matchsNuls.length} ${matchsNuls.length > 1 ? 'matchs nuls non comptabilisés' : 'match nul non comptabilisé'}`
-            : `${nombreMatchsComptes} ${nombreMatchsComptes > 1 ? 'matchs' : 'match'} cette semaine`}
+      <h1 style={{ margin: '0 0 8px' }}>🏈 {semaine.nom}</h1>
+      {matchsNuls.length > 0 && (
+        <p style={{ fontSize: 12, color: '#f0c869', margin: '4px 0 0' }}>
+          {nombreMatchsComptes} matchs comptés · {matchsNuls.length} {matchsNuls.length > 1 ? 'matchs nuls non comptabilisés' : 'match nul non comptabilisé'}
         </p>
       )}
       {scoreSemaineTexte && (
         <p style={{ fontSize: 15, fontWeight: 700, margin: '12px 0 0' }}>{scoreSemaineTexte}</p>
       )}
-      {nombreTotal > 0 && (
-        nombreFaits === 0 ? (
-          <div style={{
-            background: 'rgba(200,53,46,0.12)',
-            border: '1px solid rgba(200,53,46,0.4)',
-            borderRadius: 8,
-            padding: '12px 14px',
-            margin: '12px 0',
-            fontSize: 13,
-            color: '#ff8f87',
-            textAlign: 'left',
-          }}>
-            🔴 Aucun pronostic fait pour cette semaine
-          </div>
-        ) : nombreFaits < nombreTotal ? (
-          <div style={{
-            background: 'rgba(214,143,31,0.12)',
-            border: '1px solid rgba(214,143,31,0.4)',
-            borderRadius: 8,
-            padding: '12px 14px',
-            margin: '12px 0',
-            fontSize: 13,
-            color: '#f0c869',
-            textAlign: 'left',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 6,
-          }}>
-            <span>⏳ {nombreFaits} sur {nombreTotal} pronostics faits</span>
-            <span style={{ fontSize: 11 }}>Il en reste {nombreTotal - nombreFaits}</span>
-          </div>
-        ) : (
-          <div style={{
-            background: 'rgba(46,168,102,0.12)',
-            border: '1px solid rgba(46,168,102,0.4)',
-            borderRadius: 8,
-            padding: '12px 14px',
-            margin: '12px 0',
-            fontSize: 13,
-            color: '#6fe0a0',
-            textAlign: 'left',
-          }}>
-            ✅ Tous tes pronostics sont faits pour cette semaine
+      {nombreTotal > 0 && (() => {
+        const etat =
+          nombreFaits === 0
+            ? { texte: `Aucun pronostic · 0/${nombreTotal}`, couleur: '#ff8f87', fond: 'rgba(200,53,46,0.12)', bord: 'rgba(200,53,46,0.5)' }
+            : nombreFaits < nombreTotal
+              ? { texte: `En cours · ${nombreFaits}/${nombreTotal}`, couleur: '#f0c869', fond: 'rgba(214,143,31,0.12)', bord: 'rgba(214,143,31,0.5)' }
+              : { texte: `Complet · ${nombreTotal}/${nombreTotal}`, couleur: '#6fe0a0', fond: 'rgba(46,168,102,0.12)', bord: 'rgba(46,168,102,0.5)' }
+        return (
+          <div style={{ margin: '10px 0 0' }}>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                borderRadius: 20,
+                padding: '5px 14px',
+                fontSize: 13,
+                fontWeight: 600,
+                color: etat.couleur,
+                background: etat.fond,
+                border: `1px solid ${etat.bord}`,
+              }}
+            >
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: etat.couleur }} />
+              {etat.texte}
+            </span>
           </div>
         )
-      )}
+      })()}
 
-      <a href="/infos-equipes" style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        background: 'linear-gradient(135deg, rgba(200,53,46,0.18), rgba(200,53,46,0.06))',
-        border: '1px solid rgba(200,53,46,0.35)',
-        borderRadius: 10,
-        padding: '12px 14px',
-        margin: '16px 0',
-        textDecoration: 'none',
-        color: 'white',
-      }}>
-        <span style={{ fontSize: 20 }}>🏈</span>
-        <span style={{ flex: 1, textAlign: 'left', fontSize: 13, fontWeight: 700 }}>
-          Voir le power ranking complet des 32 équipes
-        </span>
-        <span style={{ fontSize: 16, color: '#ff9088' }}>→</span>
-      </a>
+      <BarreActionsSemaine avecInfos={nombreTotal > 0 && !estSemainePlayoffsVide} />
 
       {estPremiereSemaine && saison && (
         <SpecialPicksPreseason saisonId={saison.id} mesPronosSpeciaux={mesPronosSpeciaux} />
@@ -360,15 +314,6 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
           </div>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', lineHeight: 1.5, margin: 0 }}>
             {infosPlaceholderPlayoffs[semaine.nom?.toLowerCase().trim() ?? '']?.texte}
-          </p>
-        </div>
-      )}
-
-      {nombreTotal > 0 && !estSemainePlayoffsVide && (
-        <div style={{ marginBottom: 16 }}>
-          <ToggleAllInfos />
-          <p style={{ color: '#5f6a80', fontSize: 10, textAlign: 'center', margin: '6px 0 0' }}>
-            Affiche, match par match, le résumé des deux équipes qui s'affrontent
           </p>
         </div>
       )}

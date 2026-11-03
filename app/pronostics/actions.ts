@@ -117,12 +117,14 @@ export async function marquerRecapLu(formData: FormData) {
     redirect('/pronostics')
   }
 
-  await supabase
+  const { error } = await supabase
     .from('recaps_lus')
-    .upsert(
-      { utilisateur_id: user.id, semaine_id: semaineId },
-      { onConflict: 'utilisateur_id,semaine_id', ignoreDuplicates: true }
-    )
+    .insert({ utilisateur_id: user.id, semaine_id: semaineId })
+
+  // 23505 = déjà enregistré : pas un problème. Toute autre erreur est affichée.
+  if (error && error.code !== '23505') {
+    throw new Error('Récap non enregistré : ' + error.message)
+  }
 
   if (destination === 'resultats') {
     redirect(`/pronostics?semaine=${semaineId}`)

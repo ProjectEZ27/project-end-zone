@@ -33,7 +33,7 @@ export async function creerNotification(n: {
         .maybeSingle()
       if (existe) return
     }
-    await supabase.from('notifications').insert({
+    const { error } = await supabase.from('notifications').insert({
       user_id: n.userId,
       type: n.type,
       titre: n.titre,
@@ -41,16 +41,18 @@ export async function creerNotification(n: {
       lien: n.lien ?? null,
       cle: n.cle ?? null,
     })
-  } catch {
-    // volontairement ignoré
+    if (error) console.error('[notifications] création échouée :', error.message)
+  } catch (e) {
+    console.error('[notifications] erreur inattendue :', e)
   }
 }
 
 /** Marque comme lue(s) la ou les notifications d'un joueur portant cette clé. */
 export async function marquerNotificationLue(userId: string, cle: string) {
   try {
-    await clientService().from('notifications').update({ lu: true }).eq('user_id', userId).eq('cle', cle)
-  } catch {
-    // volontairement ignoré
+    const { error } = await clientService().from('notifications').update({ lu: true }).eq('user_id', userId).eq('cle', cle)
+    if (error) console.error('[notifications] marquage lu échoué :', error.message)
+  } catch (e) {
+    console.error('[notifications] erreur inattendue :', e)
   }
 }

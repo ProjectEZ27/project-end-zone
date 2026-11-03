@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { TbBell, TbClock, TbTrophy, TbUsers, TbPhoto, TbSpeakerphone } from 'react-icons/tb'
+import { TbBell, TbClock, TbTrophy, TbUsers, TbPhoto, TbSpeakerphone, TbFilter, TbChecks, TbCheck } from 'react-icons/tb'
 
 type Notif = {
   id: number
@@ -15,12 +15,15 @@ type Notif = {
   created_at: string
 }
 
+const COULEUR = '#9fb0c9'
+const FOND = 'rgba(255,255,255,0.07)'
+
 const CATEGORIES: Record<string, { label: string; Icon: typeof TbBell; couleur: string; fond: string }> = {
-  rappel: { label: 'Rappels', Icon: TbClock, couleur: '#f5b942', fond: 'rgba(245,185,66,0.15)' },
-  badge: { label: 'Badges', Icon: TbTrophy, couleur: '#6fb1ff', fond: 'rgba(111,177,255,0.15)' },
-  ligue: { label: 'Ligues', Icon: TbUsers, couleur: '#5fd08a', fond: 'rgba(95,208,138,0.15)' },
-  photo: { label: 'Photos', Icon: TbPhoto, couleur: '#c79bff', fond: 'rgba(199,155,255,0.15)' },
-  site: { label: 'Site', Icon: TbSpeakerphone, couleur: '#ff8f87', fond: 'rgba(255,143,135,0.15)' },
+  rappel: { label: 'Rappels', Icon: TbClock, couleur: COULEUR, fond: FOND },
+  badge: { label: 'Badges', Icon: TbTrophy, couleur: COULEUR, fond: FOND },
+  ligue: { label: 'Ligues', Icon: TbUsers, couleur: COULEUR, fond: FOND },
+  photo: { label: 'Photos', Icon: TbPhoto, couleur: COULEUR, fond: FOND },
+  site: { label: 'Site', Icon: TbSpeakerphone, couleur: COULEUR, fond: FOND },
 }
 
 function ilYA(dateIso: string) {
@@ -34,6 +37,22 @@ function ilYA(dateIso: string) {
   return `Il y a ${jours} j`
 }
 
+const boutonIcone: React.CSSProperties = {
+  background: 'none',
+  border: '1px solid #33415a',
+  color: '#9fb0c9',
+  borderRadius: 8,
+  height: 32,
+  minWidth: 32,
+  padding: '0 8px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 6,
+  cursor: 'pointer',
+  fontSize: 12,
+}
+
 export default function NotificationBell() {
   const supabase = createClient()
   const router = useRouter()
@@ -42,6 +61,7 @@ export default function NotificationBell() {
   const [notifs, setNotifs] = useState<Notif[]>([])
   const [ouvert, setOuvert] = useState(false)
   const [filtre, setFiltre] = useState('all')
+  const [menuOuvert, setMenuOuvert] = useState(false)
 
   // Recharge à chaque changement de page, et à l'ouverture du panneau
   useEffect(() => {
@@ -106,7 +126,7 @@ export default function NotificationBell() {
         aria-label={`Notifications${nonLues > 0 ? ` (${nonLues} non lues)` : ''}`}
         onClick={() => setOuvert((o) => !o)}
         style={{
-          position: 'fixed',
+          position: 'absolute',
           top: 12,
           right: 12,
           zIndex: 200,
@@ -160,6 +180,7 @@ export default function NotificationBell() {
             marginLeft: 'auto',
             maxWidth: 380,
             maxHeight: '70vh',
+            minHeight: menuOuvert ? 300 : undefined,
             overflowY: 'auto',
             zIndex: 199,
             background: '#16233F',
@@ -169,44 +190,73 @@ export default function NotificationBell() {
             color: 'white',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <span style={{ fontSize: 14, fontWeight: 700 }}>Notifications</span>
-            <button
-              type="button"
-              onClick={toutMarquerLu}
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button
+                type="button"
+                aria-label="Tout marquer comme lu"
+                onClick={toutMarquerLu}
+                style={{ ...boutonIcone, color: nonLues > 0 ? '#9fb0c9' : '#5b6a85' }}
+              >
+                <TbChecks size={17} />
+              </button>
+              <button
+                type="button"
+                aria-label="Filtrer par catégorie"
+                onClick={() => setMenuOuvert((m) => !m)}
+                style={{
+                  ...boutonIcone,
+                  ...(filtre !== 'all'
+                    ? { borderColor: '#6fb1ff', color: '#9cc8ff', background: 'rgba(111,177,255,0.15)' }
+                    : {}),
+                }}
+              >
+                <TbFilter size={17} />
+                {filtre !== 'all' && <span>{CATEGORIES[filtre]?.label}</span>}
+              </button>
+            </div>
+          </div>
+
+          {menuOuvert && (
+            <div
               style={{
-                background: 'none',
-                border: 'none',
-                color: nonLues > 0 ? '#9fb0c9' : '#5b6a85',
-                fontSize: 12,
-                cursor: 'pointer',
+                position: 'absolute',
+                top: 52,
+                right: 12,
+                zIndex: 5,
+                minWidth: 150,
+                background: '#1b2b4d',
+                border: '1px solid #33415a',
+                borderRadius: 10,
                 padding: 4,
               }}
             >
-              Tout marquer comme lu
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-            {[['all', 'Tout'], ...Object.entries(CATEGORIES).map(([k, v]) => [k, v.label])].map(([cle, label]) => (
-              <button
-                key={cle}
-                type="button"
-                onClick={() => setFiltre(cle)}
-                style={{
-                  fontSize: 12,
-                  padding: '4px 10px',
-                  borderRadius: 14,
-                  cursor: 'pointer',
-                  border: `1px solid ${filtre === cle ? '#6fb1ff' : '#33415a'}`,
-                  background: filtre === cle ? 'rgba(111,177,255,0.18)' : 'transparent',
-                  color: filtre === cle ? '#9cc8ff' : '#9fb0c9',
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+              {[['all', 'Toutes'], ...Object.entries(CATEGORIES).map(([k, v]) => [k, v.label])].map(([cle, label]) => (
+                <div
+                  key={cle}
+                  onClick={() => {
+                    setFiltre(cle)
+                    setMenuOuvert(false)
+                  }}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '8px 10px',
+                    borderRadius: 6,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    color: filtre === cle ? '#9cc8ff' : '#d5deee',
+                  }}
+                >
+                  <span>{label}</span>
+                  {filtre === cle && <TbCheck size={15} />}
+                </div>
+              ))}
+            </div>
+          )}
 
           {visibles.length === 0 ? (
             <p style={{ fontSize: 13, color: '#9fb0c9', textAlign: 'center', margin: '16px 0' }}>

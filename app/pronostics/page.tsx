@@ -16,6 +16,7 @@ import { orienter } from '@/lib/domicile'
 import DirectRafraichisseur from '@/components/DirectRafraichisseur'
 import ResultatsRafraichisseur from '@/components/ResultatsRafraichisseur'
 import RecapSemaine from '@/components/RecapSemaine'
+import { cookies } from 'next/headers'
 import { trouverRecapAAfficher } from '@/lib/recapSemaine'
 import { calculerClassementSemaine } from '@/lib/scoring'
 
@@ -32,8 +33,14 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   if (!semaineParam) {
     const { data: saisonRecap } = await supabase.from('saisons').select('id').eq('statut', 'en_cours').single()
     if (saisonRecap) {
-      const recap = await trouverRecapAAfficher(supabase, user.id, saisonRecap.id)
-      if (recap) return <RecapSemaine {...recap} />
+      const jar = await cookies()
+      const idsLusParCookie = jar
+        .getAll()
+        .map((c) => c.name.match(/^recap_lu_(\d+)_(.+)$/))
+        .filter((m): m is RegExpMatchArray => m !== null && m[2] === user.id)
+        .map((m) => Number(m[1]))
+      const recap = await trouverRecapAAfficher(supabase, user.id, saisonRecap.id, idsLusParCookie)
+      if (recap) return <RecapSemaine {...recap} userId={user.id} />
     }
   }
 

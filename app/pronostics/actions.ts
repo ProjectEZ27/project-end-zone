@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 
 export async function selectPronostic(formData: FormData) {
   const supabase = await createClient()
@@ -121,10 +122,21 @@ export async function marquerRecapLu(formData: FormData) {
     .from('recaps_lus')
     .insert({ utilisateur_id: user.id, semaine_id: semaineId })
 
-  // 23505 = déjà enregistré : pas un problème. Toute autre erreur est affichée.
+  // 23505 = déjà enregistré : pas un problème. Toute autre erreur est notée dans les journaux
+  // mais ne bloque pas le joueur (le cookie ci-dessous prend le relais).
   if (error && error.code !== '23505') {
-    throw new Error('Récap non enregistré : ' + error.message)
+    console.error('[recap] non enregistré en base :', error.message)
   }
+
+  // Mémorisation de secours dans le navigateur : le récap ne revient pas, même si la base a refusé
+  const jar = await cookies()
+  jar.set(`recap_lu_${semaineId}_${user.id}`, '1', {
+    path: '/',
+    maxAge: 60 * 60 * 24 * 60,
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: true,
+  })
 
   if (destination === 'resultats') {
     redirect(`/pronostics?semaine=${semaineId}`)

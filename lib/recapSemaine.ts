@@ -27,10 +27,12 @@ export type RecapSemaine = {
 export async function trouverRecapAAfficher(
   supabase: SupabaseClient,
   userId: string,
-  saisonId: number
+  saisonId: number,
+  idsLusParCookie: number[] = []
 ): Promise<RecapSemaine | null> {
   const ref = await trouverSemaineReference(supabase, saisonId)
   if (!ref || !ref.terminee) return null
+  if (idsLusParCookie.includes(ref.id)) return null
 
   const { data: semaines } = await supabase
     .from('semaines')

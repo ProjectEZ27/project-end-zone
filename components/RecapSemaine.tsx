@@ -1,18 +1,22 @@
+'use client'
+
+import { useEffect, useRef } from 'react'
+import { TbArrowUp, TbArrowDown, TbMinus } from 'react-icons/tb'
 import { marquerRecapLu } from '@/app/pronostics/actions'
 import type { RecapSemaine as RecapData } from '@/lib/recapSemaine'
 
-// Feux d'artifice : 6 explosions, chacune de 16 étincelles. Positions fixes (pas d'aléatoire)
-const EXPLOSIONS = [
-  { x: 18, y: 16, delay: 0.0 },
-  { x: 80, y: 12, delay: 0.9 },
-  { x: 50, y: 26, delay: 1.7 },
-  { x: 10, y: 48, delay: 2.4 },
-  { x: 90, y: 44, delay: 3.1 },
-  { x: 35, y: 8, delay: 3.8 },
-]
-const ETINCELLES = 16
+function ordinal(n: number) {
+  return n === 1 ? '1er' : `${n}e`
+}
 
+/**
+ * Récap de la semaine terminée : points de la semaine (compteur), puis places gagnées ou perdues
+ * au classement général (pastille + confettis si on monte).
+ * L'animation ne se joue qu'une seule fois par joueur et par semaine (mémorisé dans le navigateur) ;
+ * aux visites suivantes, le récap s'affiche directement dans son état final.
+ */
 export default function RecapSemaine({
+  userId,
   semaineId,
   semaineNom,
   semaineSuivante,
@@ -20,28 +24,139 @@ export default function RecapSemaine({
   rang,
   nombreJoueurs,
   delta,
-}: RecapData) {
-  const monte = delta !== null && delta > 0
-  const descend = delta !== null && delta < 0
+}: RecapData & { userId: string }) {
+  const scene = useRef<HTMLDivElement>(null)
+  const contenu = useRef<HTMLDivElement>(null)
+  const carte = useRef<HTMLDivElement>(null)
+  const nombre = useRef<HTMLDivElement>(null)
+  const bloc = useRef<HTMLDivElement>(null)
 
-  // Couleur de fête : vert si on monte, rouge si on descend, doré sinon
-  const couleur = monte ? '#4ade80' : descend ? '#ff8f87' : '#fbbf24'
-  const couleurDouce = monte ? 'rgba(74,222,128,0.14)' : descend ? 'rgba(255,143,135,0.12)' : 'rgba(251,191,36,0.12)'
-  const couleurBord = monte ? 'rgba(74,222,128,0.55)' : descend ? 'rgba(255,143,135,0.45)' : 'rgba(251,191,36,0.5)'
-  const palette = monte
-    ? ['#4ade80', '#bbf7d0', '#22c55e', '#ffffff']
-    : ['#fbbf24', '#ffffff', '#C8352E', '#60a5fa']
+  const points = score ?? 0
+  const places = delta ?? 0
+  const rangAvant = delta === null ? null : rang + delta
+  const couleur = places > 0 ? '78,232,146' : places < 0 ? '255,107,95' : '159,176,201'
+  const absPlaces = Math.abs(places)
+  const Icone = places > 0 ? TbArrowUp : places < 0 ? TbArrowDown : TbMinus
 
-  const texteScore =
-    score === null
-      ? "Tu n'as pas pronostiqué cette semaine"
-      : `Tu as fait ${score} ${score > 1 ? 'points' : 'point'} cette semaine`
+  function texteNombre(n: number) {
+    return points === 0 ? '0' : `+${n}`
+  }
 
-  let texteDelta: string
-  if (delta === null) texteDelta = 'Bienvenue dans le classement général'
-  else if (delta > 0) texteDelta = `${delta} ${delta > 1 ? 'places gagnées' : 'place gagnée'} au classement général`
-  else if (delta < 0) texteDelta = `${Math.abs(delta)} ${delta < -1 ? 'places perdues' : 'place perdue'} au classement général`
-  else texteDelta = 'Tu gardes ta place au classement général'
+  function afficherFinal() {
+    if (nombre.current) nombre.current.textContent = texteNombre(points)
+    if (bloc.current) {
+      bloc.current.style.opacity = '1'
+      bloc.current.style.transform = 'scale(1)'
+    }
+  }
+
+  function particules(quantite: number) {
+    const zone = scene.current
+    const origine = nombre.current ?? bloc.current
+    if (!zone || !origine) return
+    const r = origine.getBoundingClientRect()
+    const s = zone.getBoundingClientRect()
+    const cx = r.left - s.left + r.width / 2
+    const cy = r.top - s.top + r.height / 2 + 40
+    const couleurs = ['#f0c040', '#c8352e', '#ffffff', '#4ee892']
+    for (let i = 0; i < quantite; i++) {
+      const d = document.createElement('div')
+      d.setAttribute('data-particule', '1')
+      d.style.cssText = `position:absolute;z-index:3;width:8px;height:8px;border-radius:2px;pointer-events:none;left:${cx}px;top:${cy}px;background:${couleurs[i % 4]}`
+      zone.appendChild(d)
+      const angle = Math.random() * Math.PI * 2
+      const dist = 70 + Math.random() * 130
+      d.animate(
+        [
+          { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
+          {
+            transform: `translate(${Math.cos(angle) * dist}px,${Math.sin(angle) * dist - 30}px) rotate(${Math.random() * 540}deg)`,
+            opacity: 0,
+          },
+        ],
+        { duration: 900 + Math.random() * 700, easing: 'cubic-bezier(.1,.7,.3,1)', fill: 'forwards' }
+      )
+      setTimeout(() => d.remove(), 1700)
+    }
+  }
+
+  function jouer() {
+    const zone = scene.current
+    const n = nombre.current
+    const b = bloc.current
+    const c = carte.current
+    if (!zone || !b) return
+    zone.querySelectorAll('[data-particule]').forEach((e) => e.remove())
+    b.getAnimations().forEach((a) => a.cancel())
+    b.style.opacity = '0'
+    b.style.transform = 'scale(.6)'
+
+    const reveler = () => {
+      b.animate(
+        [
+          { opacity: 0, transform: 'scale(.6)' },
+          { opacity: 1, transform: 'scale(1.12)' },
+          { opacity: 1, transform: 'scale(1)' },
+        ],
+        { duration: 550, easing: 'cubic-bezier(.2,1.2,.4,1)', fill: 'forwards' }
+      )
+      if (places < 0 && c) {
+        c.animate(
+          [
+            { transform: 'translateX(0)' },
+            { transform: 'translateX(-6px)' },
+            { transform: 'translateX(6px)' },
+            { transform: 'translateX(0)' },
+          ],
+          { duration: 300 }
+        )
+      }
+      if (places > 0) particules(Math.min(60, 16 + places * 8))
+    }
+
+    if (!n || score === null) {
+      reveler()
+      return
+    }
+
+    n.textContent = texteNombre(0)
+    const debut = performance.now()
+    const duree = 1000
+    const tick = (t: number) => {
+      const k = Math.min(1, (t - debut) / duree)
+      const e = 1 - Math.pow(1 - k, 3)
+      n.textContent = texteNombre(Math.round(points * e))
+      if (k < 1) {
+        requestAnimationFrame(tick)
+        return
+      }
+      n.animate(
+        [{ transform: 'scale(1)' }, { transform: 'scale(1.18)' }, { transform: 'scale(1)' }],
+        { duration: 450, easing: 'ease-out' }
+      )
+      setTimeout(reveler, 350)
+    }
+    requestAnimationFrame(tick)
+  }
+
+  useEffect(() => {
+    const cle = `recap-anime:${userId}:${semaineId}`
+    let dejaVu = false
+    try {
+      dejaVu = !!localStorage.getItem(cle)
+    } catch {}
+    const reduit = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (contenu.current) contenu.current.style.visibility = 'visible'
+    if (dejaVu || reduit) {
+      afficherFinal()
+      return
+    }
+    try {
+      localStorage.setItem(cle, '1')
+    } catch {}
+    jouer()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, semaineId])
 
   const boutonBase = {
     display: 'block',
@@ -55,37 +170,7 @@ export default function RecapSemaine({
   }
 
   return (
-    <div style={{ position: 'relative', minHeight: '100dvh', overflow: 'hidden' }}>
-      <style>{`
-        @keyframes ez-etincelle {
-          0%   { transform: translate(0,0) scale(1); opacity: 0; }
-          8%   { opacity: 1; }
-          70%  { opacity: 1; }
-          100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
-        }
-        @keyframes ez-montee {
-          from { transform: translateY(24px) scale(0.92); opacity: 0; }
-          to   { transform: translateY(0) scale(1); opacity: 1; }
-        }
-        @keyframes ez-pop {
-          0%   { transform: scale(0.3); opacity: 0; }
-          60%  { transform: scale(1.18); opacity: 1; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        @keyframes ez-halo {
-          0%, 100% { box-shadow: 0 0 22px var(--c-halo); }
-          50%      { box-shadow: 0 0 46px var(--c-halo); }
-        }
-        @keyframes ez-fleche {
-          0%, 100% { transform: translateY(0); }
-          50%      { transform: translateY(-4px); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .ez-anim, .ez-etincelle { animation: none !important; }
-          .ez-etincelle { display: none; }
-        }
-      `}</style>
-
+    <div ref={scene} style={{ position: 'relative', minHeight: '100dvh', overflow: 'hidden' }}>
       {/* Fond */}
       <div
         style={{
@@ -102,43 +187,14 @@ export default function RecapSemaine({
           style={{
             position: 'absolute',
             inset: 0,
-            background: `radial-gradient(ellipse at 50% 35%, ${couleurDouce} 0%, rgba(11,18,32,0.85) 60%, rgba(11,18,32,0.96) 100%)`,
+            background:
+              'radial-gradient(ellipse at 50% 35%, rgba(240,192,64,0.10) 0%, rgba(11,18,32,0.85) 60%, rgba(11,18,32,0.96) 100%)',
           }}
         />
       </div>
 
-      {/* Feux d'artifice */}
-      <div aria-hidden="true" style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
-        {EXPLOSIONS.map((e, i) =>
-          Array.from({ length: ETINCELLES }).map((_, j) => {
-            const angle = (j / ETINCELLES) * Math.PI * 2
-            const portee = 70 + (j % 3) * 22
-            return (
-              <span
-                key={`${i}-${j}`}
-                className="ez-etincelle"
-                style={{
-                  position: 'absolute',
-                  left: `${e.x}%`,
-                  top: `${e.y}%`,
-                  width: 6,
-                  height: 6,
-                  borderRadius: '50%',
-                  background: palette[(i + j) % palette.length],
-                  boxShadow: `0 0 8px ${palette[(i + j) % palette.length]}`,
-                  opacity: 0,
-                  ['--dx' as string]: `${Math.round(Math.cos(angle) * portee)}px`,
-                  ['--dy' as string]: `${Math.round(Math.sin(angle) * portee)}px`,
-                  animation: `ez-etincelle 1.6s ease-out ${e.delay}s infinite`,
-                  animationDuration: '1.6s',
-                }}
-              />
-            )
-          })
-        )}
-      </div>
-
       <div
+        ref={contenu}
         style={{
           position: 'relative',
           zIndex: 1,
@@ -147,7 +203,7 @@ export default function RecapSemaine({
           padding: '60px 24px 100px',
           textAlign: 'center',
           color: 'white',
-          ['--c-halo' as string]: couleurBord,
+          visibility: 'hidden',
         }}
       >
         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: 2 }}>
@@ -156,60 +212,59 @@ export default function RecapSemaine({
         <h1 style={{ margin: '8px 0 24px' }}>🏈 {semaineNom} terminée</h1>
 
         <div
-          className="ez-anim"
+          ref={carte}
           style={{
-            border: `1px solid ${couleurBord}`,
-            background: couleurDouce,
+            border: '1px solid #33415a',
+            background: 'rgba(22,35,63,0.82)',
             borderRadius: 14,
-            padding: '24px 16px 22px',
+            padding: '26px 16px 22px',
             backdropFilter: 'blur(4px)',
-            animation: 'ez-montee 0.7s ease-out both, ez-halo 3s ease-in-out 0.7s infinite',
           }}
         >
-          <div style={{ fontSize: 20, fontWeight: 900 }}>{texteScore}</div>
+          {score === null ? (
+            <p style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Tu n&apos;as pas pronostiqué cette semaine</p>
+          ) : (
+            <>
+              <div ref={nombre} style={{ fontSize: 68, fontWeight: 700, lineHeight: 1.05, color: '#f0c040' }}>
+                {texteNombre(points)}
+              </div>
+              <p style={{ fontSize: 14, color: '#9fb0c9', margin: 0 }}>
+                {points > 1 ? 'points cette semaine' : 'point cette semaine'}
+              </p>
+            </>
+          )}
 
-          {/* Gros rang */}
-          <div
-            className="ez-anim"
-            style={{
-              marginTop: 18,
-              fontSize: 72,
-              lineHeight: 1,
-              fontWeight: 900,
-              color: couleur,
-              textShadow: `0 0 28px ${couleurBord}`,
-              animation: 'ez-pop 0.8s cubic-bezier(.2,1.4,.4,1) 0.5s both',
-            }}
-          >
-            {rang === 1 ? '1er' : `${rang}e`}
-          </div>
-          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>
-            sur {nombreJoueurs} au classement général
-          </div>
-
-          {/* Places gagnées / perdues */}
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              marginTop: 16,
-              padding: '8px 14px',
-              borderRadius: 999,
-              background: 'rgba(0,0,0,0.35)',
-              border: `1px solid ${couleurBord}`,
-              color: couleur,
-              fontWeight: 700,
-              fontSize: 14,
-            }}
-          >
-            {monte && (
-              <span className="ez-anim" style={{ display: 'inline-block', animation: 'ez-fleche 1.2s ease-in-out infinite' }}>
-                ▲
-              </span>
+          <div ref={bloc} style={{ marginTop: 16, opacity: 0, transform: 'scale(.6)' }}>
+            {rangAvant === null ? (
+              <p style={{ fontSize: 15, margin: 0 }}>
+                Bienvenue au classement général : {ordinal(rang)} sur {nombreJoueurs}
+              </p>
+            ) : (
+              <>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    borderRadius: 24,
+                    padding: '8px 18px',
+                    fontSize: 22,
+                    fontWeight: 700,
+                    border: `1px solid rgb(${couleur})`,
+                    color: `rgb(${couleur})`,
+                    background: places === 0 ? 'transparent' : `rgba(${couleur},0.12)`,
+                  }}
+                >
+                  <Icone size={22} />
+                  <span>{places === 0 ? 'Stable' : `${absPlaces} ${absPlaces > 1 ? 'places' : 'place'}`}</span>
+                </div>
+                <p style={{ fontSize: 13, color: '#9fb0c9', margin: '8px 0 0' }}>
+                  {places === 0
+                    ? `Tu gardes ta ${ordinal(rang)} place · sur ${nombreJoueurs} au classement général`
+                    : `${ordinal(rangAvant)} → ${ordinal(rang)} · sur ${nombreJoueurs} au classement général`}
+                </p>
+              </>
             )}
-            {descend && <span>▼</span>}
-            <span>{texteDelta}</span>
           </div>
         </div>
 

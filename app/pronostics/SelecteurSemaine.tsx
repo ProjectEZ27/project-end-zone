@@ -8,8 +8,8 @@ export default function SelecteurSemaine({
   semaineActuelle: number
 }) {
   return (
-    // Même hauteur que la cloche de notification (en haut à droite), qui garde sa place à droite
-    <form action="/pronostics" method="get" style={{ margin: '-26px 40px 16px 0' }}>
+    // Même hauteur que la roue des préférences et la cloche (en haut à droite), qui gardent leur place
+    <form action="/pronostics" method="get" style={{ margin: '-26px 88px 16px 0' }}>
       <select
         name="semaine"
         defaultValue={semaineActuelle}

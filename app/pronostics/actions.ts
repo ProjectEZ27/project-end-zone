@@ -144,3 +144,18 @@ export async function marquerRecapLu(formData: FormData) {
   // Récap lu : /pronostics ouvre maintenant directement la semaine suivante
   redirect('/pronostics')
 }
+
+// Mémorise sur le COMPTE du joueur (et non sur l'appareil) que l'animation du récap a déjà été vue
+export async function marquerRecapAnime(semaineId: number) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  const deja: number[] = Array.isArray(user.user_metadata?.recaps_animes) ? user.user_metadata.recaps_animes : []
+  if (deja.includes(semaineId)) return
+
+  const { error } = await supabase.auth.updateUser({
+    data: { recaps_animes: [...deja, semaineId].slice(-20) },
+  })
+  if (error) console.error('[marquerRecapAnime]', error.message)
+}

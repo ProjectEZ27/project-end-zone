@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import RappelsPerso from '@/components/RappelsPerso'
+import LienPreferences from '@/components/LienPreferences'
 import AvatarEditor from '@/components/AvatarEditor'
 import PseudoEditor from '@/components/PseudoEditor'
 import { NOMS_EQUIPES } from '@/lib/teamBadge'
@@ -8,7 +8,6 @@ import { TbTargetArrow, TbTrendingUp, TbBallAmericanFootball, TbCalendarCheck, T
 import { calculerClassementSaison } from '@/lib/scoring'
 import EquipeFavoriteEditor from '@/components/EquipeFavoriteEditor'
 import SloganIntro, { SloganBanner } from '@/components/SloganIntro'
-import IntroAnimationToggle from '@/components/IntroAnimationToggle'
 import { getCouleurAccent } from '@/lib/teamColors'
 import { estMatchNul } from '@/lib/matchNul'
 
@@ -238,7 +237,6 @@ backgroundImage: profile?.equipe_favorite
         )}
         <div style={{ marginTop: 4 }}>
           <EquipeFavoriteEditor currentEquipe={profile?.equipe_favorite ?? null} />
-          <IntroAnimationToggle actif={animationActive} />
         </div>
 
         {/* Bandeau du slogan de l'équipe favorite */}
@@ -425,12 +423,7 @@ backgroundImage: profile?.equipe_favorite
         </div>
 
         <div style={{ marginTop: 16, padding: 16, background: '#16233F', border: '0.5px solid #33415a', borderRadius: 12, textAlign: 'left' }}>
-          <RappelsPerso
-            r1Actif={profile?.rappel_1_actif ?? false}
-            r1Heures={profile?.rappel_1_heures ?? 24}
-            r2Actif={profile?.rappel_2_actif ?? false}
-            r2Heures={profile?.rappel_2_heures ?? 3}
-          />
+          <LienPreferences />
         </div>
       </div>
     </div>

@@ -7,10 +7,47 @@ export const dynamic = 'force-dynamic'
 
 const SITE = 'https://projectendzone.fr'
 
+// Heure (Paris) à partir de laquelle part le rappel, le jour du premier match
+const HEURE_RAPPEL = 10
+// Un match qui commence avant cette heure (la nuit) compte comme un match de la veille
+const HEURE_MATCH_DE_NUIT = 6
+
 function echapper(texte: string) {
   return texte.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
+/** Date (AAAA-MM-JJ) et heure à Paris pour un instant donné */
+function parisDateHeure(instant: number) {
+  const date = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Paris',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(instant))
+  const heure = Number(
+    new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', hour: 'numeric', hourCycle: 'h23' }).format(
+      new Date(instant)
+    )
+  )
+  return { date, heure }
+}
+
+function veille(date: string) {
+  const d = new Date(`${date}T12:00:00Z`)
+  d.setUTCDate(d.getUTCDate() - 1)
+  return d.toISOString().slice(0, 10)
+}
+
+/**
+ * Rappel du matin : le jour du premier match de la semaine, à partir de 10 h (Paris),
+ * chaque joueur dont les pronostics ne sont pas terminés reçoit, selon ses préférences,
+ * une notification et/ou un e-mail. Un seul rappel par joueur et par semaine.
+ * Cette URL est appelée toutes les heures par cron-job.org.
+ *
+ * Paramètres utiles pour tester :
+ *   ?simulation=1   montre qui serait prévenu, sans rien envoyer
+ *   ?forcer=1       ignore l'heure du rappel (le premier match ne doit pas avoir commencé)
+ */
 export async function GET(request: NextRequest) {
   const secret = process.env.RAPPELS_SECRET ?? process.env.CRON_SECRET
   const autorise =
@@ -20,10 +57,9 @@ export async function GET(request: NextRequest) {
   if (!autorise) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
-  
 
-  // ?simulation=1 : montre qui recevrait un e-mail, sans rien envoyer
   const simulation = request.nextUrl.searchParams.get('simulation') === '1'
+  const forcer = request.nextUrl.searchParams.get('forcer') === '1'
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -63,81 +99,118 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: 'Les pronostics de la semaine ne sont pas encore ouverts.' })
   }
 
-  const heuresAvant = (premier - maintenant) / 3600000
-  const { data: semaine } = await supabase.from('semaines').select('nom').eq('id', semaineId).maybeSingle()
+  // 2. Est-ce le moment ? Jour du premier match (la veille s'il a lieu la nuit), à partir de 10 h
+  const kickoff = parisDateHeure(premier)
+  const jourRappel = kickoff.heure < HEURE_MATCH_DE_NUIT ? veille(kickoff.date) : kickoff.date
+  const actuel = parisDateHeure(maintenant)
+  const momentAtteint =
+    actuel.date > jourRappel || (actuel.date === jourRappel && actuel.heure >= HEURE_RAPPEL)
+  if (!momentAtteint && !forcer) {
+    return NextResponse.json({
+      message: `Pas encore l'heure : le rappel part le ${jourRappel} à partir de ${HEURE_RAPPEL} h (Paris).`,
+    })
+  }
 
-  // 2. Joueurs qui ont au moins un rappel actif
+  const { data: semaine } = await supabase.from('semaines').select('nom').eq('id', semaineId).maybeSingle()
+  const nomSemaine = semaine?.nom ?? 'La semaine'
+
+  // 3. Joueurs, préférences, pronostics déjà faits, rappels déjà envoyés
   const { data: joueurs } = await supabase
     .from('profiles')
-    .select('id, pseudo, rappel_1_actif, rappel_1_heures, rappel_2_actif, rappel_2_heures')
-    .or('rappel_1_actif.eq.true,rappel_2_actif.eq.true')
+    .select('id, pseudo, notif_rappel_actif, email_rappel_actif')
     .range(0, 9999)
 
-  const dus: { id: string; pseudo: string; numero: 1 | 2 }[] = []
-  for (const j of joueurs ?? []) {
-    for (const numero of [1, 2] as const) {
-      const actif = numero === 1 ? j.rappel_1_actif : j.rappel_2_actif
-      const heures = numero === 1 ? j.rappel_1_heures : j.rappel_2_heures
-      if (!actif || !heures) continue
-      // fenêtre de 2 h : supporte un passage raté de la tâche planifiée
-      if (heuresAvant <= heures && heuresAvant > heures - 2) {
-        dus.push({ id: j.id, pseudo: j.pseudo, numero })
-      }
-    }
-  }
-
-  // 3. On enlève ceux qui ont déjà reçu ce rappel
-  const { data: deja } = await supabase
-    .from('rappels_perso_envoyes')
-    .select('utilisateur_id, numero')
-    .eq('semaine_id', semaineId)
-  const dejaSet = new Set((deja ?? []).map((d) => `${d.utilisateur_id}-${d.numero}`))
-  const aTraiter = dus.filter((d) => !dejaSet.has(`${d.id}-${d.numero}`))
-
-  // 4. Nombre de pronostics déjà faits
   const total = liste.length
   const matchIds = liste.map((m) => m.id)
-  const ids = [...new Set(aTraiter.map((d) => d.id))]
+  const { data: pronos } = await supabase
+    .from('pronostics')
+    .select('utilisateur_id, match_id')
+    .in('match_id', matchIds)
+    .range(0, 9999)
   const faits = new Map<string, number>()
-  if (ids.length > 0) {
-    const { data: pronos } = await supabase
-      .from('pronostics')
-      .select('utilisateur_id, match_id')
-      .in('utilisateur_id', ids)
-      .in('match_id', matchIds)
-      .range(0, 9999)
-    for (const p of pronos ?? []) {
-      faits.set(p.utilisateur_id, (faits.get(p.utilisateur_id) ?? 0) + 1)
+  for (const p of pronos ?? []) {
+    const id = String(p.utilisateur_id)
+    faits.set(id, (faits.get(id) ?? 0) + 1)
+  }
+
+  const cleNotif = `rappel-matin:${semaineId}`
+  const { data: dejaNotif } = await supabase.from('notifications').select('user_id').eq('cle', cleNotif).range(0, 9999)
+  const notifSet = new Set((dejaNotif ?? []).map((d) => String(d.user_id)))
+
+  const { data: dejaEmail } = await supabase
+    .from('rappels_perso_envoyes')
+    .select('utilisateur_id')
+    .eq('semaine_id', semaineId)
+    .eq('numero', 1)
+  const emailSet = new Set((dejaEmail ?? []).map((d) => String(d.utilisateur_id)))
+
+  // 4. Notifications
+  const notifications: {
+    user_id: string
+    type: string
+    titre: string
+    message: string
+    lien: string
+    cle: string
+  }[] = []
+  const notifies: string[] = []
+  const ignores: string[] = []
+  const erreurs: string[] = []
+
+  for (const j of joueurs ?? []) {
+    const id = String(j.id)
+    const reste = total - (faits.get(id) ?? 0)
+    if (reste <= 0) {
+      ignores.push(`${j.pseudo} : a déjà tout pronostiqué`)
+      continue
+    }
+    const veutNotif = j.notif_rappel_actif ?? true
+    if (veutNotif && !notifSet.has(id)) {
+      const s = reste > 1 ? 's' : ''
+      notifications.push({
+        user_id: id,
+        type: 'rappel',
+        titre: 'Pronostics à faire',
+        message: `${nomSemaine} : il te reste ${reste} match${s} à pronostiquer.`,
+        lien: `/pronostics?semaine=${semaineId}`,
+        cle: cleNotif,
+      })
+      notifies.push(`${j.pseudo} : ${reste} match${s}`)
     }
   }
 
-  // 5. Envoi
+  if (!simulation && notifications.length > 0) {
+    const { error } = await supabase.from('notifications').insert(notifications)
+    if (error) {
+      erreurs.push(`notifications : ${error.message}`)
+      console.error('[rappels] création des notifications échouée :', error.message)
+    }
+  }
+
+  // 5. E-mails
   const resend = new Resend(process.env.RESEND_API_KEY)
   const expediteur = process.env.RESEND_FROM ?? 'Project End Zone <onboarding@resend.dev>'
   const dateMatch = new Date(premier).toLocaleString('fr-FR', {
     weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris',
   })
-  const nomSemaine = semaine?.nom ?? 'La semaine'
 
   const envoyes: string[] = []
-  const ignores: string[] = []
-  const erreurs: string[] = []
 
-  for (const d of aTraiter) {
-    const fait = faits.get(d.id) ?? 0
-    if (fait >= total) {
-      ignores.push(`${d.pseudo} : déjà tout fait`)
-      continue
-    }
+  for (const j of joueurs ?? []) {
+    const id = String(j.id)
+    if (!(j.email_rappel_actif ?? false) || emailSet.has(id)) continue
+    const fait = faits.get(id) ?? 0
+    if (fait >= total) continue
+
     if (simulation) {
-      envoyes.push(`${d.pseudo} : rappel ${d.numero} (simulation, rien envoyé)`)
+      envoyes.push(`${j.pseudo} : e-mail (simulation, rien envoyé)`)
       continue
     }
 
-    const { data: utilisateur } = await supabase.auth.admin.getUserById(d.id)
+    const { data: utilisateur } = await supabase.auth.admin.getUserById(id)
     const email = utilisateur?.user?.email
     if (!email) {
-      erreurs.push(`${d.pseudo} : pas d'adresse e-mail`)
+      erreurs.push(`${j.pseudo} : pas d'adresse e-mail`)
       continue
     }
 
@@ -147,32 +220,33 @@ export async function GET(request: NextRequest) {
       to: email,
       subject: `⏰ ${nomSemaine} : il te reste ${reste} pronostic${reste > 1 ? 's' : ''} à faire`,
       html: `
-        <p>Salut ${echapper(d.pseudo)},</p>
+        <p>Salut ${echapper(j.pseudo ?? '')},</p>
         <p>Le premier match de la <strong>${echapper(nomSemaine)}</strong> commence ${dateMatch}.
         Il te reste <strong>${reste} pronostic${reste > 1 ? 's' : ''}</strong> à faire sur ${total}.</p>
         <p><a href="${SITE}/pronostics?semaine=${semaineId}">Faire mes pronostics</a></p>
-        <p style="color:#888;font-size:12px">Tu reçois cet e-mail parce que tu as activé un rappel dans ton profil.
-        Tu peux le changer à tout moment sur <a href="${SITE}/profile">ton profil</a>.</p>
+        <p style="color:#888;font-size:12px">Tu reçois cet e-mail parce que le rappel par e-mail est activé dans tes préférences.
+        Tu peux le désactiver à tout moment avec la roue dentée en haut de n'importe quelle page du site.</p>
       `,
     })
 
     if (error) {
-      erreurs.push(`${d.pseudo} : ${error.message}`)
+      erreurs.push(`${j.pseudo} : ${error.message}`)
       continue
     }
 
     const { error: erreurBase } = await supabase
       .from('rappels_perso_envoyes')
-      .insert({ utilisateur_id: d.id, semaine_id: semaineId, numero: d.numero })
-    if (erreurBase) erreurs.push(`${d.pseudo} : envoyé mais non enregistré (${erreurBase.message})`)
+      .insert({ utilisateur_id: id, semaine_id: semaineId, numero: 1 })
+    if (erreurBase) erreurs.push(`${j.pseudo} : envoyé mais non enregistré (${erreurBase.message})`)
 
-    envoyes.push(`${d.pseudo} : rappel ${d.numero}`)
+    envoyes.push(`${j.pseudo} : e-mail`)
   }
 
   return NextResponse.json({
     semaine: nomSemaine,
-    heuresAvant: Math.round(heuresAvant * 10) / 10,
+    jourRappel,
     simulation,
+    notifies,
     envoyes,
     ignores,
     erreurs,

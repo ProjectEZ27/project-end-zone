@@ -128,7 +128,7 @@ export default function NotificationBell() {
         style={{
           position: 'absolute',
           top: 12,
-          right: 12,
+          right: 'max(12px, calc(50% - 238px))', // alignée sur la colonne centrale du site, y compris sur grand écran
           zIndex: 200,
           width: 40,
           height: 40,
@@ -175,7 +175,7 @@ export default function NotificationBell() {
           style={{
             position: 'fixed',
             top: 60,
-            right: 12,
+            right: 'max(12px, calc(50% - 238px))',
             left: 12,
             marginLeft: 'auto',
             maxWidth: 380,

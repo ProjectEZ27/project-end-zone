@@ -26,7 +26,7 @@ export default function BoutonRetour() {
       style={{
         position: 'absolute',
         top: 12,
-        left: 12,
+        left: 'max(12px, calc(50% - 238px))',
         zIndex: 200,
         width: 40,
         height: 40,

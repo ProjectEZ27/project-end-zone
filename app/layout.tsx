@@ -5,6 +5,7 @@ import Nav from "./nav";
 import AuthRecoveryListener from "./AuthRecoveryListener";
 import NotificationBell from "@/components/NotificationBell";
 import BoutonRetour from "@/components/BoutonRetour";
+import BoutonPreferences from "@/components/BoutonPreferences";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,6 +55,7 @@ export default function RootLayout({
           <Nav />
           <NotificationBell />
           <BoutonRetour />
+          <BoutonPreferences />
         </body>
     </html>
   );

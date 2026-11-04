@@ -16,6 +16,7 @@ import { orienter } from '@/lib/domicile'
 import DirectRafraichisseur from '@/components/DirectRafraichisseur'
 import ResultatsRafraichisseur from '@/components/ResultatsRafraichisseur'
 import RecapSemaine from '@/components/RecapSemaine'
+import AnneauScore from '@/components/AnneauScore'
 import { cookies } from 'next/headers'
 import { trouverRecapAAfficher } from '@/lib/recapSemaine'
 import { calculerClassementSemaine } from '@/lib/scoring'
@@ -40,7 +41,10 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
         .filter((m): m is RegExpMatchArray => m !== null && m[2] === user.id)
         .map((m) => Number(m[1]))
       const recap = await trouverRecapAAfficher(supabase, user.id, saisonRecap.id, idsLusParCookie)
-      if (recap) return <RecapSemaine {...recap} userId={user.id} />
+      if (recap) {
+        const animes: number[] = Array.isArray(user.user_metadata?.recaps_animes) ? user.user_metadata.recaps_animes : []
+        return <RecapSemaine {...recap} userId={user.id} dejaAnime={animes.includes(recap.semaineId)} />
+      }
     }
   }
 
@@ -97,7 +101,6 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
     )
   }
 
-  const indexActuel = toutesLesSemaines?.findIndex((s) => s.id === semaine.id) ?? -1
   const estPremiereSemaine = semaine.nom?.toLowerCase().trim() === 'week 1'
   const estSemaineWildCard = semaine.nom?.toLowerCase().trim() === 'wild card'
   const estSemaineSuperBowl = semaine.nom?.toLowerCase().trim() === 'super bowl'
@@ -157,13 +160,19 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   // Score du joueur sur une semaine terminée (rien tant que la semaine n'est pas finie)
   const semaineTerminee = (matchs ?? []).length > 0 && (matchs ?? []).every((m) => m.statut === 'termine')
   let scoreSemaineTexte: string | null = null
+  let scoreAnneau: { score: number; corrects: number; total: number } | null = null
   if (semaineTerminee) {
     if ((mesPronostics ?? []).length === 0) {
       scoreSemaineTexte = "Tu n'as pas pronostiqué cette semaine"
     } else {
       const classementSemaine = await calculerClassementSemaine(supabase, semaine.id)
       const monScore = classementSemaine.find((j) => j.utilisateur_id === user.id)?.score_semaine ?? 0
-      scoreSemaineTexte = `Tu as fait ${monScore} ${monScore > 1 ? 'points' : 'point'} cette semaine`
+      const matchParId = new Map((matchs ?? []).map((m) => [m.id, m]))
+      const bonsPronos = (mesPronostics ?? []).filter((p) => {
+        const m = matchParId.get(p.match_id)
+        return !!m && m.statut === 'termine' && p.equipe_choisie === m.equipe_gagnante
+      }).length
+      scoreAnneau = { score: monScore, corrects: bonsPronos, total: nombreMatchsComptes }
     }
   }
 
@@ -224,7 +233,8 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
       {scoreSemaineTexte && (
         <p style={{ fontSize: 15, fontWeight: 700, margin: '12px 0 0' }}>{scoreSemaineTexte}</p>
       )}
-      {nombreTotal > 0 && (() => {
+      {scoreAnneau && <AnneauScore {...scoreAnneau} />}
+      {nombreTotal > 0 && !semaineTerminee && (() => {
         const etat =
           nombreFaits === 0
             ? { texte: `Aucun pronostic · 0/${nombreTotal}`, couleur: '#ff8f87', fond: 'rgba(200,53,46,0.12)', bord: 'rgba(200,53,46,0.5)' }

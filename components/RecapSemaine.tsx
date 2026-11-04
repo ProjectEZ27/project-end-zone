@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { TbArrowUp, TbArrowDown, TbMinus } from 'react-icons/tb'
-import { marquerRecapLu } from '@/app/pronostics/actions'
+import { marquerRecapLu, marquerRecapAnime } from '@/app/pronostics/actions'
 import type { RecapSemaine as RecapData } from '@/lib/recapSemaine'
 
 function ordinal(n: number) {
@@ -17,6 +17,7 @@ function ordinal(n: number) {
  */
 export default function RecapSemaine({
   userId,
+  dejaAnime,
   semaineId,
   semaineNom,
   semaineSuivante,
@@ -24,7 +25,7 @@ export default function RecapSemaine({
   rang,
   nombreJoueurs,
   delta,
-}: RecapData & { userId: string }) {
+}: RecapData & { userId: string; dejaAnime: boolean }) {
   const scene = useRef<HTMLDivElement>(null)
   const contenu = useRef<HTMLDivElement>(null)
   const carte = useRef<HTMLDivElement>(null)
@@ -141,9 +142,9 @@ export default function RecapSemaine({
 
   useEffect(() => {
     const cle = `recap-anime:${userId}:${semaineId}`
-    let dejaVu = false
+    let dejaVu = dejaAnime
     try {
-      dejaVu = !!localStorage.getItem(cle)
+      dejaVu = dejaVu || !!localStorage.getItem(cle)
     } catch {}
     const reduit = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     if (contenu.current) contenu.current.style.visibility = 'visible'
@@ -154,6 +155,7 @@ export default function RecapSemaine({
     try {
       localStorage.setItem(cle, '1')
     } catch {}
+    marquerRecapAnime(semaineId).catch(() => {})
     jouer()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, semaineId])

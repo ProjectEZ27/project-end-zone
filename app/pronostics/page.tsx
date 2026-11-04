@@ -17,6 +17,7 @@ import DirectRafraichisseur from '@/components/DirectRafraichisseur'
 import ResultatsRafraichisseur from '@/components/ResultatsRafraichisseur'
 import RecapSemaine from '@/components/RecapSemaine'
 import AnneauScore from '@/components/AnneauScore'
+import { listerSemainesAvecScores } from '@/lib/scoresSemaines'
 import { cookies } from 'next/headers'
 import { trouverRecapAAfficher } from '@/lib/recapSemaine'
 import { calculerClassementSemaine } from '@/lib/scoring'
@@ -48,14 +49,13 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
     }
   }
 
-  const [toutesLesSemainesResult, semaineParamResult, classement] = await Promise.all([
-    supabase.from('semaines').select('id, nom').order('id', { ascending: true }),
+  const [lignesSemaines, semaineParamResult, classement] = await Promise.all([
+    listerSemainesAvecScores(supabase, user.id),
     semaineParam
       ? supabase.from('semaines').select('*').eq('id', semaineParam).single()
       : Promise.resolve({ data: null }),
     getPowerIndexRanking(new Date().getFullYear())
   ])
-  const toutesLesSemaines = toutesLesSemainesResult.data
   let semaine = semaineParamResult.data
   const rangParEquipe = new Map(classement.map((e) => [e.code, e.rang]))
   const descCourte = (code: string) => {
@@ -219,7 +219,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
       </div>
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '40px 24px 100px', textAlign: 'center', color: 'white' }}>
       <SelecteurSemaine
-        semaines={toutesLesSemaines ?? []}
+        lignes={lignesSemaines}
         semaineActuelle={semaine.id}
       />
       <DirectRafraichisseur actif={directActif} />
@@ -264,7 +264,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
         )
       })()}
 
-      <BarreActionsSemaine avecInfos={nombreTotal > 0 && !estSemainePlayoffsVide} />
+      {!semaineTerminee && <BarreActionsSemaine avecInfos={nombreTotal > 0 && !estSemainePlayoffsVide} />}
 
       {estPremiereSemaine && saison && (
         <SpecialPicksPreseason saisonId={saison.id} mesPronosSpeciaux={mesPronosSpeciaux} />

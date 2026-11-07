@@ -19,13 +19,21 @@ function resoudreCle(motTrouve: string): string | null {
   return null
 }
 
-export default function JournalPhrase({ texte }: { texte: string }) {
+export default function JournalPhrase({
+  texte,
+  compact = false,
+  taille = 14,
+}: {
+  texte: string
+  compact?: boolean
+  taille?: number
+}) {
   const [termeActif, setTermeActif] = useState<string | null>(null)
   const morceaux = texte.split(construireRegex())
 
   return (
-    <div style={{ marginBottom: 12 }}>
-      <p style={{ margin: 0, lineHeight: 1.6, fontSize: 14, color: 'white' }}>
+    <div style={{ marginBottom: compact ? 0 : 12 }}>
+      <p style={{ margin: 0, lineHeight: 1.5, fontSize: taille, color: 'white' }}>
         {morceaux.map((morceau, i) => {
           const cle = resoudreCle(morceau)
           if (cle) {

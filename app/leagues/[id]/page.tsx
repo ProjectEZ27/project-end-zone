@@ -14,8 +14,8 @@ import {
   TbCheck,
   TbX,
 } from 'react-icons/tb'
-import { genererJournalSemaine } from '@/lib/journal'
-import JournalPhrase from '@/components/JournalPhrase'
+import { genererJournalSemaine, derniereSemaineTerminee } from '@/lib/journal'
+import JournalDuMardi from '@/components/JournalDuMardi'
 import LeagueSwitcher from '@/components/LeagueSwitcher'
 
 export default async function LeagueDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string }> }) {
@@ -108,21 +108,10 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
     ...(adhesionsMembres ?? []).map((a) => a.utilisateur_id),
   ]))
 
-  const { data: dernierMatchTermineLigue } = await supabase
-    .from('matchs')
-    .select('semaine_id')
-    .eq('statut', 'termine')
-    .order('coup_envoi', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
-  const derniereSemaineClotureeLigue = dernierMatchTermineLigue
-    ? { id: dernierMatchTermineLigue.semaine_id }
-    : null
-
-  const phrasesJournal = derniereSemaineClotureeLigue
-    ? await genererJournalSemaine(supabase, derniereSemaineClotureeLigue.id, membreIdsLigue)
-    : []
+  const semaineDuJournal = await derniereSemaineTerminee(supabase)
+  const journal = semaineDuJournal
+    ? await genererJournalSemaine(supabase, semaineDuJournal, membreIdsLigue)
+    : { semaine: '', articles: [], enVedette: false }
   const pastilles = [
     { href: `/leagues/${id}/pronostics`, label: 'Résultats', Icon: TbBallAmericanFootball },
     { href: `/leagues/${id}/classement`, label: 'Classement', Icon: TbTrophy },
@@ -208,13 +197,8 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
           ))}
         </div>
 
-        {phrasesJournal.length > 0 && (
-          <div style={{ marginTop: 20, background: 'rgba(22,35,63,0.6)', border: '1px solid #33415a', borderRadius: 8, padding: 16, textAlign: 'left' }}>
-            <p style={{ fontWeight: 600, marginBottom: 12, color: 'white' }}>📰 Moment fort du mardi</p>
-            {phrasesJournal.map((phrase, i) => (
-              <JournalPhrase key={i} texte={phrase} />
-            ))}
-          </div>
+        {journal.articles.length > 0 && (
+          <JournalDuMardi semaine={journal.semaine} articles={journal.articles} enVedette={journal.enVedette} />
         )}
         {estCommissaire && (
           <div style={{ marginTop: 20, background: '#16233F', border: '0.5px solid #33415a', borderRadius: 12, padding: 16 }}>

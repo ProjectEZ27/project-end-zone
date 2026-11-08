@@ -1,8 +1,8 @@
 'use client'
- 
+
 import { useState } from 'react'
 import { PALIERS_LIGUE, TAILLE_MAX_GRATUITE } from '@/lib/paliersLigue'
- 
+
 /*
  * Choix de la taille d'une ligue. Seul le palier gratuit (≤ 50) est ouvert ;
  * les autres sont grisés et affichent un avertissement « payant » quand on les touche.
@@ -10,7 +10,7 @@ import { PALIERS_LIGUE, TAILLE_MAX_GRATUITE } from '@/lib/paliersLigue'
  */
 export default function ChoixTailleLigue() {
   const [info, setInfo] = useState<string | null>(null)
- 
+
   return (
     <div style={{ textAlign: 'left' }}>
       <input type="hidden" name="taille_max" value={TAILLE_MAX_GRATUITE} />
@@ -44,7 +44,7 @@ export default function ChoixTailleLigue() {
           >
             <span style={{ fontWeight: 600 }}>{p.gratuit ? '● ' : '🔒 '}{p.libelle}</span>
             <span style={{ fontSize: 11 }}>
-              {p.gratuit ? 'Gratuit' : p.prix ? p.prix : 'Payant · bientôt'}
+              {p.gratuit ? 'Gratuit' : p.prix ?? 'Bientôt disponible'}
             </span>
           </div>
         ))}
@@ -55,4 +55,3 @@ export default function ChoixTailleLigue() {
     </div>
   )
 }
- 

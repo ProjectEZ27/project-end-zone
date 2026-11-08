@@ -612,18 +612,25 @@ function journalEnVedette(dernierMatch: string, maintenant: Date = new Date()): 
 }
 
 /*
- * Dernière semaine dont TOUS les matchs sont terminés (parmi les 5 plus récentes).
- * Évite que le journal disparaisse dès le jeudi, quand le premier match de la semaine suivante se termine.
+ * Dernière semaine dont TOUS les matchs sont terminés.
+ * La base contient toute la saison à l'avance (semaines futures comprises) : on parcourt donc
+ * toutes les semaines, de la plus récente à la plus ancienne, et on retient la première
+ * qui a des matchs et dont tous les matchs sont terminés.
+ * Évite aussi que le journal disparaisse dès le jeudi, quand le premier match de la semaine suivante se termine.
  */
 export async function derniereSemaineTerminee(supabase: SupabaseClient): Promise<number | null> {
   const { data: semaines } = await supabase
     .from('semaines')
     .select('id')
     .order('id', { ascending: false })
-    .limit(5)
+    .range(0, 99)
   const ids = (semaines ?? []).map((s) => s.id)
   if (ids.length === 0) return null
-  const { data: matchs } = await supabase.from('matchs').select('semaine_id, statut').in('semaine_id', ids)
+  const { data: matchs } = await supabase
+    .from('matchs')
+    .select('semaine_id, statut')
+    .in('semaine_id', ids)
+    .range(0, 4999)
   for (const id of ids) {
     const siens = (matchs ?? []).filter((m) => m.semaine_id === id)
     if (siens.length > 0 && siens.every((m) => m.statut === 'termine')) return id

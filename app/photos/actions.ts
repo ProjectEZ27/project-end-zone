@@ -38,24 +38,23 @@ export async function envoyerPhoto(formData: FormData): Promise<{ ok: boolean; m
   const { error: erreurBase } = await supabase.from('photos_perso').insert({ type, cible, chemin })
   if (erreurBase) return { ok: false, message: "L'envoi a échoué, réessaie." }
 
-  if (user.id !== ADMIN_ID) {
-    let message = 'Une nouvelle photo est en attente de validation.'
-    if (type === 'profil') {
-      const { data: profil } = await supabase.from('profiles').select('pseudo').eq('id', user.id).maybeSingle()
-      if (profil?.pseudo) message = `Photo de profil de ${profil.pseudo}.`
-    } else {
-      const { data: ligue } = await supabase.from('ligues').select('nom').eq('id', cible).maybeSingle()
-      if (ligue?.nom) message = `Photo de la ligue ${ligue.nom}.`
-    }
-    await creerNotification({
-      userId: ADMIN_ID,
-      type: 'photo',
-      titre: 'Photo à valider',
-      message,
-      lien: '/admin/photos',
-      cle: `photo-a-valider:${chemin}`,
-    })
+  // La notification part aussi quand l'administrateur envoie lui-même une photo (pour la valider depuis /admin/photos)
+  let message = 'Une nouvelle photo est en attente de validation.'
+  if (type === 'profil') {
+    const { data: profil } = await supabase.from('profiles').select('pseudo').eq('id', user.id).maybeSingle()
+    if (profil?.pseudo) message = `Photo de profil de ${profil.pseudo}.`
+  } else {
+    const { data: ligue } = await supabase.from('ligues').select('nom').eq('id', cible).maybeSingle()
+    if (ligue?.nom) message = `Photo de la ligue ${ligue.nom}.`
   }
+  await creerNotification({
+    userId: ADMIN_ID,
+    type: 'photo',
+    titre: 'Photo à valider',
+    message,
+    lien: '/admin/photos',
+    cle: `photo-a-valider:${chemin}`,
+  })
 
   revalidatePath('/profile')
   if (type === 'ligue') revalidatePath(`/leagues/${cible}`)

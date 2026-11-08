@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Anton } from 'next/font/google'
 import JournalPhrase from '@/components/JournalPhrase'
+import ReactionsArticle, { type ReactionJoueur } from '@/components/ReactionsArticle'
 import type { Article } from '@/lib/journal'
 
 const anton = Anton({ weight: '400', subsets: ['latin'] })
@@ -54,11 +55,20 @@ export default function JournalDuMardi({
   articles,
   enVedette,
   ouvertAuDepart = false,
+  reactions,
 }: {
   semaine: string
   articles: Article[]
   enVedette: boolean // mardi et mercredi : barre « le journal est sorti » ; sinon petit bouton discret
   ouvertAuDepart?: boolean
+  // Réactions des joueurs (absent = pas de réactions)
+  reactions?: {
+    ligueId: number
+    semaineId: number
+    monId: string
+    monPseudo: string
+    parArticle: Record<string, ReactionJoueur[]>
+  }
 }) {
   const [ouvert, setOuvert] = useState(ouvertAuDepart)
 
@@ -67,6 +77,18 @@ export default function JournalDuMardi({
   if (principaux.length === 0) return null
   const une = principaux[0]
   const cartes = principaux.slice(1)
+
+  const barre = (a: Article) =>
+    reactions ? (
+      <ReactionsArticle
+        ligueId={reactions.ligueId}
+        semaineId={reactions.semaineId}
+        articleId={a.id}
+        initiales={reactions.parArticle[a.id] ?? []}
+        monId={reactions.monId}
+        monPseudo={reactions.monPseudo}
+      />
+    ) : null
 
   const tampon = (a: Article, taille: number, rotation: boolean) => (
     <span
@@ -148,6 +170,7 @@ export default function JournalDuMardi({
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 12 }}>
               <Stats stats={une.stats} />
             </div>
+            {barre(une)}
           </div>
 
           {cartes.length > 0 && (
@@ -164,6 +187,7 @@ export default function JournalDuMardi({
                   </h4>
                   <Stats stats={a.stats} petit />
                   <Vanne texte={a.texte} />
+                  {barre(a)}
                 </div>
               ))}
             </div>
@@ -175,6 +199,7 @@ export default function JournalDuMardi({
                 La phrase de la semaine
               </div>
               <JournalPhrase texte={fixe.texte} compact taille={15} />
+              {barre(fixe)}
             </div>
           )}
         </div>

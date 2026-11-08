@@ -4,22 +4,34 @@ import { useState } from 'react'
 import { changerLogoLigue } from '@/app/leagues/[id]/actions'
 import LeagueLogo from './LeagueLogo'
 import LeagueLogoSelector from './LeagueLogoSelector'
+import PhotoUploader from './PhotoUploader'
+import { retirerPhotoLigue } from '@/app/photos/actions'
 
 interface LeagueLogoEditorProps {
   ligueId: string
   currentLogoId: number
   estCommissaire: boolean
   leagueName: string
+  photoChemin?: string | null
+  photoEnAttente?: boolean
 }
 
-export default function LeagueLogoEditor({ ligueId, currentLogoId, estCommissaire, leagueName }: LeagueLogoEditorProps) {
+export default function LeagueLogoEditor({
+  ligueId,
+  currentLogoId,
+  estCommissaire,
+  leagueName,
+  photoChemin = null,
+  photoEnAttente = false,
+}: LeagueLogoEditorProps) {
   const [open, setOpen] = useState(false)
   const [selectedLogo, setSelectedLogo] = useState(currentLogoId)
+  const [montrerPhoto, setMontrerPhoto] = useState(false)
 
   if (!estCommissaire) {
     return (
       <div style={{ marginBottom: 12 }}>
-        <LeagueLogo logoId={currentLogoId} size={110} leagueName={leagueName} />
+        <LeagueLogo logoId={currentLogoId} size={110} leagueName={leagueName} photoChemin={photoChemin} />
       </div>
     )
   }
@@ -31,6 +43,7 @@ export default function LeagueLogoEditor({ ligueId, currentLogoId, estCommissair
           logoId={currentLogoId}
           size={110}
           leagueName={leagueName}
+          photoChemin={photoChemin}
           clickable
           onClick={() => setOpen(!open)}
         />
@@ -96,6 +109,55 @@ export default function LeagueLogoEditor({ ligueId, currentLogoId, estCommissair
               Annuler
             </button>
           </form>
+
+          <div style={{ borderTop: '1px solid #33415a', marginTop: 16, paddingTop: 14, textAlign: 'center' }}>
+            <p style={{ margin: '0 0 8px', fontSize: 13, color: '#9fb0c9' }}>Ou utilise une photo pour ta ligue</p>
+
+            {photoEnAttente && (
+              <p style={{ margin: '0 0 10px', fontSize: 12, color: '#f5c969' }}>
+                Une photo est en attente de validation. Le logo actuel reste affiché en attendant.
+              </p>
+            )}
+
+            {!montrerPhoto ? (
+              <button
+                type="button"
+                onClick={() => setMontrerPhoto(true)}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'transparent',
+                  color: 'white',
+                  border: '1px dashed #C8352E',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  fontSize: 13,
+                }}
+              >
+                {photoChemin ? 'Changer la photo' : 'Ajouter une photo'}
+              </button>
+            ) : (
+              <PhotoUploader type="ligue" cible={ligueId} onTermine={() => setMontrerPhoto(false)} />
+            )}
+
+            {photoChemin && (
+              <form action={retirerPhotoLigue} style={{ marginTop: 12 }}>
+                <input type="hidden" name="ligue_id" value={ligueId} />
+                <button
+                  type="submit"
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#9fb0c9',
+                    fontSize: 12,
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Retirer la photo et revenir au logo
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       )}
     </div>

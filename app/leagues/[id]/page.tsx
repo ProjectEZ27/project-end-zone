@@ -138,8 +138,11 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
     pastilles.push({ href: `/leagues/${id}/parametres`, label: 'Paramètres', Icon: TbSettings })
   }
 
-  // Diagnostic temporaire (visible seulement par l'administrateur) quand le journal est vide
+  // Diagnostic temporaire (visible seulement par l'administrateur)
   let diagnosticJournal: string[] | null = null
+  if (user.id === ADMIN_ID && journal.articles.length > 0 && journal.diagnostic) {
+    diagnosticJournal = journal.diagnostic
+  }
   if (user.id === ADMIN_ID && journal.articles.length === 0) {
     const { data: dernieresSemaines } = await supabase
       .from('semaines')

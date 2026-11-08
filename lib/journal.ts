@@ -35,6 +35,7 @@ export type JournalSemaine = {
   articles: Article[]
   // vrai pendant 3 jours à partir d'1 h après le dernier match : le tribunal est alors mis en avant
   enVedette: boolean
+  diagnostic?: string[] // pour l'administrateur : pourquoi tel article est (ou n'est pas) sorti
   nomTribunal: string // ex. « Tribunal du mardi », « Tribunal des Wild Cards »
   exceptionnel: boolean // vrai si le tribunal ne s'ouvre pas un mardi (saison régulière)
 }
@@ -191,6 +192,18 @@ function choisirPhrase(
   return possibles[possibles.length - 1].texte
 }
 
+/** Lit toutes les lignes d'une requête, par pages de 1000 (limite de Supabase). */
+async function toutLire(page: (de: number, a: number) => PromiseLike<{ data: any[] | null }>): Promise<any[]> {
+  const tout: any[] = []
+  for (let de = 0; de < 50000; de += 1000) {
+    const { data } = await page(de, de + 999)
+    const lignes = data ?? []
+    tout.push(...lignes)
+    if (lignes.length < 1000) break
+  }
+  return tout
+}
+
 async function classementCumuleParSemaines(
   supabase: SupabaseClient,
   semaineIds: number[],
@@ -243,13 +256,9 @@ export async function genererJournalSemaine(
   if (nbMatchs === 0) return VIDE
 
   const matchIds = matchs.map((m) => m.id)
-  const { data: pronosBruts } = await supabase
-    .from('pronostics')
-    .select('*')
-    .in('match_id', matchIds)
-    .in('utilisateur_id', membreIds)
-    .range(0, 9999)
-  const pronostics = pronosBruts ?? []
+  const pronostics = await toutLire((de, a) =>
+    supabase.from('pronostics').select('*').in('match_id', matchIds).in('utilisateur_id', membreIds).range(de, a)
+  )
   if (pronostics.length === 0) return VIDE
 
   // ----- Semaine, saison, semaines précédentes -----
@@ -279,13 +288,15 @@ export async function genererJournalSemaine(
     const { data: matchsAvant } = await supabase.from('matchs').select('id').in('semaine_id', troisPrecedentes)
     const idsMatchsAvant = (matchsAvant ?? []).map((m) => m.id)
     if (idsMatchsAvant.length > 0) {
-      const { data: pronosAvant } = await supabase
-        .from('pronostics')
-        .select('utilisateur_id')
-        .in('match_id', idsMatchsAvant)
-        .in('utilisateur_id', [...aPronostique])
-        .range(0, 9999)
-      actifsAvant = new Set((pronosAvant ?? []).map((p) => p.utilisateur_id))
+      const pronosAvant = await toutLire((de, a) =>
+        supabase
+          .from('pronostics')
+          .select('utilisateur_id')
+          .in('match_id', idsMatchsAvant)
+          .in('utilisateur_id', [...aPronostique])
+          .range(de, a)
+      )
+      actifsAvant = new Set(pronosAvant.map((p: any) => p.utilisateur_id))
     }
   }
   const actifs = [...aPronostique].filter((id) => actifsAvant === null || actifsAvant.has(id))
@@ -296,7 +307,7 @@ export async function genererJournalSemaine(
   const { data: profiles } = await supabase
     .from('profiles')
     .select('id, pseudo, equipe_favorite')
-    .in('id', actifs)
+    .in('id', [...aPronostique])
   const pseudoMap = new Map<string, string>((profiles ?? []).map((p) => [p.id, p.pseudo]))
   const favoriMap = new Map<string, string>(
     (profiles ?? []).filter((p) => p.equipe_favorite).map((p) => [p.id, p.equipe_favorite])
@@ -382,7 +393,8 @@ export async function genererJournalSemaine(
     return { gagnante, perdante, eq: nomEquipe(gagnante), adv: nomEquipe(perdante) }
   }
   const infosMatchs = matchsNonNuls.map((m) => {
-    const pronos = pronostics.filter((p) => p.match_id === m.id && estActif.has(p.utilisateur_id))
+    // Pour les histoires de match, tous les joueurs qui ont pronostiqué comptent (pas seulement les « actifs »)
+    const pronos = pronostics.filter((p) => p.match_id === m.id && aPronostique.has(p.utilisateur_id))
     const bons = pronos.filter((p) => p.equipe_choisie === m.equipe_gagnante)
     const mauvais = pronos.filter((p) => p.equipe_choisie !== m.equipe_gagnante)
     return { m, pronos, bons, mauvais, ...nomsMatch(m) }
@@ -666,6 +678,11 @@ export async function genererJournalSemaine(
     semaine: semaineActuelle?.nom ?? '',
     articles,
     enVedette: journalEnVedette(dernierMatch),
+    diagnostic: [
+      `Joueurs ayant pronostiqué cette semaine : ${aPronostique.size} · actifs (classements) : ${actifs.length}`,
+      `Articles possibles : ${candidats.map((c) => c.id).join(', ') || 'aucun'}`,
+      `Articles retenus : ${articles.map((a) => a.id).join(', ')}`,
+    ],
     ...(() => { const t = nomDuTribunal(semaineActuelle?.nom ?? '', dernierMatch); return { nomTribunal: t.nom, exceptionnel: t.exceptionnel } })(),
   }
 }

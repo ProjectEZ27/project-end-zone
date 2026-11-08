@@ -6,6 +6,7 @@ import MatchHeaderReadOnly from '@/components/MatchHeaderReadOnly'
 import PicksColumns from '@/components/PicksColumns'
 import LeagueSubNav from '@/components/LeagueSubNav'
 import { orienter } from '@/lib/domicile'
+import BarreSemaines from '@/components/BarreSemaines'
 
 export default async function LeaguePronostics({
   params,
@@ -170,10 +171,11 @@ export default async function LeaguePronostics({
         )
       })()}
 
-      <div style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 24, paddingBottom: 4 }}>
+      <BarreSemaines>
         {toutesLesSemaines.map((s) => (
           <Link
             key={s.id}
+            data-actif={s.id === semaine.id ? 'true' : 'false'}
             href={`/leagues/${id}/pronostics?semaine=${s.id}`}
             style={{
               flexShrink: 0,
@@ -190,7 +192,7 @@ export default async function LeaguePronostics({
             {s.nom}
           </Link>
         ))}
-      </div>
+      </BarreSemaines>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {matchs?.map((match) => {

@@ -7,10 +7,12 @@ import UserAvatar from '@/components/UserAvatar'
 import TeamStripe, { largeurBandes } from '@/components/TeamStripe'
 import MouvementFleche from '@/components/MouvementFleche'
 import { TbChevronRight } from 'react-icons/tb'
-
+import ChoixLigueClassement from '@/components/ChoixLigueClassement'
+import { liguesPourMenu } from '@/lib/accueil'
+ 
 const TAILLE_PAGE = 50
 const HAUTEUR_LIGNE = 67
-
+ 
 export default async function Classement({
   searchParams,
 }: {
@@ -18,38 +20,38 @@ export default async function Classement({
 }) {
   const { page: pageParam, ligue: ligueParam } = await searchParams
   const pageActuelle = Math.max(1, parseInt(pageParam ?? '1', 10) || 1)
-
+ 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-
+ 
   if (!user) {
     redirect('/login')
   }
-
+ 
   const { data: saison } = await supabase
     .from('saisons')
     .select('*')
     .eq('statut', 'en_cours')
     .single()
-
+ 
   const { data: adhesions } = await supabase
     .from('adhesions')
-    .select('ligue_id, ligues(id, nom)')
+    .select('ligue_id, epingle, masquee, ligues(id, nom)')
     .eq('utilisateur_id', user.id)
     .eq('statut', 'actif')
-
+ 
   const liguesBrutes = (adhesions ?? [])
-    .map((a: any) => a.ligues)
-    .filter(Boolean)
-
+    .filter((a: any) => a.ligues)
+    .map((a: any) => ({ ...a.ligues, epingle: a.epingle ?? null, masquee: a.masquee === true }))
+ 
   const mesLigues = Array.from(
     new Map(liguesBrutes.map((l: any) => [l.id, l])).values()
-  ) as { id: number; nom: string }[]
-
+  ) as { id: number; nom: string; epingle: number | null; masquee: boolean }[]
+ 
   const ligueSelectionnee = ligueParam
     ? mesLigues.find((l) => String(l.id) === ligueParam) ?? null
     : null
-
+ 
   if (!saison) {
     return (
       <div style={{ maxWidth: 500, margin: '80px auto', padding: 24, textAlign: 'center' }}>
@@ -58,9 +60,9 @@ export default async function Classement({
       </div>
     )
   }
-
+ 
   const classementComplet = await calculerClassementSaison(supabase, saison.id)
-
+ 
   let membresLigueIds: Set<string> | null = null
   let classement = classementComplet
   if (ligueSelectionnee) {
@@ -69,12 +71,12 @@ export default async function Classement({
       .select('utilisateur_id')
       .eq('ligue_id', ligueSelectionnee.id)
       .eq('statut', 'actif')
-
+ 
     const membres = new Set((adhesionsLigue ?? []).map((a) => a.utilisateur_id))
     membresLigueIds = membres
     classement = classementComplet.filter((j) => membres.has(j.utilisateur_id))
   }
-
+ 
   // Flèches : places gagnées ou perdues depuis le début de la semaine en cours
   const membresFiltre = membresLigueIds
   const semaineRef = await trouverSemaineReference(supabase, saison.id)
@@ -87,7 +89,7 @@ export default async function Classement({
       avantFiltre.map((j) => j.utilisateur_id)
     )
   }
-
+ 
   // Animation du mardi : seulement si la semaine est complète et si le joueur n'a pas désactivé les animations
   const { data: monProfil } = await supabase
     .from('profiles')
@@ -98,7 +100,7 @@ export default async function Classement({
   const animer = !!semaineRef?.terminee && animationsActives
   const scope = ligueSelectionnee ? `ligue-${ligueSelectionnee.id}` : 'general'
   const cleAnimation = `pez-mvt-${user.id}-${scope}-${semaineRef?.id ?? 0}`
-
+ 
   const userIds = classement.map((j) => j.utilisateur_id)
   const { data: profils } = userIds.length > 0
     ? await supabase.from('profiles').select('id, avatar_id, photo_chemin, equipe_favorite').in('id', userIds)
@@ -106,24 +108,24 @@ export default async function Classement({
   const avatarMap = new Map((profils ?? []).map((p) => [p.id, p.avatar_id ?? 1]))
   const photoMap = new Map((profils ?? []).map((p) => [p.id, p.photo_chemin ?? null]))
   const equipeMap = new Map((profils ?? []).map((p) => [p.id, p.equipe_favorite ?? null]))
-
+ 
   const totalPages = Math.max(1, Math.ceil(classement.length / TAILLE_PAGE))
   const pageCorrigee = Math.min(pageActuelle, totalPages)
   const debutPage = (pageCorrigee - 1) * TAILLE_PAGE
   const classementPage = classement.slice(debutPage, debutPage + TAILLE_PAGE)
-
+ 
   const monIndex = classement.findIndex((j) => j.utilisateur_id === user.id)
   const monRang = monIndex >= 0 ? monIndex + 1 : null
   const jeSuisSurCettePage = monRang !== null && monRang > debutPage && monRang <= debutPage + TAILLE_PAGE
   const jeSuisHorsPage = monRang !== null && !jeSuisSurCettePage
-
+ 
   const construireUrlPage = (p: number) => {
     const params = new URLSearchParams()
     if (ligueSelectionnee) params.set('ligue', String(ligueSelectionnee.id))
     params.set('page', String(p))
     return `/classement?${params.toString()}`
   }
-
+ 
   const styleBordure = (rang: number) => {
     if (rang === 1) return '#EF9F27'
     if (rang === 2) return '#B9C1CC'
@@ -136,7 +138,7 @@ export default async function Classement({
     if (rang === 3) return '#CD8B5C'
     return '#7a8aa5'
   }
-
+ 
   const LigneJoueur = ({ joueur, rang, moi }: { joueur: typeof classement[number]; rang: number; moi: boolean }) => {
     const equipe = equipeMap.get(joueur.utilisateur_id) ?? null
     const paddingDroite = equipe ? largeurBandes(HAUTEUR_LIGNE) + 8 : 12
@@ -178,7 +180,7 @@ export default async function Classement({
       </Link>
     )
   }
-
+ 
   return (
     <div style={{ position: 'relative', minHeight: '100dvh' }}>
       <div style={{
@@ -196,7 +198,7 @@ export default async function Classement({
           background: 'linear-gradient(180deg, rgba(11,18,32,0.72) 0%, rgba(11,18,32,0.92) 100%)',
         }} />
       </div>
-
+ 
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '24px 24px 100px', textAlign: 'center', color: 'white' }}>
         <h1 style={{
           fontSize: 20,
@@ -206,7 +208,7 @@ export default async function Classement({
           {ligueSelectionnee ? `Classement — ${ligueSelectionnee.nom}` : 'Classement général'}
         </h1>
         <p style={{ fontSize: 12, color: '#9fb0c9', marginTop: 4, marginBottom: 16 }}>Saison 2026-2027</p>
-
+ 
         {mesLigues.length > 0 && (
           <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 20, flexWrap: 'wrap' }}>
             <Link
@@ -224,30 +226,13 @@ export default async function Classement({
             >
               Général
             </Link>
-            {mesLigues.map((ligue) => {
-              const actif = ligueSelectionnee?.id === ligue.id
-              return (
-                <Link
-                  key={ligue.id}
-                  href={`/classement?ligue=${ligue.id}`}
-                  style={{
-                    padding: '7px 16px',
-                    borderRadius: 20,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    textDecoration: 'none',
-                    background: actif ? 'rgba(200,53,46,0.2)' : 'rgba(255,255,255,0.04)',
-                    border: actif ? '1px solid rgba(200,53,46,0.6)' : '1px solid rgba(255,255,255,0.15)',
-                    color: actif ? 'white' : 'rgba(255,255,255,0.7)',
-                  }}
-                >
-                  {ligue.nom}
-                </Link>
-              )
-            })}
+            <ChoixLigueClassement
+              ligues={liguesPourMenu(mesLigues, ligueSelectionnee?.id ?? null)}
+              ligueActuelleId={ligueSelectionnee?.id ?? null}
+            />
           </div>
         )}
-
+ 
         {classement.length === 0 ? (
           <p>Aucun résultat pour le moment.</p>
         ) : (
@@ -261,7 +246,7 @@ export default async function Classement({
                 moi={joueur.utilisateur_id === user.id}
               />
             ))}
-
+ 
             {jeSuisHorsPage && monRang !== null && (
               <>
                 <div style={{ textAlign: 'center', color: '#5a6b85', fontSize: 14, letterSpacing: 3, margin: '4px 0' }}>
@@ -275,7 +260,7 @@ export default async function Classement({
               </>
             )}
           </div>
-
+ 
           {totalPages > 1 && (
             <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (

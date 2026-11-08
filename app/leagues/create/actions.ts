@@ -1,8 +1,9 @@
 'use server'
-
+ 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-
+import { TAILLE_MAX_GRATUITE } from '@/lib/paliersLigue'
+ 
 function generateCode(length: number) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
   let code = ''
@@ -11,23 +12,24 @@ function generateCode(length: number) {
   }
   return code
 }
-
+ 
 export async function createLeague(formData: FormData) {
   const supabase = await createClient()
-
+ 
   const { data: { user } } = await supabase.auth.getUser()
-
+ 
   if (!user) {
     redirect('/login')
   }
-
+ 
   const nom = formData.get('nom') as string
-  const taille_max = Number(formData.get('taille_max'))
+  // Première saison : seules les ligues gratuites (50 joueurs max) existent
+  const taille_max = TAILLE_MAX_GRATUITE
   const logo_id = Number(formData.get('logo_id')) || 1
-
+ 
   const code_invitation = generateCode(8)
   const code_secours = generateCode(8)
-
+ 
   const { data: league, error } = await supabase
     .from('ligues')
     .insert({
@@ -40,22 +42,22 @@ export async function createLeague(formData: FormData) {
     })
     .select()
     .single()
-
+ 
   if (error) {
     redirect('/leagues/create?error=' + encodeURIComponent(error.message))
   }
-
+ 
   // Récupérer la saison en cours
   const { data: saison } = await supabase
     .from('saisons')
     .select('id')
     .eq('statut', 'en_cours')
     .single()
-
+ 
   if (!saison) {
     redirect('/leagues/create?error=' + encodeURIComponent('Aucune saison en cours'))
   }
-
+ 
   // Ajouter automatiquement le commissaire comme membre actif de sa propre ligue
   const { error: adhesionError } = await supabase
     .from('adhesions')
@@ -65,10 +67,10 @@ export async function createLeague(formData: FormData) {
       saison_id: saison.id,
       statut: 'actif',
     })
-
+ 
   if (adhesionError) {
     redirect('/leagues/' + league.id + '?error=' + encodeURIComponent(adhesionError.message))
   }
-
+ 
   redirect('/leagues/' + league.id)
 }

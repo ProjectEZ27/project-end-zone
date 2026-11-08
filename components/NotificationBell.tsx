@@ -1,10 +1,10 @@
 'use client'
-
+ 
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { TbBell, TbClock, TbTrophy, TbUsers, TbPhoto, TbSpeakerphone, TbFilter, TbChecks, TbCheck } from 'react-icons/tb'
-
+ 
 type Notif = {
   id: number
   type: string
@@ -14,10 +14,10 @@ type Notif = {
   lu: boolean
   created_at: string
 }
-
+ 
 const COULEUR = '#9fb0c9'
 const FOND = 'rgba(255,255,255,0.07)'
-
+ 
 const CATEGORIES: Record<string, { label: string; Icon: typeof TbBell; couleur: string; fond: string }> = {
   rappel: { label: 'Rappels', Icon: TbClock, couleur: COULEUR, fond: FOND },
   badge: { label: 'Badges', Icon: TbTrophy, couleur: COULEUR, fond: FOND },
@@ -25,7 +25,7 @@ const CATEGORIES: Record<string, { label: string; Icon: typeof TbBell; couleur: 
   photo: { label: 'Photos', Icon: TbPhoto, couleur: COULEUR, fond: FOND },
   site: { label: 'Générale', Icon: TbSpeakerphone, couleur: COULEUR, fond: FOND },
 }
-
+ 
 function ilYA(dateIso: string) {
   const minutes = Math.floor((Date.now() - new Date(dateIso).getTime()) / 60000)
   if (minutes < 1) return "À l'instant"
@@ -36,7 +36,7 @@ function ilYA(dateIso: string) {
   if (jours === 1) return 'Hier'
   return `Il y a ${jours} j`
 }
-
+ 
 const boutonIcone: React.CSSProperties = {
   background: 'none',
   border: '1px solid #33415a',
@@ -52,7 +52,7 @@ const boutonIcone: React.CSSProperties = {
   cursor: 'pointer',
   fontSize: 12,
 }
-
+ 
 export default function NotificationBell() {
   const supabase = createClient()
   const router = useRouter()
@@ -62,7 +62,17 @@ export default function NotificationBell() {
   const [ouvert, setOuvert] = useState(false)
   const [filtre, setFiltre] = useState('all')
   const [menuOuvert, setMenuOuvert] = useState(false)
-
+ 
+  // Un seul panneau à la fois : ouvrir la cloche ferme les préférences, et inversement
+  useEffect(() => {
+    if (ouvert) window.dispatchEvent(new Event('panneau-ouvert-cloche'))
+  }, [ouvert])
+  useEffect(() => {
+    const fermer = () => setOuvert(false)
+    window.addEventListener('panneau-ouvert-preferences', fermer)
+    return () => window.removeEventListener('panneau-ouvert-preferences', fermer)
+  }, [])
+ 
   // Recharge à chaque changement de page, et à l'ouverture du panneau
   useEffect(() => {
     let actif = true
@@ -88,12 +98,12 @@ export default function NotificationBell() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, ouvert])
-
+ 
   if (!userId) return null
-
+ 
   const nonLues = notifs.filter((n) => !n.lu).length
   const visibles = notifs.filter((n) => filtre === 'all' || n.type === filtre)
-
+ 
   async function ouvrirNotif(n: Notif) {
     if (!n.lu) {
       setNotifs((liste) => liste.map((x) => (x.id === n.id ? { ...x, lu: true } : x)))
@@ -104,14 +114,14 @@ export default function NotificationBell() {
       router.push(n.lien)
     }
   }
-
+ 
   async function toutMarquerLu() {
     const ids = notifs.filter((n) => !n.lu).map((n) => n.id)
     if (ids.length === 0) return
     setNotifs((liste) => liste.map((x) => ({ ...x, lu: true })))
     await supabase.from('notifications').update({ lu: true }).in('id', ids)
   }
-
+ 
   return (
     <>
       {ouvert && (
@@ -120,7 +130,7 @@ export default function NotificationBell() {
           style={{ position: 'fixed', inset: 0, zIndex: 198, background: 'rgba(0,0,0,0.35)' }}
         />
       )}
-
+ 
       <button
         type="button"
         aria-label={`Notifications${nonLues > 0 ? ` (${nonLues} non lues)` : ''}`}
@@ -167,7 +177,7 @@ export default function NotificationBell() {
           </span>
         )}
       </button>
-
+ 
       {ouvert && (
         <div
           role="dialog"
@@ -217,7 +227,7 @@ export default function NotificationBell() {
               </button>
             </div>
           </div>
-
+ 
           {menuOuvert && (
             <div
               style={{
@@ -257,7 +267,7 @@ export default function NotificationBell() {
               ))}
             </div>
           )}
-
+ 
           {visibles.length === 0 ? (
             <p style={{ fontSize: 13, color: '#9fb0c9', textAlign: 'center', margin: '16px 0' }}>
               Rien de nouveau pour le moment.

@@ -1,20 +1,20 @@
 'use client'
-
+ 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { TbHome, TbBallAmericanFootball, TbTrophy, TbUser, TbBook } from 'react-icons/tb'
-
+import { TbHome, TbBallAmericanFootball, TbTrophy, TbUser, TbUsers } from 'react-icons/tb'
+ 
 const items = [
   { href: '/', label: 'Accueil', Icon: TbHome },
   { href: '/pronostics', label: 'Pronostics', Icon: TbBallAmericanFootball },
+  { href: '/leagues', label: 'Ligues', Icon: TbUsers },
   { href: '/classement', label: 'Classement', Icon: TbTrophy },
   { href: '/profile', label: 'Profil', Icon: TbUser },
-  { href: '/regles', label: 'Règles', Icon: TbBook },
 ]
-
+ 
 export default function Nav() {
   const pathname = usePathname()
-
+ 
   return (
     <nav
       style={{
@@ -31,7 +31,8 @@ export default function Nav() {
       }}
     >
       {items.map(({ href, label, Icon }) => {
-        const isActive = pathname === href
+        // « Ligues » reste allumé sur toutes les pages d'une ligue (/leagues/12, /leagues/12/classement…)
+        const isActive = href === '/leagues' ? pathname.startsWith('/leagues') : pathname === href
         return (
           <Link
             key={href}

@@ -17,45 +17,47 @@ import {
 import { genererJournalSemaine, derniereSemaineTerminee } from '@/lib/journal'
 import JournalDuMardi from '@/components/JournalDuMardi'
 import LeagueSwitcher from '@/components/LeagueSwitcher'
-
+import { liguesPourMenu } from '@/lib/accueil'
+ 
 export default async function LeagueDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string }> }) {
   const { id } = await params
   const { error: errorMessage } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-
+ 
   if (!user) {
     redirect('/login')
   }
-
+ 
   const { data: league, error } = await supabase
     .from('ligues')
     .select('*')
     .eq('id', id)
     .single()
-
+ 
   if (error || !league) {
     notFound()
   }
-
+ 
   const estCommissaire = league.commissaire_id === user.id
-
+ 
   const { data: mesAdhesions } = await supabase
     .from('adhesions')
-    .select('ligue_id, ligues(id, nom)')
+    .select('ligue_id, epingle, masquee, ligues(id, nom)')
     .eq('utilisateur_id', user.id)
     .eq('statut', 'actif')
-
+ 
   const mesLiguesBrutes = (mesAdhesions ?? [])
-    .map((a: any) => a.ligues)
-    .filter(Boolean)
-
+    .filter((a: any) => a.ligues)
+    .map((a: any) => ({ ...a.ligues, epingle: a.epingle ?? null, masquee: a.masquee === true }))
+ 
   const mesLigues = Array.from(
     new Map(mesLiguesBrutes.map((l: any) => [l.id, l])).values()
-  ) as { id: number; nom: string }[]
-
-  const autresLigues = mesLigues.filter((l) => String(l.id) !== id)
-
+  ) as { id: number; nom: string; epingle: number | null; masquee: boolean }[]
+ 
+  // Menu déroulant : épinglées d'abord, ligues masquées retirées
+  const autresLigues = liguesPourMenu(mesLigues).filter((l) => String(l.id) !== id)
+ 
   let estMembreActif = estCommissaire
   if (!estCommissaire) {
     const { data: monAdhesion } = await supabase
@@ -67,7 +69,7 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
       .single()
     estMembreActif = !!monAdhesion
   }
-
+ 
   let demandes: any[] = []
   if (estCommissaire) {
     const { data: adhesionsData } = await supabase
@@ -75,39 +77,39 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
       .select('id, utilisateur_id')
       .eq('ligue_id', id)
       .eq('statut', 'en_attente')
-
+ 
     if (adhesionsData && adhesionsData.length > 0) {
       const userIds = adhesionsData.map((a) => a.utilisateur_id)
       const { data: profilesData } = await supabase
         .from('profiles')
         .select('id, pseudo')
         .in('id', userIds)
-
+ 
       demandes = adhesionsData.map((a) => ({
         ...a,
         pseudo: profilesData?.find((p) => p.id === a.utilisateur_id)?.pseudo ?? 'Joueur inconnu',
       }))
     }
   }
-
+ 
   const statutLabel: Record<string, { label: string; bg: string; color: string }> = {
     en_cours: { label: 'EN COURS', bg: '#0F6E56', color: '#E1F5EE' },
     a_venir: { label: 'À VENIR', bg: '#854F0B', color: '#FAEEDA' },
     terminee: { label: 'TERMINÉE', bg: '#5F5E5A', color: '#F1EFE8' },
   }
   const badgeStatut = statutLabel[league.statut] ?? { label: league.statut, bg: '#33415a', color: 'white' }
-
+ 
     const { data: adhesionsMembres } = await supabase
     .from('adhesions')
     .select('utilisateur_id')
     .eq('ligue_id', id)
     .eq('statut', 'actif')
-
+ 
   const membreIdsLigue = Array.from(new Set([
     league.commissaire_id,
     ...(adhesionsMembres ?? []).map((a) => a.utilisateur_id),
   ]))
-
+ 
   const semaineDuJournal = await derniereSemaineTerminee(supabase)
   const journal = semaineDuJournal
     ? await genererJournalSemaine(supabase, semaineDuJournal, membreIdsLigue)
@@ -121,7 +123,7 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
   if (estCommissaire) {
     pastilles.push({ href: `/leagues/${id}/parametres`, label: 'Paramètres', Icon: TbSettings })
   }
-
+ 
   return (
     <div style={{ position: 'relative', minHeight: '100dvh' }}>
       <div style={{
@@ -140,12 +142,12 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
           background: 'linear-gradient(180deg, rgba(11,18,32,0.72) 0%, rgba(11,18,32,0.92) 100%)',
         }} />
       </div>
-
+ 
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '24px 24px 100px', textAlign: 'center', color: 'white' }}>
         {errorMessage && (
           <p style={{ color: '#e05252', marginBottom: 12 }}>⚠️ {errorMessage}</p>
         )}
-
+ 
         <LeagueLogoEditor
           ligueId={id}
           currentLogoId={league.logo_id ?? 1}
@@ -173,7 +175,7 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
             {badgeStatut.label}
           </span>
         </p>
-
+ 
         <div style={{ marginTop: 20, display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
           {pastilles.map(({ href, label, Icon }) => (
             <Link
@@ -196,7 +198,7 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
             </Link>
           ))}
         </div>
-
+ 
         {journal.articles.length > 0 && (
           <JournalDuMardi semaine={journal.semaine} articles={journal.articles} enVedette={journal.enVedette} />
         )}
@@ -205,7 +207,7 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
             <TbCrown size={20} color="#EF9F27" style={{ display: 'block', margin: '0 auto 6px' }} />
             <div style={{ fontSize: 14, fontWeight: 600 }}>Bienvenue dans la ligue</div>
             <div style={{ fontSize: 11, color: '#7fa8e0', marginBottom: 12 }}>Tu es le commissaire de cette ligue</div>
-
+ 
             <ShareLeagueBox
               codeInvitation={league.code_invitation}
               codeSecours={league.code_secours}
@@ -213,7 +215,7 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
             />
           </div>
         )}
-
+ 
         {!estCommissaire && estMembreActif && (
           <div style={{ marginTop: 20, background: '#16233F', border: '0.5px solid #33415a', borderRadius: 12, padding: 16 }}>
             <ShareLeagueBox
@@ -222,7 +224,7 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
             />
           </div>
         )}
-
+ 
         {estCommissaire && demandes.length > 0 && (
           <div style={{ marginTop: 20, background: '#16233F', border: '0.5px solid #33415a', borderRadius: 12, padding: 16, textAlign: 'left' }}>
             <p style={{ fontWeight: 600, marginBottom: 8 }}>Demandes en attente ({demandes.length})</p>

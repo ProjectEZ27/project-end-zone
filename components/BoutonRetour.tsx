@@ -1,23 +1,23 @@
 'use client'
-
+ 
 import { usePathname, useRouter } from 'next/navigation'
 import { TbArrowLeft } from 'react-icons/tb'
-
+ 
 // Pages principales (barre du bas) et connexion : pas de bouton retour
-const SANS_RETOUR = ['/', '/pronostics', '/classement', '/profile', '/regles', '/login']
-
+const SANS_RETOUR = ['/', '/pronostics', '/leagues', '/classement', '/profile', '/regles', '/login']
+ 
 export default function BoutonRetour() {
   const router = useRouter()
   const pathname = usePathname()
-
+ 
   if (SANS_RETOUR.includes(pathname)) return null
-
+ 
   function retour() {
     // Si on arrive directement sur la page (pas d'historique), on retourne à l'accueil
     if (window.history.length > 1) router.back()
     else router.push('/')
   }
-
+ 
   return (
     <button
       type="button"

@@ -3,44 +3,45 @@ import { redirect, notFound } from 'next/navigation'
 import { modifierLigue } from './actions'
 import LeagueSubNav from '@/components/LeagueSubNav'
 import DeleteLeagueButton from '@/components/DeleteLeagueButton'
-
+import ChoixTailleLigue from '@/components/ChoixTailleLigue'
+ 
 export const dynamic = 'force-dynamic'
 export default async function ParametresLigue({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-
+ 
   if (!user) {
     redirect('/login')
   }
-
+ 
   const { data: league, error } = await supabase
     .from('ligues')
     .select('*')
     .eq('id', id)
     .single()
-
+ 
   if (error || !league) {
     notFound()
   }
-
+ 
   if (league.commissaire_id !== user.id) {
     redirect('/leagues/' + id)
   }
-
+ 
   // 1. Membres actifs de la ligue (+ leur saison)
   const { data: adhesions } = await supabase
     .from('adhesions')
     .select('utilisateur_id, saison_id')
     .eq('ligue_id', id)
     .eq('statut', 'actif')
-
+ 
   let retardataires: { id: string; pseudo: string; fait: number; total: number }[] = []
   let aJourCount = 0
-
+ 
   if (adhesions && adhesions.length > 0) {
     const saisonId = adhesions[0].saison_id
-
+ 
     // 2. Semaine actuellement en cours = celle du premier match non terminé
     const { data: prochainMatch } = await supabase
       .from('matchs')
@@ -49,7 +50,7 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
       .order('coup_envoi', { ascending: true })
       .limit(1)
       .maybeSingle()
-
+ 
     let semaineOuverte: { id: number } | null = null
     if (prochainMatch) {
       semaineOuverte = { id: prochainMatch.semaine_id }
@@ -63,31 +64,31 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
         .maybeSingle()
       semaineOuverte = derniereSemaine
     }
-
+ 
     if (semaineOuverte) {
       // 3. Matchs de cette semaine
       const { data: matchs } = await supabase
         .from('matchs')
         .select('id')
         .eq('semaine_id', semaineOuverte.id)
-
+ 
       const totalMatchs = matchs?.length ?? 0
       const matchIds = (matchs ?? []).map((m) => m.id)
-
+ 
       // 4. Pseudos des membres actifs
       const userIds = adhesions.map((a) => a.utilisateur_id)
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id, pseudo')
         .in('id', userIds)
-
+ 
       // 5. Pronostics déjà faits par ces membres sur ces matchs
       const { data: pronostics } = await supabase
         .from('pronostics')
         .select('utilisateur_id, match_id')
         .in('utilisateur_id', userIds)
         .in('match_id', matchIds.length > 0 ? matchIds : [-1])
-
+ 
       for (const uid of userIds) {
         const fait = (pronostics ?? []).filter((p) => p.utilisateur_id === uid).length
         const pseudo = profiles?.find((p) => p.id === uid)?.pseudo ?? 'Joueur inconnu'
@@ -99,7 +100,7 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
       }
     }
   }
-
+ 
   return (
     <div style={{ position: 'relative', minHeight: '100dvh' }}>
       <div style={{
@@ -120,7 +121,7 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
       </div>
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '40px 24px 100px', textAlign: 'center', color: 'white' }}>
       <LeagueSubNav ligueId={id} ligueNom={league.nom} actif="parametres" estCommissaire={true} />
-
+ 
       <div style={{ marginTop: 24, padding: 16, border: '1px solid #ccc', borderRadius: 8, textAlign: 'left' }}>
         <p><strong>Pronostics de la semaine en cours</strong></p>
         {adhesions === null || adhesions.length === 0 ? (
@@ -140,24 +141,21 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
           </>
         )}
       </div>
-
+ 
       <form action={modifierLigue} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 24 }}>
         <input type="hidden" name="ligue_id" value={id} />
         {(league.config_rappels?.rappel_1_actif ?? true) && <input type="hidden" name="rappel_1_actif" value="on" />}
         <input type="hidden" name="delai_1" value={league.config_rappels?.delais_heures?.[0] ?? 24} />
         {(league.config_rappels?.rappel_2_actif ?? true) && <input type="hidden" name="rappel_2_actif" value="on" />}
         <input type="hidden" name="delai_2" value={league.config_rappels?.delais_heures?.[1] ?? 3} />
-
+ 
         <label style={{ textAlign: 'left' }}>
           Nom de la ligue
           <input type="text" name="nom" defaultValue={league.nom} required style={{ padding: 8, width: '100%', marginTop: 4 }} />
         </label>
-
-        <label style={{ textAlign: 'left' }}>
-          Taille maximum
-          <input type="number" name="taille_max" defaultValue={league.taille_max} min={2} max={50} style={{ padding: 8, width: '100%', marginTop: 4 }} />
-        </label>
-
+ 
+        <ChoixTailleLigue />
+ 
         <button type="submit" style={{ padding: 10, marginTop: 8 }}>
           Enregistrer les modifications
         </button>

@@ -1,14 +1,15 @@
 'use client'
-
+ 
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { TbSettings, TbX } from 'react-icons/tb'
+import Link from 'next/link'
+import { TbSettings, TbX, TbBook, TbChevronRight } from 'react-icons/tb'
 import { lirePreferences, changerPreferenceRappel, type Preferences } from '@/app/preferences/actions'
 import { changerIntroAnimation } from '@/app/profile/introActions'
-
+ 
 const ALIGNE = 'max(12px, calc(50% - 238px))'
-
+ 
 function Interrupteur({ actif, onChange, label }: { actif: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
     <button
@@ -44,7 +45,7 @@ function Interrupteur({ actif, onChange, label }: { actif: boolean; onChange: (v
     </button>
   )
 }
-
+ 
 function Ligne({ titre, detail, children }: { titre: string; detail: string; children: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '9px 0' }}>
@@ -56,7 +57,7 @@ function Ligne({ titre, detail, children }: { titre: string; detail: string; chi
     </div>
   )
 }
-
+ 
 const titreSection: React.CSSProperties = {
   fontSize: 11,
   letterSpacing: 1,
@@ -67,7 +68,7 @@ const titreSection: React.CSSProperties = {
   paddingTop: 12,
   borderTop: '1px solid #33415a',
 }
-
+ 
 /**
  * Bouton « Préférences » (roue dentée, à côté de la cloche) et son panneau.
  * Le panneau peut aussi être ouvert depuis le profil (événement « ouvrir-preferences »).
@@ -78,7 +79,7 @@ export default function BoutonPreferences() {
   const [connecte, setConnecte] = useState(false)
   const [ouvert, setOuvert] = useState(false)
   const [prefs, setPrefs] = useState<Preferences | null>(null)
-
+ 
   useEffect(() => {
     let actif = true
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -89,13 +90,23 @@ export default function BoutonPreferences() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname])
-
+ 
   useEffect(() => {
     const ouvrir = () => setOuvert(true)
     window.addEventListener('ouvrir-preferences', ouvrir)
     return () => window.removeEventListener('ouvrir-preferences', ouvrir)
   }, [])
-
+ 
+  // Un seul panneau à la fois : ouvrir les préférences ferme la cloche, et inversement
+  useEffect(() => {
+    if (ouvert) window.dispatchEvent(new Event('panneau-ouvert-preferences'))
+  }, [ouvert])
+  useEffect(() => {
+    const fermer = () => setOuvert(false)
+    window.addEventListener('panneau-ouvert-cloche', fermer)
+    return () => window.removeEventListener('panneau-ouvert-cloche', fermer)
+  }, [])
+ 
   // Recharge les choix à chaque ouverture
   useEffect(() => {
     if (!ouvert) return
@@ -107,9 +118,9 @@ export default function BoutonPreferences() {
       actif = false
     }
   }, [ouvert])
-
+ 
   if (!connecte) return null
-
+ 
   function changerAnimation(valeur: boolean) {
     setPrefs((p) => (p ? { ...p, intro_animation: valeur } : p))
     changerIntroAnimation(valeur)
@@ -122,7 +133,7 @@ export default function BoutonPreferences() {
     setPrefs((p) => (p ? { ...p, email_rappel_actif: valeur } : p))
     changerPreferenceRappel('email', valeur)
   }
-
+ 
   return (
     <>
       {ouvert && (
@@ -131,7 +142,7 @@ export default function BoutonPreferences() {
           style={{ position: 'fixed', inset: 0, zIndex: 198, background: 'rgba(0,0,0,0.35)' }}
         />
       )}
-
+ 
       <button
         type="button"
         aria-label="Préférences"
@@ -156,7 +167,7 @@ export default function BoutonPreferences() {
       >
         <TbSettings size={20} />
       </button>
-
+ 
       {ouvert && (
         <div
           role="dialog"
@@ -201,7 +212,7 @@ export default function BoutonPreferences() {
               <TbX size={17} />
             </button>
           </div>
-
+ 
           {!prefs ? (
             <p style={{ fontSize: 13, color: '#9fb0c9', textAlign: 'center', margin: '16px 0' }}>Chargement…</p>
           ) : (
@@ -210,7 +221,7 @@ export default function BoutonPreferences() {
               <Ligne titre="Arrivée sur les profils" detail="Slogan de l'équipe favorite à l'ouverture">
                 <Interrupteur actif={prefs.intro_animation} onChange={changerAnimation} label="Animation d'arrivée sur les profils" />
               </Ligne>
-
+ 
               <div style={titreSection}>Rappels de pronostics</div>
               <p style={{ fontSize: 12, color: '#9fb0c9', margin: '0 0 2px', lineHeight: 1.4, textAlign: 'left' }}>
                 Le matin du premier match de la semaine, si tes pronostics ne sont pas terminés :
@@ -223,6 +234,30 @@ export default function BoutonPreferences() {
               </Ligne>
             </>
           )}
+ 
+          <div style={titreSection}>Aide</div>
+          <Link
+            href="/regles"
+            onClick={() => setOuvert(false)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 10,
+              padding: '9px 0',
+              color: 'white',
+              textDecoration: 'none',
+            }}
+          >
+            <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <TbBook size={20} color="#9fb0c9" />
+              <span style={{ textAlign: 'left' }}>
+                <span style={{ display: 'block', fontSize: 14 }}>Règles du jeu</span>
+                <span style={{ display: 'block', fontSize: 12, color: '#9fb0c9', marginTop: 1 }}>Points, bonus, classements</span>
+              </span>
+            </span>
+            <TbChevronRight size={18} color="#9fb0c9" />
+          </Link>
         </div>
       )}
     </>

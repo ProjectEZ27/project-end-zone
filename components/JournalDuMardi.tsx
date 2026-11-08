@@ -35,6 +35,10 @@ function Stats({ stats, petit }: { stats: [string, string][]; petit?: boolean })
   )
 }
 
+function Explication({ texte }: { texte: string }) {
+  return <p style={{ margin: '0 0 10px', fontSize: 12, fontStyle: 'italic', color: '#9FB0CF', lineHeight: 1.4 }}>{texte}</p>
+}
+
 function Vanne({ texte, grand }: { texte: string; grand?: boolean }) {
   return (
     <div style={{
@@ -52,12 +56,16 @@ function Vanne({ texte, grand }: { texte: string; grand?: boolean }) {
 
 export default function JournalDuMardi({
   semaine,
+  nomTribunal = 'Tribunal du mardi',
+  exceptionnel = false,
   articles,
   enVedette,
   ouvertAuDepart = false,
   reactions,
 }: {
   semaine: string
+  nomTribunal?: string // ex. « Tribunal du mardi », « Tribunal des Wild Cards »
+  exceptionnel?: boolean // vrai si le tribunal s'ouvre un autre jour que le mardi
   articles: Article[]
   enVedette: boolean // mardi et mercredi : barre « le journal est sorti » ; sinon petit bouton discret
   ouvertAuDepart?: boolean
@@ -122,7 +130,7 @@ export default function JournalDuMardi({
           <span className="jdm-dot" style={{ width: 10, height: 10, borderRadius: '50%', background: '#E5483F', flex: 'none' }} />
           <span style={{ minWidth: 0 }}>
             <b className={anton.className} style={{ display: 'block', fontWeight: 400, fontSize: 18, letterSpacing: '.03em', textTransform: 'uppercase' }}>
-              Le journal du mardi est sorti
+              Le {nomTribunal} est ouvert
             </b>
             <small style={{ display: 'block', fontSize: 12, color: '#9FB0CF' }}>
               {articles.length} article{articles.length > 1 ? 's' : ''}{semaine ? ` sur la ${semaine.toLowerCase()}` : ''}
@@ -143,7 +151,7 @@ export default function JournalDuMardi({
             fontSize: 12, cursor: 'pointer',
           }}
         >
-          {ouvert ? 'Fermer le journal ✕' : '📰 Revoir le journal du mardi précédent'}
+          {ouvert ? 'Fermer le tribunal ✕' : `⚖️ Revoir le ${nomTribunal} précédent`}
         </button>
       )}
 
@@ -154,8 +162,13 @@ export default function JournalDuMardi({
               <span>{semaine ? `${semaine} · Bilan` : 'Bilan'}</span>
             </div>
             <div className={anton.className} style={{ fontSize: 'clamp(30px, 8vw, 46px)', lineHeight: 1, textTransform: 'uppercase', letterSpacing: '.02em', marginTop: 4 }}>
-              Le journal du mardi
+              Le {nomTribunal}
             </div>
+            {exceptionnel && (
+              <div style={{ fontSize: 12, color: '#9FB0CF', marginTop: 6, fontStyle: 'italic' }}>
+                Exceptionnellement pas un mardi : les derniers matchs ont fini plus tard cette semaine. 😉
+              </div>
+            )}
           </div>
 
           <div className="jdm-a" style={{ ['--d' as string]: '0.2s', background: '#1F3159', borderRadius: 10, padding: 16, marginBottom: 10 }}>
@@ -166,6 +179,7 @@ export default function JournalDuMardi({
             <h3 className={anton.className} style={{ fontWeight: 400, fontSize: 'clamp(26px, 7vw, 38px)', lineHeight: 1.04, textTransform: 'uppercase', margin: '0 0 12px', color: '#fff' }}>
               {une.titre}
             </h3>
+            {une.explication && <Explication texte={une.explication} />}
             <Vanne texte={une.texte} grand />
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 12 }}>
               <Stats stats={une.stats} />
@@ -186,6 +200,7 @@ export default function JournalDuMardi({
                     {a.titre}
                   </h4>
                   <Stats stats={a.stats} petit />
+                  {a.explication && <Explication texte={a.explication} />}
                   <Vanne texte={a.texte} />
                   {barre(a)}
                 </div>

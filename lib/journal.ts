@@ -28,19 +28,41 @@ export type Article = {
   stats: Stat[]
   texte: string
   fixe?: boolean // rubrique fixe (phrase de la semaine)
+  explication?: string // petit rappel pour les termes de jargon (ex. Blowout)
 }
 export type JournalSemaine = {
   semaine: string
   articles: Article[]
-  // vrai du mardi au mercredi (heure de Paris) : le journal est alors mis en avant
+  // vrai pendant 3 jours à partir d'1 h après le dernier match : le tribunal est alors mis en avant
   enVedette: boolean
+  nomTribunal: string // ex. « Tribunal du mardi », « Tribunal des Wild Cards »
+  exceptionnel: boolean // vrai si le tribunal ne s'ouvre pas un mardi (saison régulière)
 }
-const VIDE: JournalSemaine = { semaine: '', articles: [], enVedette: false }
+const VIDE: JournalSemaine = { semaine: '', articles: [], enVedette: false, nomTribunal: 'Tribunal du mardi', exceptionnel: false }
+
+/** Le tribunal s'ouvre 1 h après la fin supposée du dernier match (coup d'envoi + 4 h). */
+export const DELAI_TRIBUNAL_MS = 5 * 3600 * 1000
+export const DUREE_VEDETTE_MS = 3 * 86400000
+
+/**
+ * Nom du tribunal : par manche en playoffs, sinon le jour d'ouverture (« du mardi » dans le cas normal).
+ */
+export function nomDuTribunal(nomSemaine: string, dernierMatchIso: string): { nom: string; exceptionnel: boolean } {
+  const n = (nomSemaine ?? '').toLowerCase()
+  if (n.includes('wild')) return { nom: 'Tribunal des Wild Cards', exceptionnel: false }
+  if (n.includes('divisionn')) return { nom: 'Tribunal des Divisionnaires', exceptionnel: false }
+  if (n.includes('finale')) return { nom: 'Tribunal des Finales de conférence', exceptionnel: false }
+  if (n.includes('super')) return { nom: 'Tribunal du Super Bowl', exceptionnel: false }
+  if (!dernierMatchIso) return { nom: 'Tribunal du mardi', exceptionnel: false }
+  const ouverture = new Date(new Date(dernierMatchIso).getTime() + DELAI_TRIBUNAL_MS)
+  const jour = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', timeZone: 'Europe/Paris' }).format(ouverture)
+  return { nom: `Tribunal du ${jour}`, exceptionnel: jour !== 'mardi' }
+}
 
 // Étiquette, couleur et titre de chaque type d'article
-const META: Record<string, { etiquette: string; couleur: string; titre: string }> = {
+const META: Record<string, { etiquette: string; couleur: string; titre: string; explication?: string }> = {
   A01: { etiquette: 'Sans-faute', couleur: '#3FAE6A', titre: '{p} ne rate rien' },
-  A02: { etiquette: 'Blowout', couleur: '#E5483F', titre: '{p} écrase la ligue' },
+  A02: { etiquette: 'Blowout', couleur: '#E5483F', titre: '{p} écrase la ligue', explication: 'Blowout : une victoire écrasante, avec un écart énorme sur tous les autres.' },
   A03: { etiquette: "À l'arraché", couleur: '#F0C040', titre: "{p} gagne d'un point" },
   A04: { etiquette: 'Les jumeaux', couleur: '#3CB5A8', titre: '{p} et {p2}, jumeaux au point près' },
   A05: { etiquette: 'Le fiasco', couleur: '#9DB0D6', titre: 'La semaine à effacer pour {p}' },
@@ -58,7 +80,7 @@ const META: Record<string, { etiquette: string; couleur: string; titre: string }
   C04: { etiquette: 'Il tient bon', couleur: '#5B8DEF', titre: '{p} reste en tête' },
   C05: { etiquette: 'Sur ses talons', couleur: '#E8883A', titre: '{p} à un point du leader' },
   C06: { etiquette: 'Lanterne rouge', couleur: '#E5483F', titre: '{p} ferme la marche' },
-  C07: { etiquette: "L'underdog", couleur: '#5B8DEF', titre: 'Le dernier devient premier' },
+  C07: { etiquette: "L'underdog", couleur: '#5B8DEF', titre: 'Le dernier devient premier', explication: "Underdog : celui que personne n'attendait, l'outsider." },
   C08: { etiquette: 'Duel au sommet', couleur: '#E8883A', titre: '{p} contre {p2} pour la couronne' },
   C09: { etiquette: 'Podium verrouillé', couleur: '#9DB0D6', titre: 'Rien ne bouge sur le podium' },
   C10: { etiquette: 'Chute du roi', couleur: '#F08A7E', titre: '{p} perd le trône' },
@@ -66,6 +88,11 @@ const META: Record<string, { etiquette: string; couleur: string; titre: string }
   D02: { etiquette: 'Cœur contre raison', couleur: '#5B8DEF', titre: '{p} a cru en {fav}' },
   D03: { etiquette: 'Derby', couleur: '#E8883A', titre: '{p} contre {p2}, le derby' },
   D04: { etiquette: 'Fan comblé', couleur: '#3FAE6A', titre: '{fav} gagnent, {p} exulte' },
+  L01: { etiquette: 'Embouteillage', couleur: '#F0C040', titre: '{n} joueurs en tête de la semaine' },
+  L02: { etiquette: 'Les initiés', couleur: '#5B8DEF', titre: "Seulement {n} l'avaient vu venir" },
+  L03: { etiquette: 'Le petit club', couleur: '#E8883A', titre: 'Le club des {n} qui se sont plantés' },
+  L04: { etiquette: 'Du sommet à la cave', couleur: '#9DB0D6', titre: "{p} et {p2} : {ecart} points d'écart" },
+  L05: { etiquette: 'La cave est pleine', couleur: '#9DB0D6', titre: '{n} joueurs au fond de la semaine' },
   E01: { etiquette: "C'est reparti", couleur: '#F0C040', titre: 'Nouvelle saison, nouvelles illusions' },
   E02: { etiquette: 'Halloween', couleur: '#E8883A', titre: "Semaine d'Halloween" },
   E03: { etiquette: 'Thanksgiving', couleur: '#E8883A', titre: 'Semaine de Thanksgiving' },
@@ -89,7 +116,7 @@ const PHRASES_SECOURS: Record<string, string[]> = {
   A05: ['{p} signe le score le plus bas de la semaine. Ça arrive à tout le monde.'],
   B01: ['{p} a été le seul à voir venir la victoire surprise de {eq} face à {adv}. Respect.'],
   C01: ['{p} dégringole au classement cette semaine.'],
-  C07: ['{p}, dernier au classement général, signe pourtant la meilleure semaine. Le pur underdog.'],
+  C07: ['{p}, dernier au classement de la ligue, signe pourtant la meilleure semaine. Le pur underdog.'],
   F08: ['Semaine sans histoire dans la ligue : rien à signaler.'],
   G01: ['« Un pronostic, c\'est comme un parapluie : on l\'oublie quand il fait beau. »'],
 }
@@ -140,8 +167,8 @@ function remplir(texte: string, variables: Variables): string | null {
   return resultat
     .replace(/\bde les\b/g, 'des')
     .replace(/\bDe les\b/g, 'Des')
-    .replace(/\bà les\b/g, 'aux')
-    .replace(/\bÀ les\b/g, 'Aux')
+    .replace(/(^|\s)à les(?=\s)/g, '$1aux')
+    .replace(/(^|[\s«])À les(?=\s)/g, '$1Aux')
     .replace(/\ben les\b/g, 'aux')
     .replace(/(^|[.!?] |« )les /g, (m, debut) => `${debut}Les `)
 }
@@ -302,7 +329,7 @@ export async function genererJournalSemaine(
   const enQueue = classementActifs.filter(([, s]) => s === pire).map(([id]) => id)
   const deuxieme = classementActifs.find(([, s]) => s < meilleur)?.[1] ?? null
 
-  // ----- Classement général avant / après -----
+  // ----- Classement de la ligue avant / après -----
   const totauxAvant = idsAvant.length > 0 ? await classementCumuleParSemaines(supabase, idsAvant, membreIds) : null
   const semaineCourante = await calculerClassementSemaine(supabase, semaine_id)
   const totauxApres = new Map<string, number>(totauxAvant ?? [])
@@ -364,7 +391,7 @@ export async function genererJournalSemaine(
   const upset = infosMatchs.find((x) => x.pronos.length > 2 && x.bons.length === 1)
   if (upset) {
     const p = upset.bons[0].utilisateur_id
-    ajouter('B01', 95, { p: pseudo(p), eq: upset.eq, adv: upset.adv }, [p], [[`1 sur ${upset.pronos.length}`, 'à y croire']])
+    ajouter('B01', 95, { p: pseudo(p), eq: upset.eq, adv: upset.adv }, [p])
   }
   const pieges = infosMatchs
     .filter((x) => x.pronos.length >= 3 && x.mauvais.length / x.pronos.length >= 0.7 && x.bons.length > 0)
@@ -387,7 +414,7 @@ export async function genererJournalSemaine(
   const kamikaze = infosMatchs.find((x) => x.pronos.length > 2 && x.mauvais.length === 1)
   if (kamikaze) {
     const p = kamikaze.mauvais[0].utilisateur_id
-    ajouter('B06', 70, { p: pseudo(p), eq: kamikaze.eq, adv: kamikaze.adv }, [p], [[`1 sur ${kamikaze.pronos.length}`, 'à y croire']])
+    ajouter('B06', 70, { p: pseudo(p), eq: kamikaze.eq, adv: kamikaze.adv }, [p])
   }
   const plantes = infosMatchs.filter((x) => x.pronos.length >= 3 && x.bons.length === 0)
   if (plantes.length > 0) {
@@ -401,14 +428,53 @@ export async function genererJournalSemaine(
     ajouter('B09', 60, { eq: x.eq, adv: x.adv, n: Math.abs(x.m.score_a - x.m.score_b) }, [], [[`${Math.abs(x.m.score_a - x.m.score_b)}`, "points d'écart"]])
   }
 
+  // =========== L. Grandes ligues : égalités et seuils proportionnels ===========
+  const grande = actifs.length >= 15
+  // Plusieurs joueurs en tête (3 ou plus) : les articles « un seul joueur » ne peuvent plus se déclencher
+  if (enTete.length >= 3 && meilleur > 0) {
+    const pTete = tirer(enTete)
+    ajouter('L01', 76, { n: enTete.length, score: meilleur, nb: nbMatchs, p: pseudo(pTete) }, [pTete], [[`${meilleur}/${nbMatchs}`, 'chacun']])
+  }
+  // Plusieurs joueurs au fond (3 ou plus)
+  if (enQueue.length >= 3 && pire < nbMatchs) {
+    const pFond = tirer(enQueue)
+    ajouter('L05', 62, { n: enQueue.length, score: pire, nb: nbMatchs, p: pseudo(pFond) }, [pFond], [[`${pire}/${nbMatchs}`, 'chacun']])
+  }
+  if (grande) {
+    // « Le flair » à l'échelle d'une grande ligue : seuls 2 joueurs ou plus, mais moins de 10 % de la ligue
+    const rares = infosMatchs
+      .filter((x) => x.pronos.length >= 15 && x.bons.length >= 2 && x.bons.length <= Math.max(2, Math.floor(x.pronos.length * 0.1)))
+      .sort((a, b) => a.bons.length / a.pronos.length - b.bons.length / b.pronos.length)
+    if (rares.length > 0) {
+      const x = rares[0]
+      const p = tirer(x.bons).utilisateur_id
+      ajouter('L02', 88, { p: pseudo(p), n: x.bons.length, total: x.pronos.length, eq: x.eq, adv: x.adv }, [p])
+    }
+    // « Kamikaze » à l'échelle d'une grande ligue : seuls quelques joueurs se sont trompés
+    const egares = infosMatchs
+      .filter((x) => x.pronos.length >= 15 && x.mauvais.length >= 2 && x.mauvais.length <= Math.max(2, Math.floor(x.pronos.length * 0.1)))
+      .sort((a, b) => a.mauvais.length / a.pronos.length - b.mauvais.length / b.pronos.length)
+    if (egares.length > 0) {
+      const x = egares[0]
+      const p = tirer(x.mauvais).utilisateur_id
+      ajouter('L03', 70, { p: pseudo(p), n: x.mauvais.length, total: x.pronos.length, eq: x.eq, adv: x.adv }, [p])
+    }
+    // Du meilleur au moins bon
+    if (meilleur - pire >= 5) {
+      const pHaut = tirer(enTete)
+      const pBas = tirer(enQueue)
+      ajouter('L04', 58, { p: pseudo(pHaut), p2: pseudo(pBas), ecart: meilleur - pire, max: meilleur, min: pire, nb: nbMatchs }, [pHaut, pBas])
+    }
+  }
+
   // =========== C. Classement général ===========
   if (parRangAvant) {
     const deltas = actifs
       .map((id) => ({ id, delta: (rangsApres.get(id) ?? 0) - (rangsAvant!.get(id) ?? rangsApres.get(id) ?? 0) }))
     const chute = [...deltas].sort((a, b) => b.delta - a.delta)[0]
-    if (chute && chute.delta >= 2) ajouter('C01', 74, { p: pseudo(chute.id), n: chute.delta }, [chute.id], [[`-${chute.delta}`, 'places'], [`${rangsApres.get(chute.id)}e`, 'au général']])
+    if (chute && chute.delta >= 2) ajouter('C01', 74, { p: pseudo(chute.id), n: chute.delta }, [chute.id], [[`-${chute.delta}`, 'places dans la ligue'], [`${rangsApres.get(chute.id)}e`, 'au classement de la ligue']])
     const montee = [...deltas].sort((a, b) => a.delta - b.delta)[0]
-    if (montee && montee.delta <= -2) ajouter('C02', 75, { p: pseudo(montee.id), n: -montee.delta }, [montee.id], [[`+${-montee.delta}`, 'places'], [`${rangsApres.get(montee.id)}e`, 'au général']])
+    if (montee && montee.delta <= -2) ajouter('C02', 75, { p: pseudo(montee.id), n: -montee.delta }, [montee.id], [[`+${-montee.delta}`, 'places dans la ligue'], [`${rangsApres.get(montee.id)}e`, 'au classement de la ligue']])
 
     const leaderApres = parRangApres[0]
     const leaderAvant = parRangAvant[0]
@@ -440,7 +506,10 @@ export async function genererJournalSemaine(
   }
   // Lanterne rouge : seulement si tous les joueurs actifs ont pronostiqué tous les matchs
   const tousComplets = actifs.every((id) => (nbPronos.get(id) ?? 0) >= matchs.length)
-  if (tousComplets && actifsParRang.length >= 4) {
+  const dernierDuRang = actifsParRang[actifsParRang.length - 1]
+  // Grande ligue : il suffit que le dernier ait lui-même pronostiqué tous les matchs de la semaine
+  const dernierComplet = !!dernierDuRang && (nbPronos.get(dernierDuRang) ?? 0) >= matchs.length
+  if ((tousComplets || (grande && dernierComplet)) && actifsParRang.length >= 4) {
     const dernier = actifsParRang[actifsParRang.length - 1]
     ajouter('C06', 64, { p: pseudo(dernier) }, [dernier])
   }
@@ -570,6 +639,7 @@ export async function genererJournalSemaine(
       stats: c.stats,
       texte,
       fixe,
+      explication: meta?.explication,
     }
   }
   for (const { c } of notes) {
@@ -596,6 +666,7 @@ export async function genererJournalSemaine(
     semaine: semaineActuelle?.nom ?? '',
     articles,
     enVedette: journalEnVedette(dernierMatch),
+    ...(() => { const t = nomDuTribunal(semaineActuelle?.nom ?? '', dernierMatch); return { nomTribunal: t.nom, exceptionnel: t.exceptionnel } })(),
   }
 }
 
@@ -606,9 +677,8 @@ export async function genererJournalSemaine(
  */
 function journalEnVedette(dernierMatch: string, maintenant: Date = new Date()): boolean {
   if (!dernierMatch) return false
-  const jour = new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'Europe/Paris' }).format(maintenant)
-  const joursDepuisLeDernierMatch = (maintenant.getTime() - new Date(dernierMatch).getTime()) / 86400000
-  return (jour === 'Tue' || jour === 'Wed') && joursDepuisLeDernierMatch >= 0 && joursDepuisLeDernierMatch < 6
+  const depuisOuverture = maintenant.getTime() - (new Date(dernierMatch).getTime() + DELAI_TRIBUNAL_MS)
+  return depuisOuverture >= 0 && depuisOuverture < DUREE_VEDETTE_MS
 }
 
 /*

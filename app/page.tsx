@@ -8,8 +8,8 @@ import CountdownBadge from './CountdownBadge'
 import AnnonceBanner from '@/components/AnnonceBanner'
 import CarteEquipe from '@/components/CarteEquipe'
 import CarteLigue from '@/components/CarteLigue'
-import { journalEnVedette, maDerniereSemaine, infosMonEquipe, chargerMesLigues } from '@/lib/accueil'
- 
+import { tribunalActuel, notifierTribunal, maDerniereSemaine, infosMonEquipe, chargerMesLigues } from '@/lib/accueil'
+
 export const dynamic = 'force-dynamic'
 export default async function Home({
   searchParams,
@@ -21,51 +21,53 @@ export default async function Home({
   if (params.demande) redirect(`/leagues?demande=${encodeURIComponent(params.demande)}`)
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
- 
+
   if (!user) {
     return <LandingPage />
   }
- 
-  const [profileResult, saisonResult, prochainMatchGlobalResult, annoncesResult, vedette, derniereSemaine] = await Promise.all([
+
+  const [profileResult, saisonResult, prochainMatchGlobalResult, annoncesResult, tribunal, derniereSemaine] = await Promise.all([
     supabase.from('profiles').select('pseudo, equipe_favorite').eq('id', user.id).maybeSingle(),
     supabase.from('saisons').select('id').eq('statut', 'en_cours').single(),
     supabase.from('matchs').select('semaine_id').neq('statut', 'termine').order('coup_envoi', { ascending: true }).limit(1).maybeSingle(),
     supabase.from('annonces').select('id, titre, message, date_fin').eq('actif', true).order('id', { ascending: false }).limit(5),
-    journalEnVedette(supabase),
+    tribunalActuel(supabase),
     maDerniereSemaine(supabase, user.id),
   ])
- 
+
   const annonceActive = (annoncesResult.data ?? []).find(
     (a) => !a.date_fin || new Date(a.date_fin) > new Date()
   ) ?? null
- 
+
   const profile = profileResult.data
+  const vedette = tribunal?.enVedette === true
+  if (tribunal?.enVedette) await notifierTribunal(supabase, user.id, tribunal)
   if (!profile) {
     redirect('/onboarding')
   }
- 
+
   const infosEquipe = profile.equipe_favorite
     ? await infosMonEquipe(supabase, profile.equipe_favorite)
     : { prochain: null, dernier: null }
- 
+
   const saisonActuelleId = saisonResult.data?.id
- 
+
   const classementSaison = saisonActuelleId
     ? await calculerClassementSaison(supabase, saisonActuelleId)
     : []
- 
+
   // Ligues affichées sur l'accueil : les 3 épinglées, sinon les 3 premières
   const mesLigues = await chargerMesLigues(supabase, user.id, classementSaison)
   const epinglees = mesLigues.filter((l) => l.epingle !== null).sort((a, b) => a.epingle! - b.epingle!)
   const liguesAccueil = (epinglees.length > 0 ? epinglees : mesLigues.filter((l) => !l.masquee)).slice(0, 3)
- 
- 
+
+
   // Classement général (toutes ligues confondues, ou sans ligue = tous les joueurs de la saison)
   const totalJoueursClassement = classementSaison.length
   const monIndexClassement = classementSaison.findIndex(j => j.utilisateur_id === user.id)
   const monRangGeneral = monIndexClassement >= 0 ? monIndexClassement + 1 : null
   const mesPointsSaison = monIndexClassement >= 0 ? classementSaison[monIndexClassement].score_saison : 0
- 
+
   // Taux de réussite global de la saison (même logique que profile/page.tsx)
   let totalPronostics = 0
   let totalCorrects = 0
@@ -74,24 +76,24 @@ export default async function Home({
       .from('semaines')
       .select('id')
       .eq('saison_id', saisonActuelleId)
- 
+
     const semaineIds = (semainesSaison ?? []).map((s) => s.id)
     if (semaineIds.length > 0) {
       const { data: matchsSaison } = await supabase
         .from('matchs')
         .select('id, statut, equipe_gagnante')
         .in('semaine_id', semaineIds)
- 
+
       const matchIds = (matchsSaison ?? []).map((m) => m.id)
       const matchMap = new Map((matchsSaison ?? []).map((m) => [m.id, m]))
- 
+
       if (matchIds.length > 0) {
         const { data: mesPronostics } = await supabase
           .from('pronostics')
           .select('match_id, equipe_choisie')
           .eq('utilisateur_id', user.id)
           .in('match_id', matchIds)
- 
+
         totalPronostics = (mesPronostics ?? []).filter((p) => matchMap.get(p.match_id)?.statut === 'termine').length
         totalCorrects = (mesPronostics ?? []).filter((p) => {
           const m = matchMap.get(p.match_id)
@@ -101,7 +103,7 @@ export default async function Home({
     }
   }
   const tauxReussite = totalPronostics > 0 ? Math.round((totalCorrects / totalPronostics) * 100) : 0
- 
+
   // Bandeau "Pronostics de la semaine" — semaine dérivée du prochain match non terminé (même logique que Pronostics/Profil)
   let semaineActuelle: { id: number; nom: string } | null = null
   if (prochainMatchGlobalResult.data) {
@@ -111,7 +113,7 @@ export default async function Home({
     const { data } = await supabase.from('semaines').select('id, nom').order('id', { ascending: false }).limit(1).single()
     semaineActuelle = data
   }
- 
+
   let nombreMatchsSemaine = 0
   let mesPronosFaits = 0
   let prochainVerrouillage: string | null = null
@@ -121,13 +123,13 @@ export default async function Home({
       .select('id', { count: 'exact', head: true })
       .eq('semaine_id', semaineActuelle.id)
     nombreMatchsSemaine = count ?? 0
- 
+
     const { data: matchsSemaineActuelle } = await supabase
       .from('matchs')
       .select('id')
       .eq('semaine_id', semaineActuelle.id)
     const idsMatchsSemaine = (matchsSemaineActuelle ?? []).map((m) => m.id)
- 
+
     if (idsMatchsSemaine.length > 0) {
       const { count: countFaits } = await supabase
         .from('pronostics')
@@ -136,7 +138,7 @@ export default async function Home({
         .in('match_id', idsMatchsSemaine)
       mesPronosFaits = countFaits ?? 0
     }
- 
+
     const { data: prochainMatchSemaine } = await supabase
       .from('matchs')
       .select('coup_envoi')
@@ -145,10 +147,10 @@ export default async function Home({
       .order('coup_envoi', { ascending: true })
       .limit(1)
       .maybeSingle()
- 
+
     prochainVerrouillage = prochainMatchSemaine?.coup_envoi ?? null
   }
- 
+
   return (
     <div style={{ position: 'relative', minHeight: '100dvh' }}>
       <div style={{
@@ -166,12 +168,12 @@ export default async function Home({
           background: 'linear-gradient(180deg, rgba(11,18,32,0.72) 0%, rgba(11,18,32,0.92) 100%)',
         }} />
       </div>
- 
+
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '24px 24px 100px', textAlign: 'center' }}>
         <img src="/logo-officiel.png" alt="Project End Zone" style={{ width: 160, margin: '0 auto', display: 'block' }} />
- 
+
         <p style={{ color: 'white', marginTop: 12 }}>Connecté en tant que {profile.pseudo}</p>
- 
+
         {vedette && (
           <Link
             href="/leagues"
@@ -190,22 +192,22 @@ export default async function Home({
               boxShadow: '0 0 20px rgba(200,53,46,0.35)',
             }}
           >
-            <span style={{ fontSize: 26 }}>📰</span>
+            <span style={{ fontSize: 26 }}>⚖️</span>
             <span style={{ flex: 1 }}>
               <span style={{ display: 'block', fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: '#ffd9d5' }}>À la une</span>
-              <span style={{ display: 'block', fontSize: 15, fontWeight: 700 }}>Le journal du mardi est sorti</span>
-              <span style={{ display: 'block', fontSize: 12, color: '#ffd9d5' }}>Va voir qui s'est fait charrier dans tes ligues →</span>
+              <span style={{ display: 'block', fontSize: 15, fontWeight: 700 }}>Le {tribunal?.nom ?? 'Tribunal du mardi'} est ouvert</span>
+              <span style={{ display: 'block', fontSize: 12, color: '#ffd9d5' }}>Viens voir qui a été jugé dans tes ligues →</span>
             </span>
           </Link>
         )}
- 
+
         {semaineActuelle && (() => {
           const style = mesPronosFaits === 0
             ? { degrade: 'linear-gradient(135deg, #7a1a15, #C8352E)', bordure: '#ff6b5f', ombre: 'rgba(200,53,46,0.35)', texteHaut: '#ffd9d5', texteBouton: '#C8352E', libelle: 'Faire mes pronostics →' }
             : mesPronosFaits < nombreMatchsSemaine
             ? { degrade: 'linear-gradient(135deg, #6b4a0f, #d68f1f)', bordure: '#f0b84a', ombre: 'rgba(214,143,31,0.35)', texteHaut: '#ffedcf', texteBouton: '#a86b0f', libelle: '⏳ Finalise tes pronostics →' }
             : { degrade: 'linear-gradient(135deg, #0c4a3a, #2ea866)', bordure: '#6fe0a0', ombre: 'rgba(46,168,102,0.35)', texteHaut: '#d7f5e4', texteBouton: '#0F6E56', libelle: '✅ Pronostics faits — modifier' }
- 
+
           return (
             <Link
               href={`/pronostics?semaine=${semaineActuelle.id}`}
@@ -248,7 +250,7 @@ export default async function Home({
             </Link>
           )
         })()}
- 
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
           <div style={{ background: '#16233F', border: '0.5px solid #33415a', borderRadius: 10, padding: '12px 8px', textAlign: 'center' }}>
             <div style={{ fontSize: 9, color: '#7a8aa5', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Classement général</div>
@@ -267,8 +269,8 @@ export default async function Home({
             <div style={{ fontSize: 9, color: '#9fb0c9' }}>{tauxReussite}% réussite</div>
           </div>
         </div>
- 
- 
+
+
         {derniereSemaine && (
           <div style={{
             background: '#16233F',
@@ -287,14 +289,14 @@ export default async function Home({
             </div>
           </div>
         )}
- 
+
         <CarteEquipe equipe={profile.equipe_favorite ?? null} infos={infosEquipe} />
- 
+
         {annonceActive && (
           <AnnonceBanner id={annonceActive.id} titre={annonceActive.titre} message={annonceActive.message} />
         )}
- 
- 
+
+
         {liguesAccueil.length > 0 && (
           <div style={{ marginTop: 8, textAlign: 'left' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -311,11 +313,11 @@ export default async function Home({
             </div>
           </div>
         )}
- 
+
         <form action="/auth/logout" method="post" style={{ marginTop: 32 }}>
           <button style={{ padding: 10 }}>Se déconnecter</button>
         </form>
- 
+
         <div style={{ marginTop: 40, fontSize: 12, color: '#666', display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Link href="/regles" style={{ color: '#9fb0c9' }}>📖 Rappel des règles</Link>
           <Link href="/legal/mentions" style={{ color: '#666' }}>Mentions légales</Link>

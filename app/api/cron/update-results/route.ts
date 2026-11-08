@@ -2,6 +2,7 @@ import { BigBallSportsClient } from '@bigballsdata/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
+import { notifierTribunalATous } from '@/lib/tribunal'
 const CORRESPONDANCE_EQUIPES: Record<string, string> = {
   'Arizona Cardinals': 'ARI', 'Atlanta Falcons': 'ATL', 'Baltimore Ravens': 'BAL', 'Buffalo Bills': 'BUF',
   'Carolina Panthers': 'CAR', 'Chicago Bears': 'CHI', 'Cincinnati Bengals': 'CIN', 'Cleveland Browns': 'CLE',
@@ -104,5 +105,13 @@ export async function GET(request: Request) {
     revalidatePath('/profile')
     revalidatePath('/')
   }
-  return NextResponse.json({ miseAJourTotal, resultats })
+
+  // Le Tribunal du mardi s'ouvre 1 h après le dernier match : notification (sans doublon) à tous les joueurs
+  let tribunalNotifies = 0
+  try {
+    tribunalNotifies = await notifierTribunalATous()
+  } catch (e) {
+    console.error('[tribunal] notification échouée :', e)
+  }
+  return NextResponse.json({ miseAJourTotal, tribunalNotifies, resultats })
 }

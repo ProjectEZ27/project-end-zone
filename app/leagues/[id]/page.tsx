@@ -127,7 +127,7 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
   const semaineDuJournal = await derniereSemaineTerminee(supabase)
   const journal = semaineDuJournal
     ? await genererJournalSemaine(supabase, semaineDuJournal, membreIdsLigue)
-    : { semaine: '', articles: [], enVedette: false }
+    : { semaine: '', articles: [], enVedette: false, nomTribunal: 'Tribunal du mardi', exceptionnel: false }
   const pastilles = [
     { href: `/leagues/${id}/pronostics`, label: 'Résultats', Icon: TbBallAmericanFootball },
     { href: `/leagues/${id}/classement`, label: 'Classement', Icon: TbTrophy },
@@ -276,6 +276,8 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
         {journal.articles.length > 0 && (
           <JournalDuMardi
             semaine={journal.semaine}
+            nomTribunal={journal.nomTribunal}
+            exceptionnel={journal.exceptionnel}
             articles={journal.articles}
             enVedette={journal.enVedette}
             reactions={reactionsJournal}

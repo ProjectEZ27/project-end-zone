@@ -2,7 +2,7 @@ import Link from 'next/link'
 import LeagueLogo from '@/components/LeagueLogo'
 import { epinglerLigue, desepinglerLigue, deplacerEpingle, masquerLigue, afficherLigue } from '@/app/leagues/epingles'
 import type { MaLigue } from '@/lib/accueil'
- 
+
 const petitBouton: React.CSSProperties = {
   width: 26,
   height: 26,
@@ -15,7 +15,7 @@ const petitBouton: React.CSSProperties = {
   cursor: 'pointer',
   padding: 0,
 }
- 
+
 /*
  * Carte d'une ligue.
  *  - controles="aucun"    : accueil (juste le lien)
@@ -45,7 +45,7 @@ export default function CarteLigue({
     rang === 3 ? { bg: '#B5651D', color: '#2c1608', label: '3e' } :
     rang ? { bg: '#33415a', color: 'white', label: `${rang}e` } :
     null
- 
+
   return (
     <div style={{ position: 'relative', minWidth: 0 }}>
       <Link
@@ -88,11 +88,11 @@ export default function CarteLigue({
             position: 'absolute', bottom: 0, left: 0, right: 0, background: '#C8352E', color: 'white', fontSize: 8, fontWeight: 700,
             letterSpacing: 0.5, textTransform: 'uppercase', textAlign: 'center', padding: '2px 0', borderRadius: '0 0 9px 9px',
           }}>
-            📰 Journal du mardi
+            ⚖️ Tribunal ouvert
           </div>
         )}
       </Link>
- 
+
       {controles === 'epinglee' && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 6 }}>
           <form action={deplacerEpingle}>
@@ -111,7 +111,7 @@ export default function CarteLigue({
           </form>
         </div>
       )}
- 
+
       {controles === 'autre' && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 6 }}>
           <form action={epinglerLigue}>
@@ -132,7 +132,7 @@ export default function CarteLigue({
           </form>
         </div>
       )}
- 
+
       {controles === 'masquee' && (
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: 6 }}>
           <form action={afficherLigue}>
@@ -146,4 +146,3 @@ export default function CarteLigue({
     </div>
   )
 }
- 

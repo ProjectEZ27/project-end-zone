@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 
-export type TypeNotification = 'rappel' | 'badge' | 'ligue' | 'photo' | 'site'
+export type TypeNotification = 'rappel' | 'badge' | 'ligue' | 'photo' | 'site' | 'journal'
 
 function clientService() {
   return createClient(

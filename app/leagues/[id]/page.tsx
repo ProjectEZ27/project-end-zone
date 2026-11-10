@@ -15,7 +15,6 @@ import {
   TbX,
 } from 'react-icons/tb'
 import { genererJournalSemaine, derniereSemaineTerminee } from '@/lib/journal'
-import { ADMIN_ID } from '@/lib/admin'
 import JournalDuMardi from '@/components/JournalDuMardi'
 import LeagueSwitcher from '@/components/LeagueSwitcher'
 import { liguesPourMenu } from '@/lib/accueil'
@@ -138,32 +137,6 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
     pastilles.push({ href: `/leagues/${id}/parametres`, label: 'Paramètres', Icon: TbSettings })
   }
 
-  // Diagnostic temporaire (visible seulement par l'administrateur)
-  let diagnosticJournal: string[] | null = null
-  if (user.id === ADMIN_ID && journal.articles.length > 0 && journal.diagnostic) {
-    diagnosticJournal = journal.diagnostic
-  }
-  if (user.id === ADMIN_ID && journal.articles.length === 0) {
-    const { data: dernieresSemaines } = await supabase
-      .from('semaines')
-      .select('id, nom')
-      .order('id', { ascending: false })
-      .limit(5)
-    const ids = (dernieresSemaines ?? []).map((s) => s.id)
-    const { data: matchsDiag } = ids.length > 0
-      ? await supabase.from('matchs').select('semaine_id, statut').in('semaine_id', ids)
-      : { data: [] as { semaine_id: number; statut: string }[] }
-    diagnosticJournal = [
-      `Semaine retenue pour le journal : ${semaineDuJournal ?? 'aucune'}`,
-      `Membres de la ligue pris en compte : ${membreIdsLigue.length}`,
-      ...(dernieresSemaines ?? []).map((s) => {
-        const siens = (matchsDiag ?? []).filter((m) => m.semaine_id === s.id)
-        const pasFinis = siens.filter((m) => m.statut !== 'termine')
-        return `${s.nom} (n°${s.id}) : ${siens.length} matchs, dont ${pasFinis.length} pas terminé${pasFinis.length > 1 ? 's' : ''}${pasFinis.length ? ' → statut « ' + [...new Set(pasFinis.map((m) => m.statut))].join(', ') + ' »' : ''}`
-      }),
-    ]
-  }
-
   // Réactions des joueurs sur les articles du journal
   let reactionsJournal: React.ComponentProps<typeof JournalDuMardi>['reactions'] = undefined
   if (semaineDuJournal && journal.articles.length > 0) {
@@ -266,15 +239,6 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
             </Link>
           ))}
         </div>
-
-        {diagnosticJournal && (
-          <div style={{ marginTop: 16, padding: 10, border: '1px dashed #f5c969', borderRadius: 8, textAlign: 'left', fontSize: 11, color: '#f5c969', lineHeight: 1.5 }}>
-            <b>Diagnostic journal (visible par toi seulement)</b>
-            {diagnosticJournal.map((l, i) => (
-              <div key={i}>{l}</div>
-            ))}
-          </div>
-        )}
 
         {journal.articles.length > 0 && (
           <JournalDuMardi

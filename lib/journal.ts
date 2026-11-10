@@ -688,16 +688,23 @@ export async function genererJournalSemaine(
       explication: meta?.explication,
     }
   }
-  for (const { c } of notes) {
-    if (articles.length >= 4) break
-    const famille = c.id[0]
-    if ((parFamille.get(famille) ?? 0) >= 2) continue
-    if (c.joueurs.some((j) => (parJoueur.get(j) ?? 0) >= 2)) continue
-    const article = creerArticle(c)
-    if (!article) continue
-    articles.push(article)
-    parFamille.set(famille, (parFamille.get(famille) ?? 0) + 1)
-    c.joueurs.forEach((j) => parJoueur.set(j, (parJoueur.get(j) ?? 0) + 1))
+  // Premier passage : un même joueur n'est cité qu'une seule fois.
+  // Second passage (seulement s'il manque des articles) : on accepte de le citer deux fois.
+  const retenus = new Set<string>()
+  for (const maxParJoueur of [1, 2]) {
+    for (const { c } of notes) {
+      if (articles.length >= 4) break
+      if (retenus.has(c.id)) continue
+      const famille = c.id[0]
+      if ((parFamille.get(famille) ?? 0) >= 2) continue
+      if (c.joueurs.some((j) => (parJoueur.get(j) ?? 0) >= maxParJoueur)) continue
+      const article = creerArticle(c)
+      if (!article) continue
+      articles.push(article)
+      retenus.add(c.id)
+      parFamille.set(famille, (parFamille.get(famille) ?? 0) + 1)
+      c.joueurs.forEach((j) => parJoueur.set(j, (parJoueur.get(j) ?? 0) + 1))
+    }
   }
   if (articles.length < 2) {
     const calme = creerArticle({ id: 'F08', priorite: 0, variables: {}, joueurs: [], stats: [] })

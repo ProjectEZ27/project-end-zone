@@ -1,4 +1,4 @@
-import { SupabaseClient } from '@supabase/supabase-js'
+import { SupabaseClient, createClient } from '@supabase/supabase-js'
 import { NOMS_EQUIPES } from './teamBadge'
 import { calculerClassementSemaine } from './scoring'
 import { estMatchNul } from './matchNul'
@@ -33,7 +33,7 @@ export type Article = {
 export type JournalSemaine = {
   semaine: string
   articles: Article[]
-  // vrai pendant 3 jours à partir d'1 h après le dernier match : le tribunal est alors mis en avant
+  // vrai pendant 2 jours (mardi et mercredi) à partir d'1 h après le dernier match : le tribunal est alors mis en avant et ouvert
   enVedette: boolean
   diagnostic?: string[] // pour l'administrateur : pourquoi tel article est (ou n'est pas) sorti
   nomTribunal: string // ex. « Tribunal du mardi », « Tribunal des Wild Cards »
@@ -43,7 +43,8 @@ const VIDE: JournalSemaine = { semaine: '', articles: [], enVedette: false, nomT
 
 /** Le tribunal s'ouvre 1 h après la fin supposée du dernier match (coup d'envoi + 4 h). */
 export const DELAI_TRIBUNAL_MS = 5 * 3600 * 1000
-export const DUREE_VEDETTE_MS = 3 * 86400000
+// Mis en avant (et ouvert d'office) pendant 2 jours : le mardi et le mercredi
+export const DUREE_VEDETTE_MS = 2 * 86400000
 
 /**
  * Nom du tribunal : par manche en playoffs, sinon le jour d'ouverture (« du mardi » dans le cas normal).
@@ -119,6 +120,7 @@ const PHRASES_SECOURS: Record<string, string[]> = {
   C01: ['{p} dégringole au classement cette semaine.'],
   C07: ['{p}, dernier au classement de la ligue, signe pourtant la meilleure semaine. Le pur underdog.'],
   F08: ['Semaine sans histoire dans la ligue : rien à signaler.'],
+  L01: ['Embouteillage au sommet : {n} joueurs terminent en tête de la semaine, avec {score}/{nb} chacun.'],
   G01: ['« Un pronostic, c\'est comme un parapluie : on l\'oublie quand il fait beau. »'],
 }
 
@@ -236,6 +238,40 @@ function quatriemeJeudiNovembre(annee: number): number {
   const premier = new Date(Date.UTC(annee, 10, 1)).getUTCDay() // 0 = dimanche
   const premierJeudi = 1 + ((4 - premier + 7) % 7)
   return premierJeudi + 21
+}
+
+
+/**
+ * Lit la banque de phrases (table journal_phrases). Si la lecture avec le compte du joueur échoue
+ * ou renvoie 0 phrase (droits de la table), on réessaie avec le compte du site : ces phrases ne sont pas privées.
+ */
+async function chargerBanque(supabase: SupabaseClient): Promise<{ banque: Phrase[]; erreurBanque: string | null }> {
+  const lire = (client: SupabaseClient) =>
+    client.from('journal_phrases').select('id, declencheur_id, ton, rarete, texte').eq('actif', true).range(0, 4999)
+
+  let erreur: string | null = null
+  try {
+    const { data, error } = await lire(supabase)
+    if (!error && data && data.length > 0) return { banque: data as Phrase[], erreurBanque: null }
+    erreur = error ? error.message : 'aucune phrase active trouvée'
+  } catch (e) {
+    erreur = e instanceof Error ? e.message : 'lecture impossible'
+  }
+
+  try {
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+      const { data, error } = await lire(admin)
+      if (!error && data && data.length > 0) {
+        return { banque: data as Phrase[], erreurBanque: `lue avec le compte du site (compte du joueur : ${erreur})` }
+      }
+      erreur = `${erreur} · compte du site : ${error ? error.message : 'aucune phrase active trouvée'}`
+    }
+  } catch (e) {
+    erreur = `${erreur} · ${e instanceof Error ? e.message : 'lecture impossible'}`
+  }
+  console.error('[journal] banque de phrases indisponible :', erreur)
+  return { banque: [], erreurBanque: erreur }
 }
 
 // ---------- fonction principale ----------
@@ -361,7 +397,8 @@ export async function genererJournalSemaine(
 
   // =========== A. Performance de la semaine ===========
   const parfaits = actifs.filter((id) => scores.get(id) === nbMatchs)
-  if (parfaits.length > 0) {
+  // Un seul sans-faute : article A01. À deux, c'est « les jumeaux » (A04) ; à trois ou plus, « l'embouteillage » (L01)
+  if (parfaits.length === 1) {
     const p = tirer(parfaits)
     ajouter('A01', 100, { p: pseudo(p), n: nbMatchs }, [p], [[`${nbMatchs}/${nbMatchs}`, 'bons pronos']])
   }
@@ -445,7 +482,14 @@ export async function genererJournalSemaine(
   // Plusieurs joueurs en tête (3 ou plus) : les articles « un seul joueur » ne peuvent plus se déclencher
   if (enTete.length >= 3 && meilleur > 0) {
     const pTete = tirer(enTete)
-    ajouter('L01', 76, { n: enTete.length, score: meilleur, nb: nbMatchs, p: pseudo(pTete) }, [pTete], [[`${meilleur}/${nbMatchs}`, 'chacun']])
+    const noms = enTete.map((id) => pseudo(id))
+    ajouter(
+      'L01',
+      enTete.length >= 3 && meilleur === nbMatchs ? 100 : 76,
+      { n: enTete.length, score: meilleur, nb: nbMatchs, p: pseudo(pTete) },
+      [pTete],
+      [[`${meilleur}/${nbMatchs}`, 'chacun'], ...(noms.length <= 6 ? ([[noms.join(', '), meilleur === nbMatchs ? 'sans-faute' : 'en tête']] as Stat[]) : [])]
+    )
   }
   // Plusieurs joueurs au fond (3 ou plus)
   if (enQueue.length >= 3 && pire < nbMatchs) {
@@ -611,17 +655,7 @@ export async function genererJournalSemaine(
   }
 
   // ---------- Récupération des phrases ----------
-  let banque: Phrase[] = []
-  try {
-    const { data } = await supabase
-      .from('journal_phrases')
-      .select('id, declencheur_id, ton, rarete, texte')
-      .eq('actif', true)
-      .range(0, 4999)
-    banque = (data ?? []) as Phrase[]
-  } catch {
-    banque = []
-  }
+  const { banque, erreurBanque } = await chargerBanque(supabase)
   const phrasesDe = (idDeclencheur: string): Phrase[] => {
     const trouvees = banque.filter((p) => p.declencheur_id === idDeclencheur)
     if (trouvees.length > 0 || banque.length > 0) return trouvees
@@ -682,6 +716,7 @@ export async function genererJournalSemaine(
       `Joueurs ayant pronostiqué cette semaine : ${aPronostique.size} · actifs (classements) : ${actifs.length}`,
       `Articles possibles : ${candidats.map((c) => c.id).join(', ') || 'aucun'}`,
       `Articles retenus : ${articles.map((a) => a.id).join(', ')}`,
+      `Banque de phrases : ${banque.length} phrase(s) chargée(s)${erreurBanque ? ' · ' + erreurBanque : ''}`,
     ],
     ...(() => { const t = nomDuTribunal(semaineActuelle?.nom ?? '', dernierMatch); return { nomTribunal: t.nom, exceptionnel: t.exceptionnel } })(),
   }

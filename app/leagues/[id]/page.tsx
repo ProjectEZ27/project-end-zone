@@ -283,6 +283,7 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
             exceptionnel={journal.exceptionnel}
             articles={journal.articles}
             enVedette={journal.enVedette}
+            ouvertAuDepart={journal.enVedette}
             reactions={reactionsJournal}
           />
         )}

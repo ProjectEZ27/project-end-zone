@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { derniereSemaineTerminee, nomDuTribunal, DELAI_TRIBUNAL_MS, DUREE_VEDETTE_MS } from '@/lib/journal'
 import { creerNotification } from '@/lib/notifications'
+import { calculerClassementSemaine } from '@/lib/scoring'
 
 /*
  * Petites fonctions utilisées par l'Accueil et la page Ligues.
@@ -43,7 +44,16 @@ export async function notifierTribunal(supabase: SupabaseClient, userId: string,
 }
 
 /** « Ta dernière semaine » : mes bons pronostics sur la dernière semaine entièrement terminée. */
-export type DerniereSemaine = { nom: string; bons: number; total: number }
+export type DerniereSemaine = {
+  id: number
+  nom: string
+  bons: number
+  total: number
+  aPronostique: boolean
+  points: number | null // points gagnés cette semaine (bonus compris)
+  rang: number | null // rang parmi les joueurs du site cette semaine
+  joueurs: number
+}
 
 export async function maDerniereSemaine(supabase: SupabaseClient, userId: string): Promise<DerniereSemaine | null> {
   const semaineId = await derniereSemaineTerminee(supabase)
@@ -61,11 +71,29 @@ export async function maDerniereSemaine(supabase: SupabaseClient, userId: string
     .select('match_id, equipe_choisie')
     .eq('utilisateur_id', userId)
     .in('match_id', ids)
-  if (!pronos || pronos.length === 0) return null
+  const nomSemaine = semaine?.nom ?? 'Dernière semaine'
+  if (!pronos || pronos.length === 0) {
+    return { id: semaineId, nom: nomSemaine, bons: 0, total: ids.length, aPronostique: false, points: null, rang: null, joueurs: 0 }
+  }
 
   const gagnants = new Map((matchs ?? []).map((m) => [m.id, m.equipe_gagnante]))
   const bons = pronos.filter((p) => gagnants.get(p.match_id) === p.equipe_choisie).length
-  return { nom: semaine?.nom ?? 'Dernière semaine', bons, total: ids.length }
+  // Points de la semaine (avec les bonus) et rang parmi tous les joueurs
+  let points: number | null = null
+  let rang: number | null = null
+  let joueurs = 0
+  try {
+    const classement = await calculerClassementSemaine(supabase, semaineId)
+    joueurs = classement.length
+    const moi = classement.find((j) => j.utilisateur_id === userId)
+    if (moi) {
+      points = moi.score_semaine
+      rang = 1 + classement.filter((j) => j.score_semaine > moi.score_semaine).length
+    }
+  } catch {
+    // on affiche au moins les bons pronostics
+  }
+  return { id: semaineId, nom: nomSemaine, bons, total: ids.length, aPronostique: true, points, rang, joueurs }
 }
 
 /** Carte « Ton équipe » : prochain match et dernier résultat de mon équipe favorite. */

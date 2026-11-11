@@ -8,6 +8,9 @@ import CountdownBadge from './CountdownBadge'
 import AnnonceBanner from '@/components/AnnonceBanner'
 import CarteEquipe from '@/components/CarteEquipe'
 import CarteLigue from '@/components/CarteLigue'
+import RecapSemaine from '@/components/RecapSemaine'
+import { trouverRecapAAfficher } from '@/lib/recapSemaine'
+import { cookies } from 'next/headers'
 import { tribunalActuel, notifierTribunal, maDerniereSemaine, infosMonEquipe, chargerMesLigues } from '@/lib/accueil'
 
 export const dynamic = 'force-dynamic'
@@ -55,6 +58,19 @@ export default async function Home({
   const classementSaison = saisonActuelleId
     ? await calculerClassementSaison(supabase, saisonActuelleId)
     : []
+
+  // Récap animé de la semaine terminée (jusqu'à 24 h avant la semaine suivante, tant qu'un bouton n'a pas été cliqué)
+  let recap: Awaited<ReturnType<typeof trouverRecapAAfficher>> = null
+  if (saisonActuelleId) {
+    const jar = await cookies()
+    const idsLusParCookie = jar
+      .getAll()
+      .map((c) => c.name.match(/^recap_lu_(\d+)_(.+)$/))
+      .filter((m): m is RegExpMatchArray => m !== null && m[2] === user.id)
+      .map((m) => Number(m[1]))
+    recap = await trouverRecapAAfficher(supabase, user.id, saisonActuelleId, idsLusParCookie)
+  }
+  const animes: number[] = Array.isArray(user.user_metadata?.recaps_animes) ? user.user_metadata.recaps_animes : []
 
   // Ligues affichées sur l'accueil : les 3 épinglées, sinon les 3 premières
   const mesLigues = await chargerMesLigues(supabase, user.id, classementSaison)
@@ -271,7 +287,9 @@ export default async function Home({
         </div>
 
 
-        {derniereSemaine && (
+        {recap && <RecapSemaine {...recap} userId={user.id} dejaAnime={animes.includes(recap.semaineId)} />}
+
+        {!recap && derniereSemaine && (
           <div style={{
             background: '#16233F',
             border: '0.5px solid #33415a',
@@ -284,8 +302,26 @@ export default async function Home({
             <div style={{ fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: '#9fb0c9' }}>
               Ta dernière semaine · {derniereSemaine.nom}
             </div>
-            <div style={{ fontSize: 16, fontWeight: 700, marginTop: 2 }}>
-              {derniereSemaine.bons} bon{derniereSemaine.bons > 1 ? 's' : ''} prono{derniereSemaine.bons > 1 ? 's' : ''} sur {derniereSemaine.total}
+            {derniereSemaine.aPronostique ? (
+              <>
+                <div style={{ fontSize: 16, fontWeight: 700, marginTop: 2 }}>
+                  {derniereSemaine.bons} bon{derniereSemaine.bons > 1 ? 's' : ''} prono{derniereSemaine.bons > 1 ? 's' : ''} sur {derniereSemaine.total}
+                  {derniereSemaine.points !== null && (
+                    <span style={{ color: '#F0C040' }}> · +{derniereSemaine.points} pt{derniereSemaine.points > 1 ? 's' : ''}</span>
+                  )}
+                </div>
+                {derniereSemaine.rang !== null && derniereSemaine.joueurs > 1 && (
+                  <div style={{ fontSize: 12, color: '#9fb0c9', marginTop: 2 }}>
+                    {derniereSemaine.rang === 1 ? '1er' : `${derniereSemaine.rang}e`} sur {derniereSemaine.joueurs} joueurs cette semaine
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{ fontSize: 14, color: '#9fb0c9', marginTop: 2 }}>Tu n'avais pas pronostiqué cette semaine.</div>
+            )}
+            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 8, fontSize: 12 }}>
+              <Link href={`/pronostics?semaine=${derniereSemaine.id}`} style={{ color: '#F0C040', textDecoration: 'none' }}>👀 Revoir mes pronostics</Link>
+              <Link href="/pronostics" style={{ color: '#F0C040', textDecoration: 'none' }}>Pronostiquer la suite →</Link>
             </div>
           </div>
         )}

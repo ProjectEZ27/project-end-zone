@@ -15,11 +15,8 @@ import { estMatchNul } from '@/lib/matchNul'
 import { orienter } from '@/lib/domicile'
 import DirectRafraichisseur from '@/components/DirectRafraichisseur'
 import ResultatsRafraichisseur from '@/components/ResultatsRafraichisseur'
-import RecapSemaine from '@/components/RecapSemaine'
 import AnneauScore from '@/components/AnneauScore'
 import { listerSemainesAvecScores } from '@/lib/scoresSemaines'
-import { cookies } from 'next/headers'
-import { trouverRecapAAfficher } from '@/lib/recapSemaine'
 import { calculerClassementSemaine } from '@/lib/scoring'
 
 export default async function Pronostics({ searchParams }: { searchParams: Promise<{ semaine?: string }> }) {
@@ -29,24 +26,6 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
 
   if (!user) {
     redirect('/login')
-  }
-
-  // Récap de la semaine terminée : montré une seule fois par joueur, jusqu'à 24 h avant la semaine suivante
-  if (!semaineParam) {
-    const { data: saisonRecap } = await supabase.from('saisons').select('id').eq('statut', 'en_cours').single()
-    if (saisonRecap) {
-      const jar = await cookies()
-      const idsLusParCookie = jar
-        .getAll()
-        .map((c) => c.name.match(/^recap_lu_(\d+)_(.+)$/))
-        .filter((m): m is RegExpMatchArray => m !== null && m[2] === user.id)
-        .map((m) => Number(m[1]))
-      const recap = await trouverRecapAAfficher(supabase, user.id, saisonRecap.id, idsLusParCookie)
-      if (recap) {
-        const animes: number[] = Array.isArray(user.user_metadata?.recaps_animes) ? user.user_metadata.recaps_animes : []
-        return <RecapSemaine {...recap} userId={user.id} dejaAnime={animes.includes(recap.semaineId)} />
-      }
-    }
   }
 
   const [lignesSemaines, semaineParamResult, classement] = await Promise.all([

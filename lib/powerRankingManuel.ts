@@ -1,7 +1,7 @@
-// Mis à jour le 04/11/2026
+// Mis à jour le 10/11/2026
 export const CLASSEMENT_MANUEL: string[] = [
-  'BUF', 'SF', 'CHI', 'JAX', 'DET', 'DEN', 'SEA', 'CIN',
-  'MIN', 'KC', 'NE', 'PIT', 'GB', 'NYG', 'CLE', 'TB',
-  'ATL', 'LA', 'HOU', 'LV', 'CAR', 'BAL', 'ARI', 'DAL',
-  'TEN', 'WAS', 'MIA', 'NO', 'NYJ', 'LAC', 'IND', 'PHI',
+  'SF', 'BUF', 'JAX', 'CHI', 'CIN', 'DEN', 'DET', 'GB',
+  'SEA', 'KC', 'MIN', 'PIT', 'NYG', 'TB', 'NE', 'HOU',
+  'LA', 'ATL', 'CLE', 'CAR', 'LV', 'DAL', 'NO', 'TEN',
+  'IND', 'WAS', 'ARI', 'BAL', 'MIA', 'NYJ', 'PHI', 'LAC',
 ]

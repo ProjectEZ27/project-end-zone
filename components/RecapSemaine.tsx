@@ -164,54 +164,28 @@ export default function RecapSemaine({
     display: 'block',
     width: '100%',
     borderRadius: 10,
-    padding: 14,
-    fontSize: 15,
+    padding: 12,
+    fontSize: 14,
     fontWeight: 700,
     cursor: 'pointer',
     textAlign: 'center' as const,
   }
 
   return (
-    <div ref={scene} style={{ position: 'relative', minHeight: '100dvh', overflow: 'hidden' }}>
-      {/* Fond */}
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: -1,
-          backgroundImage: 'url(/fonds/Fond-Pronostics.webp)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'right center',
-          backgroundRepeat: 'no-repeat',
-        }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'radial-gradient(ellipse at 50% 35%, rgba(240,192,64,0.10) 0%, rgba(11,18,32,0.85) 60%, rgba(11,18,32,0.96) 100%)',
-          }}
-        />
-      </div>
-
+    <div ref={scene} style={{ position: 'relative', margin: '0 0 16px' }}>
       <div
         ref={contenu}
         style={{
           position: 'relative',
-          zIndex: 1,
-          maxWidth: 500,
-          margin: '0 auto',
-          padding: '60px 24px 100px',
           textAlign: 'center',
           color: 'white',
           visibility: 'hidden',
         }}
       >
-        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: 2 }}>
+        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: 2 }}>
           Récap de la semaine
         </div>
-        <h1 style={{ margin: '8px 0 24px' }}>🏈 {semaineNom} terminée</h1>
+        <div style={{ fontSize: 17, fontWeight: 700, margin: '4px 0 10px' }}>🏈 {semaineNom} terminée</div>
 
         <div
           ref={carte}
@@ -219,7 +193,7 @@ export default function RecapSemaine({
             border: '1px solid #33415a',
             background: 'rgba(22,35,63,0.82)',
             borderRadius: 14,
-            padding: '26px 16px 22px',
+            padding: '20px 14px 16px',
             backdropFilter: 'blur(4px)',
           }}
         >
@@ -227,7 +201,7 @@ export default function RecapSemaine({
             <p style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Tu n&apos;as pas pronostiqué cette semaine</p>
           ) : (
             <>
-              <div ref={nombre} style={{ fontSize: 68, fontWeight: 700, lineHeight: 1.05, color: '#f0c040' }}>
+              <div ref={nombre} style={{ fontSize: 56, fontWeight: 700, lineHeight: 1.05, color: '#f0c040' }}>
                 {texteNombre(points)}
               </div>
               <p style={{ fontSize: 14, color: '#9fb0c9', margin: 0 }}>
@@ -270,18 +244,8 @@ export default function RecapSemaine({
           </div>
         </div>
 
-        <form action={marquerRecapLu} style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <form action={marquerRecapLu} style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <input type="hidden" name="semaine_id" value={semaineId} />
-          {semaineSuivante && (
-            <button
-              type="submit"
-              name="destination"
-              value="suivante"
-              style={{ ...boutonBase, background: '#C8352E', color: 'white', border: 'none' }}
-            >
-              Passer aux pronostics de la {semaineSuivante.nom} →
-            </button>
-          )}
           <button
             type="submit"
             name="destination"
@@ -293,8 +257,18 @@ export default function RecapSemaine({
               border: '1px solid rgba(255,255,255,0.35)',
             }}
           >
-            Voir les résultats de la {semaineNom}
+            👀 Revoir mes pronostics de la {semaineNom}
           </button>
+          {semaineSuivante && (
+            <button
+              type="submit"
+              name="destination"
+              value="suivante"
+              style={{ ...boutonBase, background: '#C8352E', color: 'white', border: 'none' }}
+            >
+              Passer aux pronostics de la {semaineSuivante.nom} →
+            </button>
+          )}
         </form>
       </div>
     </div>

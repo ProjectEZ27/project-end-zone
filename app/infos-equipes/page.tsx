@@ -6,10 +6,44 @@ import { RESUMES_EQUIPES } from '@/lib/resumesEquipes'
 import InfoToggle from '@/components/InfoToggle'
 import { GLOSSAIRE } from '@/lib/glossaire'
 import { MISE_A_JOUR_INFOS } from '@/lib/miseAJourInfos'
+import Link from 'next/link'
+import { formaterMajExpert } from '@/lib/majExpert'
+import { createClient } from '@/lib/supabase/server'
+import ClassementExpert, { type LigneExpert } from '@/components/ClassementExpert'
 
-export default async function InfosEquipes() {
+export default async function InfosEquipes({ searchParams }: { searchParams: Promise<{ vue?: string }> }) {
+  const { vue } = await searchParams
+  const vueExpert = vue === 'expert'
   const annee = new Date().getFullYear()
   const classement = await getPowerIndexRanking(annee)
+
+  // Mode expert : réglage du joueur + statistiques des équipes
+  let modeExpert = false
+  let lignesExpert: LigneExpert[] = []
+  if (vueExpert) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data: profil } = await supabase.from('profiles').select('mode_expert').eq('id', user.id).maybeSingle()
+      modeExpert = profil?.mode_expert ?? true
+    }
+    if (modeExpert) {
+      const { data } = await supabase.from('stats_expert_equipes').select('equipe, derniere_semaine, mis_a_jour, valeurs, rangs')
+      lignesExpert = (data ?? []) as LigneExpert[]
+    }
+  }
+  const onglet = (actif: boolean) => ({
+    flex: 1,
+    textAlign: 'center' as const,
+    padding: '10px 4px',
+    borderRadius: 10,
+    fontSize: 13,
+    fontWeight: 700,
+    textDecoration: 'none',
+    border: `1px solid ${actif ? '#f0c040' : '#33415a'}`,
+    background: actif ? '#f0c040' : 'rgba(22,35,63,0.8)',
+    color: actif ? '#0b1220' : '#9fb0c9',
+  })
 
   return (
     <div style={{ position: 'relative', minHeight: '100dvh' }}>
@@ -54,7 +88,51 @@ export default async function InfosEquipes() {
           </span>
         </div>
 
-        {classement.length === 0 ? (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+          <Link href="/infos-equipes" style={onglet(!vueExpert)}>Power Ranking</Link>
+          <Link href="/infos-equipes?vue=expert" style={onglet(vueExpert)}>⚡ Classement expert</Link>
+        </div>
+
+        {vueExpert ? (
+          !modeExpert ? (
+            <div style={{ border: '1px dashed #f0c040', borderRadius: 12, padding: 18, textAlign: 'center', fontSize: 13, color: '#9fb0c9', lineHeight: 1.7 }}>
+              🔒 <b style={{ color: '#f0c040' }}>Classement expert</b>
+              <br />
+              Classements par passe, course, défense et pression, et tableau complet des 32 équipes.
+              <br />
+              Active le mode expert dans ⚙️ Préférences.
+            </div>
+          ) : lignesExpert.length === 0 ? (
+            <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)' }}>
+              Statistiques momentanément indisponibles, réessaie plus tard.
+            </p>
+          ) : (
+            <>
+              <div style={{ textAlign: 'center', marginBottom: 14 }}>
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(240,192,64,0.5)',
+                  borderRadius: 20,
+                  padding: '6px 14px',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: '#c9cdd6',
+                }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f0c040', display: 'inline-block' }} />
+                  {formaterMajExpert(lignesExpert[0].mis_a_jour)
+                    ? `Mis à jour le ${formaterMajExpert(lignesExpert[0].mis_a_jour)}`
+                    : 'Mise à jour récente'}
+                  {` · données jusqu'à la semaine ${lignesExpert[0].derniere_semaine} · prochaine mise à jour mercredi, 19h`}
+                </span>
+              </div>
+              <ClassementExpert lignes={lignesExpert} />
+              <p style={{ fontSize: 10, color: '#7a8aa5', textAlign: 'center', marginTop: 14 }}>Données : nflverse</p>
+            </>
+          )
+        ) : classement.length === 0 ? (
           <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)' }}>
             Classement momentanément indisponible, réessaie plus tard.
           </p>

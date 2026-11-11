@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { TbSettings, TbX, TbBook, TbChevronRight } from 'react-icons/tb'
-import { lirePreferences, changerPreferenceRappel, changerPreferenceTribunal, type Preferences } from '@/app/preferences/actions'
+import { lirePreferences, changerPreferenceRappel, changerPreferenceTribunal, changerPreferenceExpert, type Preferences } from '@/app/preferences/actions'
 import { changerIntroAnimation } from '@/app/profile/introActions'
 
 const ALIGNE = 'max(12px, calc(50% - 238px))'
@@ -133,6 +133,10 @@ export default function BoutonPreferences() {
     setPrefs((p) => (p ? { ...p, notif_journal_actif: valeur } : p))
     changerPreferenceTribunal(valeur)
   }
+  function changerExpert(valeur: boolean) {
+    setPrefs((p) => (p ? { ...p, mode_expert: valeur } : p))
+    changerPreferenceExpert(valeur)
+  }
   function changerEmail(valeur: boolean) {
     setPrefs((p) => (p ? { ...p, email_rappel_actif: valeur } : p))
     changerPreferenceRappel('email', valeur)
@@ -224,6 +228,11 @@ export default function BoutonPreferences() {
               <div style={{ ...titreSection, marginTop: 6, paddingTop: 0, borderTop: 'none' }}>Animations</div>
               <Ligne titre="Arrivée sur les profils" detail="Slogan de l'équipe favorite à l'ouverture">
                 <Interrupteur actif={prefs.intro_animation} onChange={changerAnimation} label="Animation d'arrivée sur les profils" />
+              </Ligne>
+
+              <div style={titreSection}>⚡ Mode expert</div>
+              <Ligne titre="Stats avancées" detail="Duels « force contre force » sur chaque match et classement expert des équipes. Gratuit pendant la période de test.">
+                <Interrupteur actif={prefs.mode_expert} onChange={changerExpert} label="Mode expert" />
               </Ligne>
 
               <div style={titreSection}>Tribunal du mardi</div>

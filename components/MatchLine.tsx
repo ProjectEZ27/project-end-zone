@@ -5,6 +5,7 @@ import styles from './MatchLine.module.css'
 import { selectPronostic } from '@/app/pronostics/actions'
 import { getCouleurEquipe, estCouleurClaire } from '@/lib/teamColors'
 import { DOMICILE_A_GAUCHE } from '@/lib/domicile'
+import DuelsExpert, { type StatsEquipe } from '@/components/DuelsExpert'
 
 interface MatchLineProps {
   matchId: string
@@ -27,6 +28,7 @@ interface MatchLineProps {
   desc2?: string | null
   bilan1?: { victoires: number; defaites: number } | null
   bilan2?: { victoires: number; defaites: number } | null
+  expert?: { actif: boolean; stats1: StatsEquipe; stats2: StatsEquipe } | null
 }
 
 function Streaks({ side }: { side: 'left' | 'right' }) {
@@ -78,6 +80,7 @@ export default function MatchLine({
   desc2,
   bilan1,
   bilan2,
+  expert,
 }: MatchLineProps) {
   const [optimisticSelectedTeam, setOptimisticSelectedTeam] = useOptimistic(selectedTeam)
 const AFFICHER_SCORE_EN_DIRECT = true // réactivé : mise à jour toutes les 30 s via /api/direct (ESPN)
@@ -293,6 +296,9 @@ const libelleQT = tempsRestant === 'Mi-temps'
             </div>
           </details>
         </div>
+      )}
+      {!finished && expert && (
+        <DuelsExpert code1={team1.code} code2={team2.code} stats1={expert.stats1} stats2={expert.stats2} actif={expert.actif} />
       )}
     </div>
   )

@@ -28,6 +28,19 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
     redirect('/login')
   }
 
+  // Mode expert : réglage du joueur + statistiques des 32 équipes (remplies chaque semaine par /api/cron/stats-expert)
+  const [{ data: profilExpert }, { data: lignesExpert }] = await Promise.all([
+    supabase.from('profiles').select('mode_expert').eq('id', user.id).maybeSingle(),
+    supabase.from('stats_expert_equipes').select('equipe, derniere_semaine, mis_a_jour, valeurs, rangs'),
+  ])
+  const modeExpert = profilExpert?.mode_expert ?? true
+  const statsExpert = new Map((lignesExpert ?? []).map((l) => [l.equipe as string, l]))
+  const expertPour = (a: string, b: string) => {
+    const s1 = statsExpert.get(a)
+    const s2 = statsExpert.get(b)
+    return s1 && s2 ? { actif: modeExpert, stats1: s1, stats2: s2 } : null
+  }
+
   const [lignesSemaines, semaineParamResult, classement] = await Promise.all([
     listerSemainesAvecScores(supabase, user.id),
     semaineParam
@@ -344,6 +357,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
                       desc2={descCourte(codeD)}
                       bilan1={bilanParEquipe[codeG] ?? null}
                       bilan2={bilanParEquipe[codeD] ?? null}
+                      expert={expertPour(codeG, codeD)}
                     />
                   )
                 })}
@@ -374,6 +388,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
                   desc2={descCourte(codeD)}
                   bilan1={bilanParEquipe[codeG] ?? null}
                   bilan2={bilanParEquipe[codeD] ?? null}
+                  expert={expertPour(codeG, codeD)}
                 />
               )
             })}

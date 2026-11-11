@@ -219,9 +219,11 @@ export default function DuelsExpert({
           <div style={{ marginTop: 6, padding: 10, borderRadius: 10, background: 'rgba(240,192,64,0.1)', border: '1px solid rgba(240,192,64,0.4)', fontSize: 12, lineHeight: 1.5, textAlign: 'left' }}>
             <b>📌 L&apos;essentiel :</b> {resume(duels, stats1, stats2)}
           </div>
-          <div style={{ fontSize: 10, color: '#7a8aa5', marginTop: 8, textAlign: 'center' }}>
-            Données : nflverse{formaterMajExpert(stats1.mis_a_jour) ? ` · mis à jour le ${formaterMajExpert(stats1.mis_a_jour)}` : ''}
-          </div>
+          {formaterMajExpert(stats1.mis_a_jour) ? (
+            <div style={{ fontSize: 10, color: '#7a8aa5', marginTop: 8, textAlign: 'center' }}>
+              Mis à jour le {formaterMajExpert(stats1.mis_a_jour)}
+            </div>
+          ) : null}
         </div>
       )}
     </div>

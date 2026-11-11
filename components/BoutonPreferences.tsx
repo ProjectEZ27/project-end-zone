@@ -233,7 +233,7 @@ export default function BoutonPreferences() {
               </Ligne>
 
               <div style={titreSection}>⚡ Mode expert</div>
-              <Ligne titre="Stats avancées" detail="Duels « force contre force » sur chaque match et classement expert des équipes. Gratuit pendant la période de test.">
+              <Ligne titre="Stats avancées" detail="Duels « force contre force » sur chaque match et classement expert des équipes.">
                 <Interrupteur actif={prefs.mode_expert} onChange={changerExpert} label="Mode expert" />
               </Ligne>
 

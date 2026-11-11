@@ -132,7 +132,6 @@ export default async function InfosEquipes({ searchParams }: { searchParams: Pro
                 </span>
               </div>
               <ClassementExpert lignes={lignesExpert} />
-              <p style={{ fontSize: 10, color: '#7a8aa5', textAlign: 'center', marginTop: 14 }}>Données : nflverse</p>
             </>
           )
         ) : classement.length === 0 ? (

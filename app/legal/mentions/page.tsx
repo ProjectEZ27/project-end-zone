@@ -38,6 +38,15 @@ export default function MentionsLegales() {
         aux équipes ou compétitions est faite à titre informatif uniquement, sans utilisation
         des logos ou marques officielles.
       </p>
+
+      <h2>Sources des statistiques</h2>
+      <p>
+        Statistiques du mode expert :{' '}
+        <a href="https://github.com/nflverse" target="_blank" rel="noopener noreferrer">nflverse</a>{' '}
+        (licence{' '}
+        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>
+        ), traitées par Project End Zone.
+      </p>
       </div>
     </div>
   )

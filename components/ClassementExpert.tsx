@@ -14,20 +14,20 @@ export type LigneExpert = {
 // Mesures du classement expert. haut = true : plus la valeur est haute, meilleure est l'équipe
 const CATEGORIES = [
   { cle: 'global', libelle: 'Global' },
-  { cle: 'passe_att', libelle: 'Passe attaque', unite: 'pts gagnés par passe', format: 'efficacite' },
-  { cle: 'course_att', libelle: 'Course attaque', unite: 'yards par course', format: 'nombre' },
-  { cle: 'passe_def', libelle: 'Passe défense', unite: 'pts concédés par passe', format: 'efficacite' },
-  { cle: 'course_def', libelle: 'Course défense', unite: 'yards concédés par course', format: 'nombre' },
-  { cle: 'pression_inf', libelle: 'Pression', unite: 'sacks + coups sur le QB par match', format: 'nombre' },
+  { cle: 'passe_att', libelle: 'Attaque aérienne', unite: 'pts gagnés par passe', format: 'efficacite' },
+  { cle: 'course_att', libelle: 'Attaque au sol', unite: 'yards par course', format: 'nombre' },
+  { cle: 'passe_def', libelle: 'Défense aérienne', unite: 'pts concédés par passe', format: 'efficacite' },
+  { cle: 'course_def', libelle: 'Défense au sol', unite: 'yards concédés par course', format: 'nombre' },
+  { cle: 'pression_inf', libelle: 'Pression QB', unite: 'sacks + coups sur le QB par match', format: 'nombre' },
   { cle: 'pression_sub', libelle: 'Protection QB', unite: 'sacks + coups subis par match', format: 'nombre' },
 ] as const
 
 const MESURES_GLOBAL = ['passe_att', 'course_att', 'passe_def', 'course_def', 'pression_inf', 'pression_sub']
 const COLONNES = [
-  ['passe_att', 'Passe att.'],
-  ['course_att', 'Course att.'],
-  ['passe_def', 'Passe déf.'],
-  ['course_def', 'Course déf.'],
+  ['passe_att', 'Att. aérienne'],
+  ['course_att', 'Att. au sol'],
+  ['passe_def', 'Déf. aérienne'],
+  ['course_def', 'Déf. au sol'],
   ['pression_inf', 'Pression'],
   ['pression_sub', 'Protection'],
 ] as const

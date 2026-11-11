@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import IconeInfo from '@/components/IconeInfo'
 import { getCouleurEquipe } from '@/lib/teamColors'
 import { formaterMajExpert } from '@/lib/majExpert'
 
@@ -108,52 +109,89 @@ function DuelLigne({ d, couleurAtt, couleurDef }: { d: Resultat; couleurAtt: str
   )
 }
 
-/** Pastille « ⚡ Duels expert » sous un match : ouvre les 8 duels force contre force (données : nflverse). */
+/**
+ * Ligne fine sous un match : le petit « i » (infos équipes) et, si le mode expert est activé,
+ * la pastille « ⚡ Duels expert » (8 duels force contre force, données : nflverse).
+ * Sans mode expert (ou sans statistiques), seul le « i » reste, centré.
+ * `infos` : le contenu du panneau du « i », construit par MatchLine.
+ */
 export default function DuelsExpert({
   code1,
   code2,
   stats1,
   stats2,
   actif,
+  infos,
 }: {
   code1: string
   code2: string
-  stats1: StatsEquipe
-  stats2: StatsEquipe
+  stats1?: StatsEquipe | null
+  stats2?: StatsEquipe | null
   actif: boolean
+  infos?: ReactNode
 }) {
   const [ouvert, setOuvert] = useState(false)
+  const [infoOuverte, setInfoOuverte] = useState(false)
+
+  // Le bouton « Infos équipes » de la page ouvre / ferme le « i » de tous les matchs d'un coup
+  useEffect(() => {
+    const ecouter = (e: Event) => setInfoOuverte(Boolean((e as CustomEvent<boolean>).detail))
+    window.addEventListener('infos-equipes', ecouter)
+    return () => window.removeEventListener('infos-equipes', ecouter)
+  }, [])
+
+  const afficherDuel = actif && !!stats1 && !!stats2
+  const afficherInfo = !!infos
+  if (!afficherDuel && !afficherInfo) return null
+
   const couleur1 = getCouleurEquipe(code1).primary
   const couleur2 = getCouleurEquipe(code2).primary
-  const duels = actif ? [...calculer(stats1, stats2), ...calculer(stats2, stats1)] : []
+  const duels = actif && stats1 && stats2 ? [...calculer(stats1, stats2), ...calculer(stats2, stats1)] : []
 
   return (
-    <div style={{ marginTop: 6 }}>
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <button
-          type="button"
-          onClick={() => setOuvert((o) => !o)}
-          aria-expanded={ouvert}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 5,
-            border: '1px solid #f0c040',
-            color: '#f0c040',
-            background: 'rgba(240,192,64,0.08)',
-            borderRadius: 20,
-            padding: '5px 12px',
-            fontSize: 11,
-            fontWeight: 700,
-            cursor: 'pointer',
-            opacity: actif ? 1 : 0.6,
-          }}
-        >
-          {actif ? '⚡' : '🔒'} Duels expert
-        </button>
+    <div style={{ marginTop: 8, paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: afficherDuel && afficherInfo ? 'space-between' : 'center',
+        }}
+      >
+        {afficherInfo && (
+          <IconeInfo
+            libelle="Infos"
+            aria-label="Infos équipes"
+            aria-expanded={infoOuverte}
+            onClick={() => setInfoOuverte((o) => !o)}
+          />
+        )}
+        {afficherDuel && (
+          <button
+            type="button"
+            onClick={() => setOuvert((o) => !o)}
+            aria-expanded={ouvert}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+              border: '1px solid #f0c040',
+              color: '#f0c040',
+              background: 'rgba(240,192,64,0.08)',
+              borderRadius: 20,
+              padding: '4px 12px',
+              fontSize: 11,
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            ⚡ Duels expert
+          </button>
+        )}
       </div>
 
-      {ouvert && (
+      {infoOuverte && infos && <div style={{ display: 'flex', justifyContent: 'center' }}>{infos}</div>}
+
+      {ouvert && stats1 && stats2 && (
         <div
           style={{
             marginTop: 8,
@@ -167,35 +205,23 @@ export default function DuelsExpert({
           <div style={{ fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: '#f0c040', fontWeight: 700 }}>
             ⚡ Force contre force
           </div>
-          {!actif ? (
-            <div style={{ marginTop: 10, border: '1px dashed #f0c040', borderRadius: 10, padding: 14, textAlign: 'center', fontSize: 12, color: '#9fb0c9', lineHeight: 1.6 }}>
-              🔒 <b style={{ color: '#f0c040' }}>Mode expert</b>
-              <br />
-              Duels « force contre force » entre les deux équipes.
-              <br />
-              Active-le dans ⚙️ Préférences.
-            </div>
-          ) : (
-            <>
-              <div style={{ fontSize: 10, color: '#9fb0c9', margin: '2px 0 4px', textAlign: 'left' }}>
-                Rangs sur 32 équipes (1er = meilleur) · saison en cours, jusqu&apos;à la semaine {Math.max(stats1.derniere_semaine, stats2.derniere_semaine)}
-              </div>
-              {duels.map((d, i) => (
-                <DuelLigne
-                  key={i}
-                  d={d}
-                  couleurAtt={d.codeAtt === code1 ? couleur1 : couleur2}
-                  couleurDef={d.codeDef === code1 ? couleur1 : couleur2}
-                />
-              ))}
-              <div style={{ marginTop: 6, padding: 10, borderRadius: 10, background: 'rgba(240,192,64,0.1)', border: '1px solid rgba(240,192,64,0.4)', fontSize: 12, lineHeight: 1.5, textAlign: 'left' }}>
-                <b>📌 L&apos;essentiel :</b> {resume(duels, stats1, stats2)}
-              </div>
-              <div style={{ fontSize: 10, color: '#7a8aa5', marginTop: 8, textAlign: 'center' }}>
-                Données : nflverse{formaterMajExpert(stats1.mis_a_jour) ? ` · mis à jour le ${formaterMajExpert(stats1.mis_a_jour)}` : ''}
-              </div>
-            </>
-          )}
+          <div style={{ fontSize: 10, color: '#9fb0c9', margin: '2px 0 4px', textAlign: 'left' }}>
+            Rangs sur 32 équipes (1er = meilleur) · saison en cours, jusqu&apos;à la semaine {Math.max(stats1.derniere_semaine, stats2.derniere_semaine)}
+          </div>
+          {duels.map((d, i) => (
+            <DuelLigne
+              key={i}
+              d={d}
+              couleurAtt={d.codeAtt === code1 ? couleur1 : couleur2}
+              couleurDef={d.codeDef === code1 ? couleur1 : couleur2}
+            />
+          ))}
+          <div style={{ marginTop: 6, padding: 10, borderRadius: 10, background: 'rgba(240,192,64,0.1)', border: '1px solid rgba(240,192,64,0.4)', fontSize: 12, lineHeight: 1.5, textAlign: 'left' }}>
+            <b>📌 L&apos;essentiel :</b> {resume(duels, stats1, stats2)}
+          </div>
+          <div style={{ fontSize: 10, color: '#7a8aa5', marginTop: 8, textAlign: 'center' }}>
+            Données : nflverse{formaterMajExpert(stats1.mis_a_jour) ? ` · mis à jour le ${formaterMajExpert(stats1.mis_a_jour)}` : ''}
+          </div>
         </div>
       )}
     </div>

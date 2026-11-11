@@ -256,7 +256,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
         )
       })()}
 
-      {!semaineTerminee && <BarreActionsSemaine avecInfos={nombreTotal > 0 && !estSemainePlayoffsVide} />}
+      {!semaineTerminee && <BarreActionsSemaine avecInfos={nombreTotal > 0 && !estSemainePlayoffsVide} modeExpert={modeExpert} />}
 
       {estPremiereSemaine && saison && (
         <SpecialPicksPreseason saisonId={saison.id} mesPronosSpeciaux={mesPronosSpeciaux} />

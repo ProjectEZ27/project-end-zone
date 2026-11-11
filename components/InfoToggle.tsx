@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import IconeInfo from '@/components/IconeInfo'
 
 interface InfoToggleProps {
   label: string
@@ -12,19 +13,12 @@ export default function InfoToggle({ label, children }: InfoToggleProps) {
 
   return (
     <span style={{ display: 'inline-block' }}>
-      <button
+      <IconeInfo
         onClick={() => setOpen(!open)}
         aria-label={label}
-        style={{
-          all: 'unset',
-          cursor: 'pointer',
-          fontSize: 14,
-          marginLeft: 6,
-          color: 'rgba(255,255,255,0.55)',
-        }}
-      >
-        ℹ️
-      </button>
+        aria-expanded={open}
+        style={{ marginLeft: 6, verticalAlign: 'middle' }}
+      />
 
       {open && (
         <div

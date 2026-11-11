@@ -24,14 +24,13 @@ const bouton = {
  * Deux petits boutons côte à côte : le power ranking (page dédiée)
  * et l'affichage des infos équipes sous chaque match (si la semaine a des matchs).
  */
-export default function BarreActionsSemaine({ avecInfos }: { avecInfos: boolean }) {
+export default function BarreActionsSemaine({ avecInfos, modeExpert }: { avecInfos: boolean; modeExpert: boolean }) {
   const [open, setOpen] = useState(false)
 
   function basculer() {
     const suivant = !open
-    document.querySelectorAll('[data-info-toggle]').forEach((el) => {
-      ;(el as HTMLDetailsElement).open = suivant
-    })
+    // Prévient chaque match (composant DuelsExpert) d'ouvrir ou fermer son petit « i »
+    window.dispatchEvent(new CustomEvent('infos-equipes', { detail: suivant }))
     setOpen(suivant)
   }
 
@@ -46,7 +45,10 @@ export default function BarreActionsSemaine({ avecInfos }: { avecInfos: boolean 
     >
       <a href="/infos-equipes" style={bouton}>
         <TbChartBar size={17} />
-        Power ranking
+        <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15 }}>
+          <span>Power ranking</span>
+          {modeExpert && <span style={{ fontSize: 11, color: '#f0c040' }}>⚡ Classement expert</span>}
+        </span>
       </a>
       {avecInfos && (
         <button

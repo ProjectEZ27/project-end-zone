@@ -271,34 +271,37 @@ const libelleQT = tempsRestant === 'Mi-temps'
           Match nul : ne compte ni comme victoire ni comme défaite
         </div>
       )}
-      {!finished && (rank1 != null || rank2 != null) && (
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 6 }}>
-          <details className={styles.infoDetails} data-info-toggle>
-            <summary className={styles.infoIcon}>i</summary>
-            <div className={styles.infoPanel}>
-              {rank1 != null && (
-                <div className={styles.infoCol}>
-                  <span className={styles.rankValue}>
-                    {team1.name} — {rank1}e sur 32 <span className={styles.rankNote}>(indicatif)</span>
-                  </span>
-                  {desc1 && <span className={styles.rankDesc}>{desc1}</span>}
-                </div>
-              )}
-              {rank1 != null && rank2 != null && <div className={styles.infoDivider} />}
-              {rank2 != null && (
-                <div className={styles.infoCol}>
-                  <span className={styles.rankValue}>
-                    {team2.name} — {rank2}e sur 32 <span className={styles.rankNote}>(indicatif)</span>
-                  </span>
-                  {desc2 && <span className={styles.rankDesc}>{desc2}</span>}
-                </div>
-              )}
-            </div>
-          </details>
-        </div>
-      )}
-      {!finished && expert && (
-        <DuelsExpert code1={team1.code} code2={team2.code} stats1={expert.stats1} stats2={expert.stats2} actif={expert.actif} />
+      {!finished && (rank1 != null || rank2 != null || expert?.actif) && (
+        <DuelsExpert
+          code1={team1.code}
+          code2={team2.code}
+          stats1={expert?.stats1}
+          stats2={expert?.stats2}
+          actif={!!expert?.actif}
+          infos={
+            rank1 != null || rank2 != null ? (
+              <div className={styles.infoPanel} style={{ marginTop: 6 }}>
+                {rank1 != null && (
+                  <div className={styles.infoCol}>
+                    <span className={styles.rankValue}>
+                      {team1.name} — {rank1}e sur 32 <span className={styles.rankNote}>(indicatif)</span>
+                    </span>
+                    {desc1 && <span className={styles.rankDesc}>{desc1}</span>}
+                  </div>
+                )}
+                {rank1 != null && rank2 != null && <div className={styles.infoDivider} />}
+                {rank2 != null && (
+                  <div className={styles.infoCol}>
+                    <span className={styles.rankValue}>
+                      {team2.name} — {rank2}e sur 32 <span className={styles.rankNote}>(indicatif)</span>
+                    </span>
+                    {desc2 && <span className={styles.rankDesc}>{desc2}</span>}
+                  </div>
+                )}
+              </div>
+            ) : null
+          }
+        />
       )}
     </div>
   )

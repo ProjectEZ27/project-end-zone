@@ -1,18 +1,25 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createClient as clientConnecte } from '@/lib/supabase/server'
+import { ADMIN_ID } from '@/lib/admin'
 import { calculerStatsExpert, saisonNfl, urlsNflverse } from '@/lib/statsExpert'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
 // Mise à jour hebdomadaire des statistiques du mode expert (données : nflverse).
-// Protégée par CRON_SECRET : en-tête "Authorization: Bearer ..." (Vercel) ou ?cle=... (test à la main).
+// Accès : CRON_SECRET (tâche planifiée) ou le compte admin connecté (test à la main depuis le navigateur).
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET
   const url = new URL(request.url)
-  const autorise =
+  let autorise =
     !!secret &&
     (request.headers.get('authorization') === `Bearer ${secret}` || url.searchParams.get('cle') === secret)
+  if (!autorise) {
+    const sb = await clientConnecte()
+    const { data: { user } } = await sb.auth.getUser()
+    autorise = user?.id === ADMIN_ID
+  }
   if (!autorise) return NextResponse.json({ erreur: 'Non autorisé' }, { status: 401 })
 
   const saison = saisonNfl()

@@ -1,5 +1,6 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 
 export type Preferences = {
@@ -61,5 +62,10 @@ export async function changerPreferenceExpert(actif: boolean) {
   if (!user) return
 
   const { error } = await supabase.from('profiles').update({ mode_expert: actif }).eq('id', user.id)
-  if (error) console.error('[changerPreferenceExpert]', error.message)
+  if (error) {
+    console.error('[changerPreferenceExpert]', error.message)
+    return
+  }
+  // Les pages déjà ouvertes ou en mémoire doivent refléter le nouveau choix
+  revalidatePath('/', 'layout')
 }

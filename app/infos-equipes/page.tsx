@@ -20,17 +20,15 @@ export default async function InfosEquipes({ searchParams }: { searchParams: Pro
   // Mode expert : réglage du joueur + statistiques des équipes
   let modeExpert = false
   let lignesExpert: LigneExpert[] = []
-  if (vueExpert) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      const { data: profil } = await supabase.from('profiles').select('mode_expert').eq('id', user.id).maybeSingle()
-      modeExpert = profil?.mode_expert ?? true
-    }
-    if (modeExpert) {
-      const { data } = await supabase.from('stats_expert_equipes').select('equipe, derniere_semaine, mis_a_jour, valeurs, rangs')
-      lignesExpert = (data ?? []) as LigneExpert[]
-    }
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
+    const { data: profil } = await supabase.from('profiles').select('mode_expert').eq('id', user.id).maybeSingle()
+    modeExpert = profil?.mode_expert ?? true
+  }
+  if (vueExpert && modeExpert) {
+    const { data } = await supabase.from('stats_expert_equipes').select('equipe, derniere_semaine, mis_a_jour, valeurs, rangs')
+    lignesExpert = (data ?? []) as LigneExpert[]
   }
   const onglet = (actif: boolean) => ({
     flex: 1,
@@ -90,7 +88,12 @@ export default async function InfosEquipes({ searchParams }: { searchParams: Pro
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
           <Link href="/infos-equipes" style={onglet(!vueExpert)}>Power Ranking</Link>
-          <Link href="/infos-equipes?vue=expert" style={onglet(vueExpert)}>⚡ Classement expert</Link>
+          <Link
+            href="/infos-equipes?vue=expert"
+            style={{ ...onglet(vueExpert), ...(modeExpert ? {} : { opacity: 0.45 }) }}
+          >
+            {modeExpert ? '⚡' : '🔒'} Classement expert
+          </Link>
         </div>
 
         {vueExpert ? (

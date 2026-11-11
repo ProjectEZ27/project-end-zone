@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { TbSettings, TbX, TbBook, TbChevronRight } from 'react-icons/tb'
@@ -76,6 +76,7 @@ const titreSection: React.CSSProperties = {
 export default function BoutonPreferences() {
   const supabase = createClient()
   const pathname = usePathname()
+  const router = useRouter()
   const [connecte, setConnecte] = useState(false)
   const [ouvert, setOuvert] = useState(false)
   const [prefs, setPrefs] = useState<Preferences | null>(null)
@@ -135,7 +136,8 @@ export default function BoutonPreferences() {
   }
   function changerExpert(valeur: boolean) {
     setPrefs((p) => (p ? { ...p, mode_expert: valeur } : p))
-    changerPreferenceExpert(valeur)
+    // Une fois le choix enregistré, la page en cours se met à jour toute seule
+    changerPreferenceExpert(valeur).then(() => router.refresh())
   }
   function changerEmail(valeur: boolean) {
     setPrefs((p) => (p ? { ...p, email_rappel_actif: valeur } : p))

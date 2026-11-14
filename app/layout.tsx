@@ -6,6 +6,7 @@ import AuthRecoveryListener from "./AuthRecoveryListener";
 import NotificationBell from "@/components/NotificationBell";
 import BoutonRetour from "@/components/BoutonRetour";
 import BoutonPreferences from "@/components/BoutonPreferences";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -56,6 +57,7 @@ export default function RootLayout({
           <NotificationBell />
           <BoutonRetour />
           <BoutonPreferences />
+          <Analytics />
         </body>
     </html>
   );

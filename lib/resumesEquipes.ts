@@ -7,160 +7,162 @@ export interface ResumeEquipe {
 
 export const RESUMES_EQUIPES: Record<string, ResumeEquipe> = {
   SF: {
-    texte: "Une victoire contre les Raiders où la défense a forcé cinq turnovers, avec le retour de Nick Bosa et de DeForest Buckner.",
-    forces: ['Défense dominante', 'Retour de Nick Bosa'],
+    texte: "Une victoire spectaculaire à Dallas malgré 40 points encaissés : l'attaque de Brock Purdy a brillé et la défense en a fait juste assez. NFL.com les considère toujours comme la meilleure équipe de la ligue.",
+    forces: ['Attaque créative', 'Brock Purdy en grande forme', 'Défense globalement solide'],
+    faiblesses: ['Défense moins dominante que prévu', 'Impact de Nick Bosa encore limité après sa blessure'],
   },
   BUF: {
-    texte: "Une victoire à Minnesota lundi soir, portée par Josh Allen et James Cook qui a conclu le match en force au sol.",
-    forces: ['Josh Allen', 'Jeu de course en fin de match'],
-    faiblesses: ['Défense encore à confirmer'],
+    texte: "Une victoire sans éclat contre les Jets, mais Buffalo continue de gagner les matchs qu'on lui propose, avec le retour de DJ Moore et une défense plus cohérente.",
+    forces: ['Josh Allen', 'Retour de DJ Moore', 'Défense plus cohérente'],
+    faiblesses: ['Défense pas encore testée par une attaque explosive', 'Victoires récentes peu convaincantes'],
     historique: "⭐ Josh Allen, élu MVP de la ligue pour la saison 2024.",
   },
   JAX: {
-    texte: "Une victoire jeudi soir à Baltimore. Les Jaguars sont vus comme possiblement la meilleure équipe de l’AFC et ont fait trois échanges pour renforcer leur défense.",
-    forces: ['Attaque riche en armes', 'Défense bien coordonnée'],
-    faiblesses: ['Défense contre la course fragilisée par une blessure'],
-  },
-  CHI: {
-    texte: "Une victoire face à Tampa Bay dans un match animé : malgré quatre interceptions de Caleb Williams, la défense a fait la différence.",
-    forces: ['Défense qui élève son niveau', 'Jeu complémentaire'],
-    faiblesses: ['Pertes de balle de l’attaque'],
+    texte: "Une large victoire 40-23 à Tennessee après une deadline active : NFL.com y voit l'une des équipes les plus complètes de la ligue.",
+    forces: ['Trevor Lawrence', 'Parker Washington en receveur émergent', 'Bhayshul Tuten au sol', 'Défense solide'],
   },
   CIN: {
-    texte: "Une victoire à Madrid contre Atlanta, avec une attaque spectaculaire autour de Joe Burrow, Ja’Marr Chase et Tee Higgins.",
-    forces: ['Attaque explosive', 'Dexter Lawrence'],
-    faiblesses: ['Défense juste correcte'],
-  },
-  DEN: {
-    texte: "Une victoire contre Carolina, scellée par deux touchdowns au quatrième quart-temps et un sack-fumble de Nik Bonitto.",
-    forces: ['Défense décisive en fin de match', 'Savoir conclure les victoires'],
-    faiblesses: ['Attaque encore loin de son potentiel'],
-  },
-  DET: {
-    texte: "Une victoire peu élégante à Miami, avec juste ce qu’il faut de Jahmyr Gibbs pour repartir avec le succès.",
-    forces: ['Jahmyr Gibbs', 'Capacité à gagner un match difficile'],
-    faiblesses: ['Prestation peu brillante contre Miami'],
-  },
-  GB: {
-    texte: "Une victoire à New England où la défense de Jonathan Gannon a mis Drake Maye en difficulté, avec Jordan Love en pleine confiance.",
-    forces: ['Défense opportuniste', 'Jordan Love en confiance'],
-    faiblesses: ['Jeu de course quasi absent'],
-  },
-  SEA: {
-    texte: "Une victoire contre Arizona avec Drew Lock à la place de Sam Darnold, blessé ; Lock a toutefois souffert d’un problème aux obliques.",
-    forces: ['Défense solide', 'Duo Charbonnet / Price'],
-    faiblesses: ['Situation incertaine au poste de quarterback', 'Attaque irrégulière'],
-    historique: "🏆 Vainqueur du Super Bowl LX (saison 2025), leur 2e titre après celui de 2013.",
-  },
-  KC: {
-    texte: "Une victoire à domicile contre les Jets (35-12), portée par Kenneth Walker III, quelques éclairs de Patrick Mahomes et une défense écrasante.",
-    forces: ['Patrick Mahomes', 'Kenneth Walker III'],
-    historique: "🏆 Vainqueur du Super Bowl à l'issue de la saison 2023, l'une des équipes les plus titrées de la décennie.",
+    texte: "Une victoire en prime time contre Pittsburgh : Joe Burrow signe la meilleure saison de sa carrière et la défense a étouffé l'attaque adverse.",
+    forces: ['Joe Burrow', 'Duo Chase-Higgins', 'Dexter Lawrence en défense'],
+    faiblesses: ['Jeu au sol inefficace'],
   },
   MIN: {
-    texte: "Une défaite à domicile contre Buffalo lundi soir : l’attaque a de nouveau été trop faible face à une défense toujours redoutable.",
-    forces: ['Défense très forte'],
-    faiblesses: ['Niveau du quarterback'],
+    texte: "Une victoire 30-10 à Green Bay : avec Kirk Cousins, l'attaque a trouvé la direction qui lui manquait. NFL.com parle désormais d'un vrai candidat au Super Bowl.",
+    forces: ['Défense élite', 'Kirk Cousins retrouvé'],
+    faiblesses: ['Attaque longtemps inconstante'],
   },
-  PIT: {
-    texte: "Semaine de repos après la victoire sur Cleveland, avant un gros rendez-vous à Cincinnati dimanche soir pour le contrôle de l’AFC Nord.",
-    forces: ['Élan avant la pause', 'En tête de l’AFC Nord'],
+  CHI: {
+    texte: "Une semaine de repos : Chicago recule de deux places simplement parce que d'autres équipes l'ont dépassée. Le retour sera relevé, avec Detroit et Jacksonville au programme.",
+    forces: ['Bilan de 7-2', 'Confiance de NFL.com malgré le recul'],
+    faiblesses: ['Division NFC Nord très disputée', 'Faiblesses apparues face à Tampa Bay'],
   },
-  NYG: {
-    texte: "Une victoire à Philadelphie, la première là-bas depuis 2013, grâce à un grand match d’Arvell Reese (3 sacks) malgré une brève absence de J.J. McCarthy.",
-    forces: ['Défense avec Arvell Reese', 'Série de victoires'],
-    faiblesses: ['Victoires peu convaincantes'],
+  DEN: {
+    texte: "Une semaine de repos pour Denver, qui a commencé à assembler des pièces offensives importantes. La défense ne relâche pas et le calendrier s'ouvre.",
+    forces: ['Défense solide', 'Calendrier favorable'],
+    faiblesses: ['Attaque encore irrégulière'],
   },
-  TB: {
-    texte: "Une défaite de peu contre Chicago dimanche soir, avec des turnovers forcés : l’équipe vaut mieux que son bilan de 3-6.",
-    forces: ['Défense qui force des turnovers', 'Jeu de course'],
-    faiblesses: ['Bilan de 3-6'],
+  DET: {
+    texte: "Detroit recule d'une place à cause des mouvements autour d'eux. L'attaque reste l'une des plus régulières, mais la perte d'Aidan Hutchinson pour la saison inquiète.",
+    forces: ['Attaque très régulière', 'Défense en progrès'],
+    faiblesses: ['Hutchinson absent pour la saison'],
   },
-  NE: {
-    texte: "Une défaite contre Green Bay : Christian Gonzalez a été pris en défaut et Drake Maye a lancé trois interceptions.",
-    forces: ['Parcours jusqu’en finale de l’AFC la saison passée'],
-    faiblesses: ['Interceptions de Drake Maye', 'Couverture défensive'],
+  KC: {
+    texte: "Une victoire à Atlanta marquée par une attaque aérienne explosive, l'arrivée de Josh Downs et la belle performance du rookie Emmett Johnson.",
+    forces: ['Jeu aérien plus explosif', 'Rookie Emmett Johnson', 'Arrivée de Josh Downs'],
+    faiblesses: ['Kenneth Walker III absent (blessure à l\'aine)'],
+    historique: "🏆 Vainqueur du Super Bowl à l'issue de la saison 2023, l'une des équipes les plus titrées de la décennie.",
   },
-  HOU: {
-    texte: "Une large victoire contre les Chargers (44 points marqués), avec le premier touchdown de Tank Dell depuis son retour de blessure.",
-    forces: ['Attaque explosive cette semaine', 'Retour de Tank Dell'],
-    faiblesses: ['Bilan de 3-5'],
+  GB: {
+    texte: "Une défaite 30-10 contre Minnesota : la dépendance aux gros jeux est devenue un point faible, dans la division la plus difficile du football.",
+    forces: ['Jeu explosif'],
+    faiblesses: ['Manque de régularité offensive', 'Lourde défaite contre un rival de division'],
   },
-  LA: {
-    texte: "Une victoire contre Washington qui remet les Rams au-dessus de .500, mais Puka Nacua part sur la liste des blessés.",
-    forces: ['Retour en forme de Myles Garrett'],
-    faiblesses: ['Perte de Puka Nacua', 'Attaque sans identité claire'],
-    historique: "⭐ Matthew Stafford, élu MVP de la ligue pour la saison 2025.",
-  },
-  ATL: {
-    texte: "Une défaite contre Cincinnati à Madrid : les bons moments d’Atlanta restent trop rares pour en faire une certitude.",
-    forces: ['Des pointes de très haut niveau'],
-    faiblesses: ['Irrégularité', 'Prestation de Michael Penix Jr.'],
+  SEA: {
+    texte: "Une victoire à Las Vegas, avec une attaque qui s'améliore doucement (surtout au sol) et une défense étouffante. Semaine de repos avant un gros test contre San Francisco.",
+    forces: ['Défense étouffante', 'Jeu au sol en progrès', 'Drew Lock solide en remplaçant'],
+    faiblesses: ['Attaque encore en construction', 'Victoire contre un adversaire modeste'],
+    historique: "🏆 Vainqueur du Super Bowl LX (saison 2025), leur 2e titre après celui de 2013.",
   },
   CLE: {
-    texte: "Une deuxième défaite d’affilée à La Nouvelle-Orléans, avec Shedeur Sanders titulaire à la place de Deshaun Watson (commotion).",
-    forces: ['Denzel Ward en couverture'],
-    faiblesses: ['Défense contre la course', 'Absence de Maliek Collins', 'Incertitude au poste de quarterback'],
+    texte: "Une remontée face à Houston, conclue par un touchdown décisif en fin de match. NFL.com, d'abord sceptique, commence à y croire.",
+    forces: ['Couverture défensive agressive', 'Mobilité de Deshaun Watson', 'Résilience en fin de match'],
   },
-  CAR: {
-    texte: "Une défaite contre Denver après avoir mené 14-13 ; la défense n’a pas progressé depuis le départ du coordinateur Ejiro Evero.",
-    forces: ['Bryce Young en confiance par moments'],
-    faiblesses: ['Défense', 'Régularité'],
+  PIT: {
+    texte: "Une défaite à Cincinnati en prime time alors que Pittsburgh avait eu une semaine de repos. NFL.com y voit un rappel des limites de l'équipe.",
+    forces: ['Bilan de 6-3'],
+    faiblesses: ['Attaque en difficulté', 'Défense dominée par les Bengals'],
   },
-  LV: {
-    texte: "Une défaite à San Francisco ; la défense s’effondre et le passage de Kirk Cousins à Fernando Mendoza semble approcher.",
-    forces: ['Matchs généralement compétitifs'],
-    faiblesses: ['Défense en perte de vitesse', 'Transition au poste de quarterback'],
+  TB: {
+    texte: "Pas de match cette semaine : Tampa Bay reste le favori de NFL.com pour remporter une division NFC Sud moyenne.",
+    forces: ['Défense qui chasse', 'Jeu au sol efficace'],
+    faiblesses: ['Baker Mayfield doit limiter les risques', 'Bilan de 3-6'],
+  },
+  LA: {
+    texte: "Une 4e victoire de suite, à Arizona, malgré l'absence de presque tous les atouts offensifs. NFL.com reste prudent avant des matchs contre Green Bay, Kansas City et San Francisco.",
+    forces: ['Capacité à s\'adapter malgré les absences', 'Série de 4 victoires'],
+    faiblesses: ['Presque tous les joueurs offensifs clés absents', 'Limitée face à de meilleures équipes'],
+    historique: "⭐ Matthew Stafford, élu MVP de la ligue pour la saison 2025.",
+  },
+  NYG: {
+    texte: "Une défaite jeudi soir contre Washington après avoir laissé filer le match. Une équipe capable de beaux moments, mais pas assez régulière.",
+    forces: ['Cam Skattebo', 'Deonte Banks en défense'],
+    faiblesses: ['Manque de régularité', 'Avances gâchées'],
+  },
+  HOU: {
+    texte: "Une avance de 17 points gâchée à Cleveland : la remontée après un début de saison 0-4 est freinée.",
+    forces: ['Bon retour de C.J. Stroud sur la saison'],
+    faiblesses: ['Fins de match ratées', 'Stroud inefficace en seconde mi-temps'],
   },
   DAL: {
-    texte: "Une victoire contre Indianapolis avec plus de 500 yards d’attaque et une interception décisive de Caleb Downs.",
-    forces: ['Attaque productive', 'Interception de Caleb Downs'],
-    faiblesses: ['Victoire contre une équipe tournée vers 2027'],
+    texte: "Une défaite contre San Francisco dans un match à gros score : l'attaque reste bonne, mais la défense n'arrête personne.",
+    forces: ['Attaque capable de garder Dallas dans la course'],
+    faiblesses: ['Défense très fragile'],
   },
-  NO: {
-    texte: "Une victoire contre Cleveland, laborieuse mais nécessaire, avec un jeu de course enfin plus présent.",
-    forces: ['Jeu de course plus présent'],
-    faiblesses: ['Match long à se décanter', 'Doit confirmer sur la durée'],
-  },
-  TEN: {
-    texte: "Semaine de repos après une défaite, avec la meilleure prestation de Cam Ward ; deux matchs contre Jacksonville arrivent.",
-    forces: ['Progrès de Cam Ward'],
-    faiblesses: ['Bilan de 1-7'],
-  },
-  IND: {
-    texte: "Une défaite contre Dallas sur une nouvelle perte de balle tardive ; la franchise regarde déjà vers 2027.",
-    faiblesses: ['Pertes de balle tardives', 'Départs de joueurs clés par échange'],
+  CAR: {
+    texte: "Une victoire à La Nouvelle-Orléans malgré 17 pénalités. Carolina aurait dû l'emporter plus largement.",
+    forces: ['Chuba Hubbard décisif dans les moments clés'],
+    faiblesses: ['Indiscipline (17 pénalités)'],
   },
   WAS: {
-    texte: "Une défaite contre les Rams, avec encore des détails mal gérés en fin de match ; le staff est sous surveillance.",
-    faiblesses: ['Gestion des fins de match', 'Manque de précision'],
+    texte: "Une revanche jeudi soir avec une victoire en remontée contre les Giants. La saison reste vivante grâce à une division faible.",
+    forces: ['Capacité de remontée'],
+    faiblesses: ['Désorganisation', 'Contexte instable (licenciements)'],
   },
-  ARI: {
-    texte: "Une défaite contre Seattle avec seulement trois points marqués ; Gardner Minshew est blessé au coude et Carson Beck devrait débuter.",
-    faiblesses: ['Attaque très faible', 'Blessure de Gardner Minshew'],
+  LV: {
+    texte: "Début de l'ère Fernando Mendoza : un beau premier drive, puis une attaque à -17 yards en seconde mi-temps face à Seattle.",
+    forces: ['Fernando Mendoza, touchdown dès son premier drive'],
+    faiblesses: ['Attaque paralysée en seconde mi-temps', 'Calendrier difficile (Seattle, Denver, Cleveland)'],
   },
-  BAL: {
-    texte: "Une lourde défaite jeudi soir contre Jacksonville, jugée la pire prestation des Ravens depuis longtemps ; Jacoby Brissett vient d’arriver.",
-    faiblesses: ['Poste de quarterback', 'Défense'],
-    historique: "⭐ Lamar Jackson, élu MVP de la ligue pour la saison 2023 (son 2e titre de MVP).",
+  ATL: {
+    texte: "Une défaite contre Kansas City : 461 yards concédés et presque aucune résistance. NFL.com ne retrouve plus la bonne équipe du début de saison.",
+    faiblesses: ['Défense dépassée (461 yards concédés)', 'Bijan Robinson pas assez utilisé comme pivot'],
   },
-  MIA: {
-    texte: "Une défaite contre Detroit, avec des motifs d’espoir (Caleb Douglas, Ollie Gordon II, Jacob Rodriguez) dans une reconstruction encore longue.",
-    forces: ['Jeunes joueurs prometteurs'],
-    faiblesses: ['Reconstruction à un stade précoce'],
+  NE: {
+    texte: "Un gros recul de 8 places : Drake Maye est absent pour une durée indéterminée, A.J. Brown est touché une 3e fois cette saison, et la défense est mauvaise.",
+    faiblesses: ['Défense faible', 'Drake Maye absent', 'Blessures (A.J. Brown)'],
+  },
+  TEN: {
+    texte: "Une défaite 40-23 contre Jacksonville. Tennessee reste compétitif et Cam Ward progresse.",
+    forces: ['Cam Ward en progression', 'Matchs serrés contre de bons adversaires'],
+    faiblesses: ['Bilan de 1-8'],
+  },
+  NO: {
+    texte: "Une défaite contre Carolina pour une équipe sans direction claire, malgré un bon Tyler Shough et le rookie Jordyn Tyson.",
+    forces: ['Tyler Shough', 'Rookie Jordyn Tyson'],
+    faiblesses: ['Effectif décevant autour de ces deux joueurs'],
   },
   NYJ: {
-    texte: "Une défaite à Kansas City : un bon premier quart, puis un effondrement en seconde mi-temps.",
-    faiblesses: ['Effondrement en seconde mi-temps', 'Difficulté à conclure les matchs'],
-  },
-  PHI: {
-    texte: "Une défaite à domicile contre les Giants avec Joe Milton III au quarterback ; l’échange de Jordan Davis vers Jacksonville en dit long.",
-    faiblesses: ['Poste de quarterback', 'Équipe en mode vente'],
-    historique: "🏆 Vainqueur du Super Bowl à l'issue de la saison 2024, leur 2e titre après celui de 2017.",
+    texte: "Une défaite contre Buffalo : les Jets n'ont pas marqué de touchdown depuis deux semaines.",
+    forces: ['Braelon Allen'],
+    faiblesses: ['Aucun touchdown en deux matchs', 'Défense perméable (35 et 31 points concédés)'],
   },
   LAC: {
-    texte: "Une défaite contre Houston, mais un premier touchdown enfin marqué après une longue série, sur une longue passe de Justin Herbert à Quentin Johnston.",
-    forces: ['Quentin Johnston'],
-    faiblesses: ['Bilan de 0-8', 'Attaque sans direction'],
+    texte: "Première victoire de la saison, à Baltimore, en gagnant la bataille des turnovers. Justin Herbert n'a pas lancé d'interception pour la première fois cette saison.",
+    forces: ['Omarion Hampton enfin impliqué', 'Justin Herbert sans interception'],
+    faiblesses: ['Bilan de 1-8'],
+  },
+  BAL: {
+    texte: "Une défaite à domicile contre des Chargers jusque-là sans victoire : Jacoby Brissett a lancé 49 passes. NFL.com parle d'un nouveau plus bas pour la franchise.",
+    faiblesses: ['Plan de jeu trop axé sur la passe', 'Bilan de 4-6'],
+    historique: "⭐ Lamar Jackson, élu MVP de la ligue pour la saison 2023 (son 2e titre de MVP).",
+  },
+  IND: {
+    texte: "Une victoire contre Miami, dans un match entre deux des pires équipes de la ligue, plutôt due à la faiblesse de l'adversaire.",
+    forces: ['Quelques bonnes choses en défense', 'Rookie Seth McGowan'],
+    faiblesses: ['Daniel Jones en régression'],
+  },
+  MIA: {
+    texte: "Une défaite contre Indianapolis avec Kyle McCord titulaire : un fumble ramené en touchdown et deux possessions gâchées en fin de match.",
+    forces: ['Jeunes prometteurs (Caleb Douglas, Jacob Rodriguez, Ollie Gordon II)'],
+    faiblesses: ['Poste de quarterback', 'Bilan de 1-8'],
+  },
+  ARI: {
+    texte: "Une défaite contre les Rams lors du premier match de Carson Beck, avec très peu de résistance.",
+    faiblesses: ['Peu de combativité', 'Bilan de 3-7'],
+  },
+  PHI: {
+    texte: "Une semaine de repos pour une équipe qui regarde vers l'avenir après l'échange de Jordan Davis. NFL.com se demande si elle gagnera encore un match cette saison.",
+    faiblesses: ['Bilan de 2-7'],
+    historique: "🏆 Vainqueur du Super Bowl à l'issue de la saison 2024, leur 2e titre après celui de 2017.",
   },
 }

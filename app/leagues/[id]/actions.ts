@@ -141,7 +141,8 @@ export async function changerLogoLigue(formData: FormData) {
     .eq('id', ligue_id)
  
   if (error) {
-    redirect(`/leagues/${ligue_id}?error=${encodeURIComponent(error.message)}`)
+    console.error('[changerLogoLigue]', error.message)
+    redirect(`/leagues/${ligue_id}?error=${encodeURIComponent("Le logo n'a pas pu être changé, réessaie")}`)
   }
  
   revalidatePath('/leagues/' + ligue_id)
@@ -170,13 +171,12 @@ export async function supprimerLigue(formData: FormData) {
     redirect(`/leagues/${ligue_id}?error=${encodeURIComponent('Seul le commissaire peut supprimer la ligue')}`)
   }
  
-  // Nettoyage des adhésions liées avant de supprimer la ligue elle-même
-  await supabase.from('adhesions').delete().eq('ligue_id', ligue_id)
- 
-  const { error } = await supabase.from('ligues').delete().eq('id', ligue_id)
- 
+  // Suppression en une seule fois (ligue + adhésions) : si quelque chose échoue, rien n'est supprimé
+  const { error } = await supabase.rpc('supprimer_ligue', { p_ligue: Number(ligue_id) })
+
   if (error) {
-    redirect(`/leagues/${ligue_id}?error=${encodeURIComponent(error.message)}`)
+    console.error('[supprimerLigue]', error.message)
+    redirect(`/leagues/${ligue_id}?error=${encodeURIComponent("La ligue n'a pas pu être supprimée, réessaie")}`)
   }
  
   revalidatePath('/leagues')

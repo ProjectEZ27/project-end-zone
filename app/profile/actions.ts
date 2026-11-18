@@ -45,7 +45,8 @@ export async function changerPseudo(formData: FormData) {
   if (error) {
     const message = error.code === '23505'
       ? 'Ce pseudo est déjà pris par un autre joueur'
-      : error.message
+      : "Le pseudo n'a pas pu être changé, réessaie"
+    if (error.code !== '23505') console.error('[changerPseudo]', error.message)
     redirect('/profile?error=' + encodeURIComponent(message))
   }
 
@@ -74,7 +75,8 @@ export async function changerAvatar(formData: FormData) {
     .eq('id', user.id)
 
   if (error) {
-    redirect('/profile?error=' + encodeURIComponent(error.message))
+    console.error('[changerAvatar]', error.message)
+    redirect('/profile?error=' + encodeURIComponent("L'avatar n'a pas pu être changé, réessaie"))
   }
 
   redirect('/profile')
@@ -99,7 +101,8 @@ export async function changerEquipeFavorite(formData: FormData) {
     .eq('id', user.id)
 
   if (error) {
-    redirect('/profile?error=' + encodeURIComponent(error.message))
+    console.error('[changerEquipeFavorite]', error.message)
+    redirect('/profile?error=' + encodeURIComponent("L'équipe n'a pas pu être changée, réessaie"))
   }
 
   revalidatePath('/profile')

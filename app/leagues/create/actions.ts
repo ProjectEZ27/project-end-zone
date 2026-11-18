@@ -44,7 +44,8 @@ export async function createLeague(formData: FormData) {
     .single()
  
   if (error) {
-    redirect('/leagues/create?error=' + encodeURIComponent(error.message))
+    console.error('[creerLigue]', error.message)
+    redirect('/leagues/create?error=' + encodeURIComponent("La ligue n'a pas pu être créée, réessaie"))
   }
  
   // Récupérer la saison en cours
@@ -69,7 +70,8 @@ export async function createLeague(formData: FormData) {
     })
  
   if (adhesionError) {
-    redirect('/leagues/' + league.id + '?error=' + encodeURIComponent(adhesionError.message))
+    console.error('[creerLigue] adhésion du commissaire', adhesionError.message)
+    redirect('/leagues/' + league.id + '?error=' + encodeURIComponent("Ta ligue est créée mais ton inscription a échoué, contacte-nous"))
   }
  
   redirect('/leagues/' + league.id)

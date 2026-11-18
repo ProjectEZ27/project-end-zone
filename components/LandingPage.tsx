@@ -39,7 +39,7 @@ export default function LandingPage() {
           </h1>
 
           <p className={styles.heroText}>
-            Rejoins des milliers de fans NFL, participe à des ligues, fais tes pronostics chaque semaine et grimpe dans le classement.
+            Fais tes pronostics NFL chaque semaine, seul ou en ligue avec tes potes, et grimpe dans le classement.
           </p>
 
           <div style={{ display: 'flex', gap: 12, marginTop: 28 }}>

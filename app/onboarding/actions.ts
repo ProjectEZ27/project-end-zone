@@ -43,7 +43,8 @@ export async function saveOnboarding(formData: FormData) {
   if (error) {
     const message = error.code === '23505'
       ? 'Ce pseudo est déjà pris par un autre joueur'
-      : error.message
+      : "Ton profil n'a pas pu être créé, réessaie"
+    if (error.code !== '23505') console.error('[saveOnboarding]', error.message)
     const errorUrl = next
       ? `/onboarding?next=${encodeURIComponent(next)}&error=${encodeURIComponent(message)}`
       : '/onboarding?error=' + encodeURIComponent(message)

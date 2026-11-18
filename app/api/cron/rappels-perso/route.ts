@@ -42,7 +42,9 @@ function veille(date: string) {
  * Rappel du matin : le jour du premier match de la semaine, à partir de 10 h (Paris),
  * chaque joueur dont les pronostics ne sont pas terminés reçoit, selon ses préférences,
  * une notification et/ou un e-mail. Un seul rappel par joueur et par semaine.
- * Cette URL est appelée toutes les heures par cron-job.org.
+ * Cette URL est appelée toutes les heures par cron-job.org (les appels suivants ne font que rattraper
+ * les joueurs pas encore prévenus).
+ * Le secret doit être envoyé dans l'en-tête « Authorization: Bearer <secret> » (plus dans l'adresse).
  *
  * Paramètres utiles pour tester :
  *   ?simulation=1   montre qui serait prévenu, sans rien envoyer
@@ -50,10 +52,7 @@ function veille(date: string) {
  */
 export async function GET(request: NextRequest) {
   const secret = process.env.RAPPELS_SECRET ?? process.env.CRON_SECRET
-  const autorise =
-    !!secret &&
-    (request.headers.get('authorization') === `Bearer ${secret}` ||
-      request.nextUrl.searchParams.get('secret') === secret)
+  const autorise = !!secret && request.headers.get('authorization') === `Bearer ${secret}`
   if (!autorise) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
@@ -115,18 +114,26 @@ export async function GET(request: NextRequest) {
   const nomSemaine = semaine?.nom ?? 'La semaine'
 
   // 3. Joueurs, préférences, pronostics déjà faits, rappels déjà envoyés
-  const { data: joueurs } = await supabase
+  const { data: joueurs, error: erreurJoueurs } = await supabase
     .from('profiles')
     .select('id, pseudo, notif_rappel_actif, email_rappel_actif')
     .range(0, 9999)
+  if (erreurJoueurs) {
+    console.error('[rappels] lecture des joueurs échouée :', erreurJoueurs.message)
+    return NextResponse.json({ erreur: 'Lecture des joueurs impossible : rien envoyé.' }, { status: 500 })
+  }
 
   const total = liste.length
   const matchIds = liste.map((m) => m.id)
-  const { data: pronos } = await supabase
+  const { data: pronos, error: erreurPronos } = await supabase
     .from('pronostics')
     .select('utilisateur_id, match_id')
     .in('match_id', matchIds)
     .range(0, 9999)
+  if (erreurPronos) {
+    console.error('[rappels] lecture des pronostics échouée :', erreurPronos.message)
+    return NextResponse.json({ erreur: 'Lecture des pronostics impossible : rien envoyé.' }, { status: 500 })
+  }
   const faits = new Map<string, number>()
   for (const p of pronos ?? []) {
     const id = String(p.utilisateur_id)
@@ -134,14 +141,29 @@ export async function GET(request: NextRequest) {
   }
 
   const cleNotif = `rappel-matin:${semaineId}`
-  const { data: dejaNotif } = await supabase.from('notifications').select('user_id').eq('cle', cleNotif).range(0, 9999)
+  const { data: dejaNotif, error: erreurNotif } = await supabase
+    .from('notifications')
+    .select('user_id')
+    .eq('cle', cleNotif)
+    .range(0, 9999)
+  // Sécurité anti-doublon : si on ne sait pas qui a déjà été prévenu, on n'envoie rien
+  if (erreurNotif) {
+    console.error('[rappels] lecture des notifications échouée :', erreurNotif.message)
+    return NextResponse.json({ erreur: 'Lecture des notifications impossible : rien envoyé.' }, { status: 500 })
+  }
   const notifSet = new Set((dejaNotif ?? []).map((d) => String(d.user_id)))
 
-  const { data: dejaEmail } = await supabase
+  const { data: dejaEmail, error: erreurEmail } = await supabase
     .from('rappels_perso_envoyes')
     .select('utilisateur_id')
     .eq('semaine_id', semaineId)
     .eq('numero', 1)
+    .range(0, 9999)
+  // Sécurité anti-doublon : si on ne sait pas qui a déjà reçu l'e-mail, on n'envoie rien
+  if (erreurEmail) {
+    console.error('[rappels] lecture des e-mails déjà envoyés échouée :', erreurEmail.message)
+    return NextResponse.json({ erreur: 'Lecture du suivi des e-mails impossible : rien envoyé.' }, { status: 500 })
+  }
   const emailSet = new Set((dejaEmail ?? []).map((d) => String(d.utilisateur_id)))
 
   // 4. Notifications
@@ -214,6 +236,18 @@ export async function GET(request: NextRequest) {
       continue
     }
 
+    // On note l'envoi AVANT d'envoyer : si la note est impossible, on n'envoie pas (pas de doublon possible).
+    // La base refuse une deuxième note pour le même joueur, la même semaine et le même rappel.
+    const { error: erreurNote } = await supabase
+      .from('rappels_perso_envoyes')
+      .insert({ utilisateur_id: id, semaine_id: semaineId, numero: 1 })
+    if (erreurNote) {
+      if (erreurNote.code !== '23505') {
+        erreurs.push(`${j.pseudo} : suivi impossible, e-mail non envoyé (${erreurNote.message})`)
+      }
+      continue
+    }
+
     const reste = total - fait
     const { error } = await resend.emails.send({
       from: expediteur,
@@ -230,14 +264,16 @@ export async function GET(request: NextRequest) {
     })
 
     if (error) {
+      // Envoi raté : on retire la note pour réessayer à l'heure suivante
+      await supabase
+        .from('rappels_perso_envoyes')
+        .delete()
+        .eq('utilisateur_id', id)
+        .eq('semaine_id', semaineId)
+        .eq('numero', 1)
       erreurs.push(`${j.pseudo} : ${error.message}`)
       continue
     }
-
-    const { error: erreurBase } = await supabase
-      .from('rappels_perso_envoyes')
-      .insert({ utilisateur_id: id, semaine_id: semaineId, numero: 1 })
-    if (erreurBase) erreurs.push(`${j.pseudo} : envoyé mais non enregistré (${erreurBase.message})`)
 
     envoyes.push(`${j.pseudo} : e-mail`)
   }

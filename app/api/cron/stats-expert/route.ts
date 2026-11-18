@@ -11,10 +11,9 @@ export const maxDuration = 60
 // Accès : CRON_SECRET (tâche planifiée) ou le compte admin connecté (test à la main depuis le navigateur).
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET
-  const url = new URL(request.url)
   let autorise =
     !!secret &&
-    (request.headers.get('authorization') === `Bearer ${secret}` || url.searchParams.get('cle') === secret)
+    request.headers.get('authorization') === `Bearer ${secret}`
   if (!autorise) {
     const sb = await clientConnecte()
     const { data: { user } } = await sb.auth.getUser()

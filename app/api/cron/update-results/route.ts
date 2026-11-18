@@ -32,10 +32,6 @@ export async function GET(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const SAISON_NFL = 2026
-
-  // On récupère toutes les semaines pour connaître les dates à vérifier
-  const { data: semaines } = await supabase.from('semaines').select('id')
   const resultats: string[] = []
   let miseAJourTotal = 0
 

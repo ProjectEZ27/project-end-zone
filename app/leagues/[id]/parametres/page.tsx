@@ -73,7 +73,6 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
         .eq('semaine_id', semaineOuverte.id)
  
       const totalMatchs = matchs?.length ?? 0
-      const matchIds = (matchs ?? []).map((m) => m.id)
  
       // 4. Pseudos des membres actifs
       const userIds = adhesions.map((a) => a.utilisateur_id)
@@ -82,15 +81,17 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
         .select('id, pseudo')
         .in('id', userIds)
  
-      // 5. Pronostics déjà faits par ces membres sur ces matchs
-      const { data: pronostics } = await supabase
-        .from('pronostics')
-        .select('utilisateur_id, match_id')
-        .in('utilisateur_id', userIds)
-        .in('match_id', matchIds.length > 0 ? matchIds : [-1])
+      // 5. Nombre de pronostics déjà faits par chaque membre (sans voir les équipes choisies)
+      const { data: comptes } = await supabase.rpc('compte_pronos_ligue', {
+        p_ligue: Number(id),
+        p_semaine: semaineOuverte.id,
+      })
+      const faitsParJoueur = new Map<string, number>(
+        ((comptes ?? []) as { utilisateur_id: string; nb: number }[]).map((c) => [c.utilisateur_id, c.nb])
+      )
  
       for (const uid of userIds) {
-        const fait = (pronostics ?? []).filter((p) => p.utilisateur_id === uid).length
+        const fait = faitsParJoueur.get(uid) ?? 0
         const pseudo = profiles?.find((p) => p.id === uid)?.pseudo ?? 'Joueur inconnu'
         if (fait < totalMatchs) {
           retardataires.push({ id: uid, pseudo, fait, total: totalMatchs })

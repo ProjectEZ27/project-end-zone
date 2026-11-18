@@ -241,9 +241,10 @@ export async function calculerHistoriqueSemaines(
   saison_id: number,
   membresIds: Set<string>
 ) {
+  // 1. Les semaines de la saison, dans l'ordre
   const { data: semaines } = await supabase
     .from('semaines')
-    .select('id, nom, statut')
+    .select('*')
     .eq('saison_id', saison_id)
     .order('id', { ascending: true })
 
@@ -251,28 +252,84 @@ export async function calculerHistoriqueSemaines(
     return { semaines: [], lignes: [] }
   }
 
-  const semainesCloturees = semaines.filter((s) => s.statut === 'cloturee')
+  // 2. Tous leurs matchs, en une seule lecture
+  const { data: matchs } = await supabase
+    .from('matchs')
+    .select('*')
+    .in('semaine_id', semaines.map((s) => s.id))
+    .range(0, 4999)
 
+  // Une semaine apparaît dans l'historique dès que tous ses matchs sont terminés
+  // (le statut des semaines reste « ouverte » toute la saison, on ne peut donc pas s'y fier)
+  const semainesTerminees = semaines.filter((s) => {
+    const siens = (matchs ?? []).filter((m) => m.semaine_id === s.id)
+    return siens.length > 0 && siens.every((m) => m.statut === 'termine')
+  })
+  if (semainesTerminees.length === 0) {
+    return { semaines: [], lignes: [] }
+  }
+
+  const idsTerminees = new Set(semainesTerminees.map((s) => s.id))
+  const matchsTermines = (matchs ?? []).filter((m) => idsTerminees.has(m.semaine_id))
+  const matchMap = new Map(matchsTermines.map((m) => [m.id, m]))
+
+  // 3. Les pronostics des membres sur ces matchs, en une seule lecture
+  const { data: pronostics } = await supabase
+    .from('pronostics')
+    .select('*')
+    .in('match_id', matchsTermines.map((m) => m.id))
+    .in('utilisateur_id', [...membresIds])
+    .range(0, 9999)
+
+  // 4. Les pseudos
+  const userIds = [...new Set((pronostics ?? []).map((p) => p.utilisateur_id))]
+  const { data: profiles } = userIds.length > 0
+    ? await supabase.from('profiles').select('id, pseudo').in('id', userIds)
+    : { data: [] as { id: string; pseudo: string }[] }
+  const pseudoMap = new Map((profiles ?? []).map((p) => [p.id, p.pseudo]))
+
+  // Score de chaque joueur pour chaque semaine (mêmes règles que calculerClassementSemaine)
   const scoresParSemaine = new Map<number, Map<string, number>>()
-  const pseudoMap = new Map<string, string>()
+  for (const semaine of semainesTerminees) {
+    const matchsDeLaSemaine = matchsTermines.filter((m) => m.semaine_id === semaine.id)
+    const matchsComptes = matchsDeLaSemaine.filter((m) => !estMatchNul(m))
+    const regles = seuilsSemaine(semaine, matchsComptes.length, matchsDeLaSemaine.length)
+    const idsMatchs = new Set(matchsDeLaSemaine.map((m) => m.id))
+    const pronosSemaine = (pronostics ?? []).filter((p) => idsMatchs.has(p.match_id))
 
-  for (const semaine of semainesCloturees) {
-    const classement = await calculerClassementSemaine(supabase, semaine.id)
     const map = new Map<string, number>()
-    for (const j of classement) {
-      map.set(j.utilisateur_id, j.score_semaine)
-      pseudoMap.set(j.utilisateur_id, j.pseudo)
+    for (const userId of new Set(pronosSemaine.map((p) => p.utilisateur_id))) {
+      const corrects = pronosSemaine.filter((p) => {
+        if (p.utilisateur_id !== userId) return false
+        const match = matchMap.get(p.match_id)
+        return match && match.statut === 'termine' && p.equipe_choisie === match.equipe_gagnante
+      }).length
+
+      let score = corrects * (semaine.points_par_pronostic ?? 1)
+      if (matchsComptes.length > 0 && corrects === matchsComptes.length) {
+        score += regles.bonus_perfect ?? 0
+      } else if (regles.seuil_bonus_2 && corrects >= regles.seuil_bonus_2) {
+        score += regles.bonus_2 ?? 0
+      } else if (regles.seuil_bonus_1 && corrects >= regles.seuil_bonus_1) {
+        score += regles.bonus_1 ?? 0
+      }
+      map.set(userId, score)
     }
     scoresParSemaine.set(semaine.id, map)
   }
 
   const lignes = [...membresIds]
-    .filter((uid) => pseudoMap.has(uid))
+    .filter((uid) => [...scoresParSemaine.values()].some((m) => m.has(uid)))
     .map((uid) => ({
       utilisateur_id: uid,
       pseudo: pseudoMap.get(uid) ?? 'Joueur inconnu',
-      scores: semainesCloturees.map((s) => scoresParSemaine.get(s.id)?.get(uid) ?? 0),
+      scores: semainesTerminees.map((s) => scoresParSemaine.get(s.id)?.get(uid) ?? 0),
     }))
+    // Du plus grand total au plus petit
+    .sort((a, b) => b.scores.reduce((x, y) => x + y, 0) - a.scores.reduce((x, y) => x + y, 0))
 
-  return { semaines: semainesCloturees, lignes }
+  return {
+    semaines: semainesTerminees.map((s) => ({ id: s.id, nom: s.nom, statut: s.statut })),
+    lignes,
+  }
 }

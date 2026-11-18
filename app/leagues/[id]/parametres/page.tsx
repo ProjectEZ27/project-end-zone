@@ -6,8 +6,9 @@ import DeleteLeagueButton from '@/components/DeleteLeagueButton'
 import ChoixTailleLigue from '@/components/ChoixTailleLigue'
  
 export const dynamic = 'force-dynamic'
-export default async function ParametresLigue({ params }: { params: Promise<{ id: string }> }) {
+export default async function ParametresLigue({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string }> }) {
   const { id } = await params
+  const { error: messageErreur } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
  
@@ -119,6 +120,9 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
       </div>
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '40px 24px 100px', textAlign: 'center', color: 'white' }}>
       <LeagueSubNav ligueId={id} ligueNom={league.nom} actif="parametres" estCommissaire={true} />
+      {messageErreur && (
+        <p style={{ color: '#e05252', marginTop: 12 }}>⚠️ {messageErreur}</p>
+      )}
  
       <div style={{ marginTop: 24, padding: 16, border: '1px solid #ccc', borderRadius: 8, textAlign: 'left' }}>
         <p><strong>Pronostics de la semaine en cours</strong></p>
@@ -149,7 +153,7 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
  
         <label style={{ textAlign: 'left' }}>
           Nom de la ligue
-          <input type="text" name="nom" defaultValue={league.nom} required style={{ padding: 8, width: '100%', marginTop: 4 }} />
+          <input type="text" name="nom" defaultValue={league.nom} required maxLength={40} style={{ padding: 8, width: '100%', marginTop: 4 }} />
         </label>
  
         <ChoixTailleLigue />

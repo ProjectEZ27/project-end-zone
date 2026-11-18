@@ -3,8 +3,10 @@ import { redirect } from 'next/navigation'
 import { createLeague } from './actions'
 import LeagueLogoField from '@/components/LeagueLogoField'
 import ChoixTailleLigue from '@/components/ChoixTailleLigue'
+import BoutonEnvoi from '@/components/BoutonEnvoi'
  
-export default async function CreateLeague() {
+export default async function CreateLeague({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const { error: messageErreur } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
  
@@ -33,6 +35,9 @@ export default async function CreateLeague() {
       <div style={{ maxWidth: 400, margin: '0 auto', padding: '80px 24px 100px', textAlign: 'center', color: 'white' }}>
       <h1>🏈 Créer une ligue</h1>
       <p>Rassemble tes amis pour la saison NFL</p>
+      {messageErreur && (
+        <p style={{ color: '#e05252', marginTop: 12 }}>⚠️ {messageErreur}</p>
+      )}
  
       <form action={createLeague} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 24 }}>
         <LeagueLogoField />
@@ -42,13 +47,12 @@ export default async function CreateLeague() {
           name="nom"
           placeholder="Nom de la ligue"
           required
+          maxLength={40}
           style={{ padding: 10 }}
         />
         <ChoixTailleLigue />
  
-        <button type="submit" style={{ padding: 10, marginTop: 8 }}>
-          Créer la ligue
-        </button>
+        <BoutonEnvoi texte="Créer la ligue" texteEnCours="Création en cours…" style={{ padding: 10, marginTop: 8 }} />
       </form>
       </div>
     </div>

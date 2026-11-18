@@ -15,11 +15,8 @@ export default async function ParametresLigue({ params }: { params: Promise<{ id
     redirect('/login')
   }
  
-  const { data: league, error } = await supabase
-    .from('ligues')
-    .select('*')
-    .eq('id', id)
-    .single()
+  // Infos de la ligue, sans ses codes d'invitation (protégés côté base)
+  const { data: league, error } = await supabase.rpc('ligue_infos', { p_ligue: Number(id) })
  
   if (error || !league) {
     notFound()

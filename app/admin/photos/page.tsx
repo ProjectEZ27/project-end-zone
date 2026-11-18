@@ -3,6 +3,7 @@ import { redirect, notFound } from 'next/navigation'
 import { ADMIN_ID } from '@/lib/admin'
 import { urlPhoto } from '@/lib/photos'
 import { validerPhoto, refuserPhoto } from './actions'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,6 +22,19 @@ export default async function AdminPhotos() {
   const liste = photos ?? []
   const idsProfils = liste.filter((p) => p.type === 'profil').map((p) => p.cible)
   const idsLigues = liste.filter((p) => p.type === 'ligue').map((p) => p.cible)
+
+  // Les photos en attente sont dans un dossier privé : liens temporaires (1 h) réservés à cette page.
+  // Les anciennes photos envoyées avant ce changement restent dans le dossier public.
+  const adresseParChemin = new Map<string, string>()
+  if (liste.length > 0) {
+    const admin = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+    const { data: liens } = await admin.storage
+      .from('photos-attente')
+      .createSignedUrls(liste.map((p) => p.chemin), 3600)
+    for (const l of liens ?? []) {
+      if (l.path && l.signedUrl && !l.error) adresseParChemin.set(l.path, l.signedUrl)
+    }
+  }
 
   const pseudoParId = new Map<string, string>()
   if (idsProfils.length > 0) {
@@ -59,7 +73,7 @@ export default async function AdminPhotos() {
             </div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={urlPhoto(p.chemin)}
+              src={adresseParChemin.get(p.chemin) ?? urlPhoto(p.chemin)}
               alt="Photo à valider"
               style={{ width: 200, height: 200, objectFit: 'cover', borderRadius: p.type === 'profil' ? '50%' : 16, margin: '0 auto', display: 'block' }}
             />

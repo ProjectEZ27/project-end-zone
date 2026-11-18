@@ -12,11 +12,9 @@ export default async function JoinLeague({ params }: { params: Promise<{ code: s
     redirect('/login?next=/leagues/join/' + code)
   }
 
-  const { data: league, error } = await supabase
-    .from('ligues')
-    .select('*')
-    .eq('code_invitation', code)
-    .single()
+  // Recherche de la ligue par son code (la base ne montre jamais les codes des autres ligues)
+  const { data: trouvees, error } = await supabase.rpc('ligue_par_code', { p_code: code })
+  const league = trouvees?.[0] as { id: number; nom: string; taille_max: number } | undefined
 
   if (error || !league) {
     return (

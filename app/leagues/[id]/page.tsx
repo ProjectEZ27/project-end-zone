@@ -29,17 +29,19 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
     redirect('/login')
   }
 
-  const { data: league, error } = await supabase
-    .from('ligues')
-    .select('*')
-    .eq('id', id)
-    .single()
+  // Infos de la ligue, sans ses codes d'invitation (protégés côté base)
+  const { data: league, error } = await supabase.rpc('ligue_infos', { p_ligue: Number(id) })
 
   if (error || !league) {
     notFound()
   }
 
   const estCommissaire = league.commissaire_id === user.id
+
+  // Codes de partage : la base ne les donne qu'aux membres actifs (et le code de secours au commissaire)
+  const { data: codes } = await supabase.rpc('codes_ligue', { p_ligue: Number(id) })
+  const codeInvitation: string = codes?.[0]?.code_invitation ?? ''
+  const codeSecours: string | undefined = codes?.[0]?.code_secours ?? undefined
 
   // Photo de ligue en attente de validation (visible seulement par la commissaire)
   let photoEnAttente = false
@@ -258,8 +260,8 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
             <div style={{ fontSize: 11, color: '#7fa8e0', marginBottom: 12 }}>Tu es le commissaire de cette ligue</div>
 
             <ShareLeagueBox
-              codeInvitation={league.code_invitation}
-              codeSecours={league.code_secours}
+              codeInvitation={codeInvitation}
+              codeSecours={codeSecours}
               leagueName={league.nom}
             />
           </div>
@@ -268,7 +270,7 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
         {!estCommissaire && estMembreActif && (
           <div style={{ marginTop: 20, background: '#16233F', border: '0.5px solid #33415a', borderRadius: 12, padding: 16 }}>
             <ShareLeagueBox
-              codeInvitation={league.code_invitation}
+              codeInvitation={codeInvitation}
               leagueName={league.nom}
             />
           </div>

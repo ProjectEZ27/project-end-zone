@@ -4,6 +4,34 @@ import { createClient } from '@/lib/supabase/server'
 import { ADMIN_ID } from '@/lib/admin'
 import { revalidatePath } from 'next/cache'
 import { creerNotification, marquerNotificationLue } from '@/lib/notifications'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
+
+function stockage() {
+  return createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!).storage
+}
+
+/**
+ * Photo validée : on la copie du dossier privé « photos-attente » vers le dossier public « photos ».
+ * Renvoie false si la copie a échoué (la photo reste alors en attente).
+ * Les anciennes photos, envoyées avant ce changement, sont déjà dans le dossier public : rien à copier.
+ */
+async function publierPhoto(chemin: string): Promise<boolean> {
+  const s = stockage()
+  const { data: fichier, error: erreurLecture } = await s.from('photos-attente').download(chemin)
+  if (erreurLecture || !fichier) {
+    const { data: dejaPublique } = await s.from('photos').list(chemin.split('/').slice(0, -1).join('/'), {
+      search: chemin.split('/').pop(),
+    })
+    return (dejaPublique ?? []).length > 0
+  }
+  const { error: erreurDepot } = await s.from('photos').upload(chemin, fichier, { contentType: 'image/jpeg', upsert: true })
+  if (erreurDepot) {
+    console.error('[photos] publication échouée :', erreurDepot.message)
+    return false
+  }
+  await s.from('photos-attente').remove([chemin])
+  return true
+}
 
 async function changerStatut(id: number, statut: 'validee' | 'refusee') {
   const supabase = await createClient()
@@ -14,9 +42,21 @@ async function changerStatut(id: number, statut: 'validee' | 'refusee') {
     .select('type, cible, chemin')
     .eq('id', id)
     .maybeSingle()
+  if (!photo) return
+
+  if (statut === 'validee') {
+    // La photo doit être dans le dossier public AVANT d'être affichée
+    const publiee = await publierPhoto(photo.chemin)
+    if (!publiee) return
+  } else {
+    // Photo refusée : elle est supprimée, plus personne ne peut la voir
+    await stockage().from('photos-attente').remove([photo.chemin])
+    await stockage().from('photos').remove([photo.chemin])
+  }
+
   const { error } = await supabase.from('photos_perso').update({ statut }).eq('id', id)
 
-  if (!error && photo) {
+  if (!error) {
     await marquerNotificationLue(ADMIN_ID, `photo-a-valider:${photo.chemin}`)
 
     // Qui prévenir : le joueur (photo de profil) ou le commissaire (photo de ligue)

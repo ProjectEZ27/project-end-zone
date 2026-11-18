@@ -40,7 +40,7 @@ export async function createLeague(formData: FormData) {
       code_invitation: code_invitation,
       code_secours: code_secours,
     })
-    .select()
+    .select('id')
     .single()
  
   if (error) {

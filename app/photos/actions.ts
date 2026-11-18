@@ -28,10 +28,11 @@ export async function envoyerPhoto(formData: FormData): Promise<{ ok: boolean; m
   }
 
   const dossier = type === 'profil' ? `profils/${user.id}` : `ligues/${cible}`
-  const chemin = `${dossier}/${Date.now()}.jpg`
+  // Nom impossible à deviner, et rangement dans le dossier PRIVÉ tant que la photo n'est pas validée
+  const chemin = `${dossier}/${crypto.randomUUID()}.jpg`
 
   const { error: erreurEnvoi } = await supabase.storage
-    .from('photos')
+    .from('photos-attente')
     .upload(chemin, fichier, { contentType: 'image/jpeg' })
   if (erreurEnvoi) return { ok: false, message: "L'envoi a échoué, réessaie." }
 

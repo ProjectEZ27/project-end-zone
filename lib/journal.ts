@@ -1,6 +1,6 @@
 import { SupabaseClient, createClient } from '@supabase/supabase-js'
 import { NOMS_EQUIPES } from './teamBadge'
-import { calculerClassementSemaine } from './scoring'
+import { calculerClassementSemaine, calculerClassementSaison } from './scoring'
 import { estMatchNul } from './matchNul'
 
 /*
@@ -206,18 +206,19 @@ async function toutLire(page: (de: number, a: number) => PromiseLike<{ data: any
   return tout
 }
 
-async function classementCumuleParSemaines(
+// Points cumulés de chaque membre sur toutes les semaines de la saison AVANT la semaine donnée.
+// Calculé en une seule fois (4 lectures de la base) au lieu de recalculer chaque semaine une par une.
+async function classementCumuleAvant(
   supabase: SupabaseClient,
-  semaineIds: number[],
+  saisonId: number,
+  avantSemaineId: number,
   membreIds: string[]
 ): Promise<Map<string, number>> {
   const totaux = new Map<string, number>()
-  for (const id of semaineIds) {
-    const classementSemaine = await calculerClassementSemaine(supabase, id)
-    for (const joueur of classementSemaine) {
-      if (!membreIds.includes(joueur.utilisateur_id)) continue
-      totaux.set(joueur.utilisateur_id, (totaux.get(joueur.utilisateur_id) ?? 0) + joueur.score_semaine)
-    }
+  const classement = await calculerClassementSaison(supabase, saisonId, { avantSemaineId })
+  for (const joueur of classement) {
+    if (!membreIds.includes(joueur.utilisateur_id)) continue
+    totaux.set(joueur.utilisateur_id, joueur.score_saison)
   }
   return totaux
 }
@@ -377,8 +378,12 @@ export async function genererJournalSemaine(
   const deuxieme = classementActifs.find(([, s]) => s < meilleur)?.[1] ?? null
 
   // ----- Classement de la ligue avant / après -----
-  const totauxAvant = idsAvant.length > 0 ? await classementCumuleParSemaines(supabase, idsAvant, membreIds) : null
-  const semaineCourante = await calculerClassementSemaine(supabase, semaine_id)
+  const [totauxAvant, semaineCourante] = await Promise.all([
+    idsAvant.length > 0 && semaineActuelle
+      ? classementCumuleAvant(supabase, semaineActuelle.saison_id, semaine_id, membreIds)
+      : Promise.resolve(null),
+    calculerClassementSemaine(supabase, semaine_id),
+  ])
   const totauxApres = new Map<string, number>(totauxAvant ?? [])
   for (const j of semaineCourante) {
     if (!membreIds.includes(j.utilisateur_id)) continue

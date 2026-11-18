@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import LienPreferences from '@/components/LienPreferences'
+import SupprimerCompte from '@/components/SupprimerCompte'
 import AvatarEditor from '@/components/AvatarEditor'
 import PseudoEditor from '@/components/PseudoEditor'
 import { NOMS_EQUIPES } from '@/lib/teamBadge'
@@ -425,6 +426,8 @@ backgroundImage: profile?.equipe_favorite
         <div style={{ marginTop: 16, padding: 16, background: '#16233F', border: '0.5px solid #33415a', borderRadius: 12, textAlign: 'left' }}>
           <LienPreferences />
         </div>
+
+        <SupprimerCompte />
       </div>
     </div>
   )

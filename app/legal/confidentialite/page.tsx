@@ -63,8 +63,8 @@ export default function Confidentialite() {
       <h2>Les prestataires techniques</h2>
       <p>Tes données sont hébergées et traitées, pour notre compte, par :</p>
       <ul>
-        <li>Vercel Inc. (États-Unis) : hébergement du site</li>
-        <li>Supabase Inc. (États-Unis) : base de données et photos, stockées dans la région [RÉGION SUPABASE]</li>
+        <li>Vercel Inc. (États-Unis) : hébergement du site et mesure d&apos;audience anonyme</li>
+        <li>Supabase Inc. (États-Unis) : base de données et photos, stockées dans l&apos;Union européenne (Irlande)</li>
         <li>Resend (États-Unis) : envoi des e-mails</li>
       </ul>
       <p>
@@ -75,9 +75,10 @@ export default function Confidentialite() {
 
       <h2>Durée de conservation</h2>
       <p>
-        Tes données sont conservées tant que ton compte existe. Tu peux demander sa suppression à tout
-        moment en écrivant à projectendzone27@gmail.com : ton compte et tes données sont alors effacés dans
-        un délai d&apos;un mois.
+        Tes données sont conservées tant que ton compte existe. Tu peux le supprimer toi-même à tout moment
+        avec le lien « Supprimer mon compte » en bas de ta page Profil : ton compte et toutes tes données
+        (pronostics, ligues, réactions, photo) sont alors effacés immédiatement. Tu peux aussi le demander en
+        écrivant à projectendzone27@gmail.com : nous le faisons dans un délai d&apos;un mois.
       </p>
 
       <h2>Tes droits</h2>
@@ -97,8 +98,9 @@ export default function Confidentialite() {
       <h2>Cookies</h2>
       <p>
         Project End Zone utilise uniquement les cookies indispensables à son fonctionnement (rester connecté,
-        mémoriser tes réglages). Il n&apos;y a ni cookie publicitaire, ni outil de mesure d&apos;audience :
-        aucun bandeau de consentement n&apos;est donc nécessaire.
+        mémoriser tes réglages). Il n&apos;y a aucun cookie publicitaire. L&apos;audience du site (pages vues,
+        pays, type d&apos;appareil) est mesurée avec Vercel Web Analytics, qui ne dépose aucun cookie et ne
+        permet pas de t&apos;identifier.
       </p>
 
       <p style={{ fontSize: 12, color: '#9fb0c9', marginTop: 32 }}>Dernière mise à jour : {DATE_MAJ}</p>

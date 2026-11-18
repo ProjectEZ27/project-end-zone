@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { verifierPseudo } from '@/lib/pseudo'
 
 export async function toggleRappelPerso(formData: FormData) {
   const supabase = await createClient()
@@ -30,11 +31,11 @@ export async function changerPseudo(formData: FormData) {
     redirect('/login')
   }
 
-  const nouveauPseudo = (formData.get('pseudo') as string)?.trim()
-
-  if (!nouveauPseudo || nouveauPseudo.length < 2) {
-    redirect('/profile?error=' + encodeURIComponent('Le pseudo doit faire au moins 2 caractères'))
+  const verification = verifierPseudo(formData.get('pseudo'))
+  if (!verification.ok) {
+    redirect('/profile?error=' + encodeURIComponent(verification.message))
   }
+  const nouveauPseudo = verification.pseudo
 
   const { error } = await supabase
     .from('profiles')
@@ -49,8 +50,8 @@ export async function changerPseudo(formData: FormData) {
   }
 
   revalidatePath('/')
-  redirect('/profile')
   revalidatePath('/classement')
+  redirect('/profile')
 }
 
 export async function changerAvatar(formData: FormData) {

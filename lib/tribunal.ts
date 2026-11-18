@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
 import { tribunalActuel } from '@/lib/accueil'
-import { creerNotification } from '@/lib/notifications'
 
 /**
  * Appelé par la tâche automatique des résultats : dès que le Tribunal est ouvert (1 h après la fin du
@@ -12,26 +11,58 @@ export async function notifierTribunalATous(): Promise<number> {
   const t = await tribunalActuel(supabase)
   if (!t || !t.enVedette) return 0
 
-  let joueurs: { id: string; notif_journal_actif?: boolean | null }[] = []
-  const avecOption = await supabase.from('profiles').select('id, notif_journal_actif')
-  if (!avecOption.error) {
-    joueurs = avecOption.data ?? []
-  } else {
-    // La colonne de l'option n'existe pas encore : tout le monde est considéré comme inscrit
-    const { data } = await supabase.from('profiles').select('id')
-    joueurs = data ?? []
+  // Lecture de tous les joueurs, par pages de 1 000 (la base ne renvoie jamais plus de 1 000 lignes à la fois)
+  const joueurs: { id: string; notif_journal_actif?: boolean | null }[] = []
+  for (let debut = 0; ; debut += 1000) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, notif_journal_actif')
+      .order('id', { ascending: true })
+      .range(debut, debut + 999)
+    if (error) {
+      console.error('[tribunal] lecture des joueurs échouée :', error.message)
+      return 0
+    }
+    joueurs.push(...(data ?? []))
+    if (!data || data.length < 1000) break
   }
 
   const cibles = joueurs.filter((j) => j.notif_journal_actif !== false)
-  for (const j of cibles) {
-    await creerNotification({
-      userId: j.id,
+  if (cibles.length === 0) return 0
+
+  // Envoi groupé : une seule lecture des notifications déjà créées, puis des envois par paquets de 500.
+  // (Avant : deux demandes à la base par joueur, trop lent avec beaucoup de joueurs.)
+  const cle = `tribunal-${t.semaineId}`
+  const dejaPrevenus = new Set<string>()
+  for (let debut = 0; ; debut += 1000) {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('user_id')
+      .eq('cle', cle)
+      .order('user_id', { ascending: true })
+      .range(debut, debut + 999)
+    if (error) {
+      console.error('[tribunal] lecture des notifications échouée :', error.message)
+      return 0
+    }
+    for (const n of data ?? []) dejaPrevenus.add(String(n.user_id))
+    if (!data || data.length < 1000) break
+  }
+
+  const aCreer = cibles
+    .filter((j) => !dejaPrevenus.has(String(j.id)))
+    .map((j) => ({
+      user_id: j.id,
       type: 'journal',
       titre: `⚖️ Le ${t.nom} est ouvert`,
       message: 'Viens voir qui a été jugé dans ta ligue.',
       lien: '/leagues',
-      cle: `tribunal-${t.semaineId}`,
-    })
+      cle,
+    }))
+
+  for (let i = 0; i < aCreer.length; i += 500) {
+    const { error } = await supabase.from('notifications').insert(aCreer.slice(i, i + 500))
+    if (error) console.error('[tribunal] création des notifications échouée :', error.message)
   }
-  return cibles.length
+  return aCreer.length
 }

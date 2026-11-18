@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { traduireErreurAuth } from '@/lib/authErrors'
+import { cheminSur } from '@/lib/cheminSur'
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
@@ -12,7 +13,9 @@ export async function login(formData: FormData) {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
   }
-  const next = formData.get('next') as string | null
+  // Sécurité : on n'accepte qu'une page du site comme destination après la connexion
+  const nextBrut = formData.get('next') as string | null
+  const next = nextBrut ? cheminSur(nextBrut, '') || null : null
 
   const { error } = await supabase.auth.signInWithPassword(data)
 
@@ -33,7 +36,8 @@ export async function signup(formData: FormData) {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
   }
-  const next = formData.get('next') as string | null
+  const nextBrut = formData.get('next') as string | null
+  const next = nextBrut ? cheminSur(nextBrut, '') || null : null
 
   const { data: signUpData, error } = await supabase.auth.signUp({
     ...data,

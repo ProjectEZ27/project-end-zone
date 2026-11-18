@@ -43,6 +43,12 @@ export default async function SignupPage({
           <button formAction={signup} style={{ padding: 10, width: '100%' }}>
             Créer mon compte
           </button>
+          <p style={{ fontSize: 12, color: '#9fb0c9', marginTop: 10, lineHeight: 1.5 }}>
+            En créant un compte, tu acceptes les{' '}
+            <a href="/legal/cgu" target="_blank" rel="noopener" style={{ color: 'white' }}>conditions d&apos;utilisation</a>{' '}
+            et la{' '}
+            <a href="/legal/confidentialite" target="_blank" rel="noopener" style={{ color: 'white' }}>politique de confidentialité</a>.
+          </p>
         </form>
         <p style={{ marginTop: 12 }}>
           Déjà un compte ? <a href={params.next ? `/login?next=${encodeURIComponent(params.next)}` : '/login'} style={{ color: 'white' }}>Connecte-toi</a>

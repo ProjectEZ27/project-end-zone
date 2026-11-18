@@ -20,11 +20,16 @@ export async function selectPronostic(formData: FormData) {
   // Vérifier que le match n'est pas verrouillé (par statut OU par l'heure du coup d'envoi)
   const { data: match } = await supabase
     .from('matchs')
-    .select('statut, coup_envoi')
+    .select('statut, coup_envoi, equipe_a, equipe_b')
     .eq('id', match_id)
     .single()
 
   if (!match || match.statut !== 'a_venir' || new Date() >= new Date(match.coup_envoi)) {
+    return
+  }
+
+  // Sécurité : l'équipe choisie doit être l'une des deux équipes du match
+  if (equipe !== match.equipe_a && equipe !== match.equipe_b) {
     return
   }
 
@@ -58,6 +63,39 @@ export async function selectPronostic(formData: FormData) {
 
   revalidatePath('/pronostics')
 }
+const TYPES_SPECIAUX = ['super_bowl_preseason', 'mvp', 'super_bowl_avant_playoffs']
+
+/**
+ * Date limite d'un pronostic spécial :
+ *  - avant la saison (Super Bowl, MVP) : coup d'envoi du tout premier match de la saison ;
+ *  - avant les playoffs : coup d'envoi du premier match de la semaine « Wild Card ».
+ * Renvoie null si les matchs concernés ne sont pas encore dans la base (rien n'est alors bloqué).
+ */
+async function dateLimiteSpecial(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  saison_id: string,
+  type: string
+): Promise<string | null> {
+  const { data: semaines } = await supabase.from('semaines').select('id, nom').eq('saison_id', saison_id)
+  if (!semaines || semaines.length === 0) return null
+
+  const ids =
+    type === 'super_bowl_avant_playoffs'
+      ? semaines.filter((s) => s.nom?.toLowerCase().trim() === 'wild card').map((s) => s.id)
+      : semaines.map((s) => s.id)
+  if (ids.length === 0) return null
+
+  const { data: premier } = await supabase
+    .from('matchs')
+    .select('coup_envoi')
+    .in('semaine_id', ids)
+    .order('coup_envoi', { ascending: true })
+    .limit(1)
+    .maybeSingle()
+
+  return premier?.coup_envoi ?? null
+}
+
 export async function submitSpecialPick(formData: FormData) {
   const supabase = await createClient()
 
@@ -71,9 +109,19 @@ export async function submitSpecialPick(formData: FormData) {
   const saison_id = formData.get('saison_id') as string
   const autre_joueur = formData.get('autre_joueur') as string
   const choix_menu = formData.get('choix') as string
-  const choix = autre_joueur?.trim() ? autre_joueur.trim() : choix_menu
+  const choix = (autre_joueur?.trim() ? autre_joueur.trim() : choix_menu ?? '').slice(0, 60)
 
-  const date_limite = '2026-09-01T00:00:00Z'
+  // Sécurité : seuls les pronostics spéciaux connus sont acceptés
+  if (!TYPES_SPECIAUX.includes(type) || !choix || /[<>]/.test(choix)) {
+    return
+  }
+
+  // Sécurité : après la date limite, le serveur refuse (même si la page est restée ouverte)
+  const limite = await dateLimiteSpecial(supabase, saison_id, type)
+  if (limite && new Date() >= new Date(limite)) {
+    return
+  }
+  const date_limite = limite ?? new Date().toISOString()
 
   const { data: existant } = await supabase
     .from('pronostics_speciaux')

@@ -19,8 +19,10 @@ function trouverCodeEquipe(nomComplet: string): string | null {
 }
 
 export async function GET(request: Request) {
+  // Sécurité : si le secret n'est pas configuré chez Vercel, personne ne passe
+  const secret = process.env.CRON_SECRET
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!secret || authHeader !== `Bearer ${secret}`) {
     return new NextResponse('Non autorisé', { status: 401 })
   }
 

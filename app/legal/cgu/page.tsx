@@ -1,4 +1,10 @@
+import Link from 'next/link'
+
+// Dernière mise à jour du texte : à modifier à chaque changement
+const DATE_MAJ = '18/11/2026'
+
 export default function CGU() {
+  const lien: React.CSSProperties = { color: '#E8544C' }
   return (
     <div style={{ position: 'relative', minHeight: '100dvh' }}>
       <div style={{
@@ -16,39 +22,86 @@ export default function CGU() {
           background: 'linear-gradient(180deg, rgba(11,18,32,0.72) 0%, rgba(11,18,32,0.92) 100%)',
         }} />
       </div>
-      <div style={{ maxWidth: 600, margin: '0 auto', padding: '40px 24px 100px', position: 'relative' }}>
-      <h1>Conditions Générales d'Utilisation</h1>
+      <div style={{ maxWidth: 600, margin: '0 auto', padding: '40px 24px 100px', position: 'relative', lineHeight: 1.6 }}>
+      <h1>Conditions générales d&apos;utilisation</h1>
 
-      <h2>Objet</h2>
+      <h2>1. Objet</h2>
       <p>
-        Project End Zone est un jeu de pronostics sportifs gratuit, sans enjeu financier,
-        réservé à un usage entre amis. Aucun pari sportif n'est proposé sur cette plateforme.
+        Project End Zone est un jeu de pronostics sur les matchs de football américain, gratuit et ouvert à
+        tous. Aucune mise n&apos;est demandée et aucun gain en argent n&apos;est proposé : ce n&apos;est pas
+        un site de paris sportifs.
+      </p>
+      <p>Créer un compte vaut acceptation des présentes conditions.</p>
+
+      <h2>2. Compte</h2>
+      <p>
+        L&apos;inscription est réservée aux personnes âgées d&apos;au moins [ÂGE MINIMUM] ans. Chaque joueur
+        ne peut avoir qu&apos;un seul compte, qu&apos;il utilise personnellement. Il est responsable de la
+        confidentialité de son mot de passe.
       </p>
 
-      <h2>Fair-play</h2>
+      <h2>3. Fair-play</h2>
       <p>
-        Chaque joueur s'engage à jouer de bonne foi. Toute tentative de triche ou de manipulation
-        du système (comptes multiples, exploitation de failles techniques) est interdite.
+        Chaque joueur s&apos;engage à jouer de bonne foi. Sont interdits : les comptes multiples, l&apos;usage
+        de robots ou de programmes automatiques, l&apos;exploitation d&apos;une faille technique et toute
+        tentative de fausser un classement.
       </p>
 
-      <h2>Responsabilité</h2>
+      <h2>4. Pseudos, photos et contenus</h2>
       <p>
-        Project End Zone est fourni "en l'état", sans garantie de disponibilité continue.
-        L'éditeur ne saurait être tenu responsable d'une interruption de service ou d'une perte
-        de données, notamment liée aux limitations techniques des services gratuits utilisés
-        pour l'hébergement.
+        Le pseudo, la photo de profil, le nom et la photo d&apos;une ligue ne doivent rien contenir
+        d&apos;injurieux, de haineux, de trompeur ou d&apos;illégal, ni l&apos;image d&apos;une personne sans
+        son accord. Le joueur garantit qu&apos;il a le droit d&apos;utiliser les photos qu&apos;il envoie. Les
+        photos sont vérifiées avant d&apos;être affichées et peuvent être refusées.
       </p>
 
-      <h2>Exclusion d'un joueur</h2>
+      <h2>5. Ligues</h2>
       <p>
-        Le commissaire d'une ligue peut exclure un membre en cas de manquement grave au fair-play,
-        avec effet à partir de la saison suivante.
+        Le commissaire d&apos;une ligue accepte ou refuse les demandes d&apos;adhésion. Il peut exclure un
+        membre en cas de manquement grave au fair-play, avec effet à partir de la saison suivante.
       </p>
 
-      <h2>Modification des CGU</h2>
+      <h2>6. Lots</h2>
       <p>
-        Ces conditions peuvent évoluer. Les joueurs seront informés de toute modification
-        substantielle par e-mail.
+        Lorsque des lots sont mis en jeu, leurs conditions d&apos;attribution sont fixées par le règlement du
+        jeu, publié sur le site avant le début de la période concernée. Seul ce règlement fait foi.
+        {/* Quand le règlement sera en ligne : ajouter ici un lien vers sa page */}
+      </p>
+
+      <h2>7. Suspension ou suppression d&apos;un compte</h2>
+      <p>
+        En cas de non-respect de ces conditions, l&apos;éditeur peut suspendre ou supprimer un compte, sans
+        préavis en cas de triche, et retirer le joueur des classements et de l&apos;attribution des lots.
+      </p>
+      <p>
+        Chaque joueur peut demander la suppression de son compte à tout moment en écrivant à
+        projectendzone27@gmail.com.
+      </p>
+
+      <h2>8. Résultats et disponibilité</h2>
+      <p>
+        Les scores proviennent de fournisseurs extérieurs. En cas d&apos;erreur ou de retard, l&apos;éditeur
+        peut corriger un résultat après coup ; le classement est alors recalculé.
+      </p>
+      <p>
+        Le site est fourni en l&apos;état, sans garantie de disponibilité permanente. L&apos;éditeur ne peut
+        pas être tenu responsable d&apos;une interruption du service ou d&apos;une perte de données.
+      </p>
+
+      <h2>9. Modification des conditions</h2>
+      <p>
+        Ces conditions peuvent évoluer. Les joueurs sont informés de toute modification importante par e-mail
+        ou par une notification sur le site.
+      </p>
+
+      <h2>10. Droit applicable</h2>
+      <p>Les présentes conditions sont soumises au droit français.</p>
+
+      <p style={{ fontSize: 12, color: '#9fb0c9', marginTop: 32 }}>Dernière mise à jour : {DATE_MAJ}</p>
+      <p style={{ fontSize: 13, marginTop: 8 }}>
+        <Link href="/legal/mentions" style={lien}>Mentions légales</Link>{' · '}
+        <Link href="/legal/cgu" style={lien}>Conditions d&apos;utilisation</Link>{' · '}
+        <Link href="/legal/confidentialite" style={lien}>Confidentialité</Link>
       </p>
       </div>
     </div>

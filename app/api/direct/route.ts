@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { createClient as clientConnecte } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,6 +12,13 @@ const versTonCode = (abreviation: string) => CODES_ESPN[abreviation] ?? abreviat
 let memoire: { t: number; corps: any } | null = null
 
 export async function GET() {
+  // Sécurité : seul un joueur connecté peut déclencher cette mise à jour
+  const session = await clientConnecte()
+  const { data: { user } } = await session.auth.getUser()
+  if (!user) {
+    return NextResponse.json({ erreur: 'Non autorisé' }, { status: 401 })
+  }
+
   if (memoire && Date.now() - memoire.t < 25000) {
     return NextResponse.json(memoire.corps)
   }

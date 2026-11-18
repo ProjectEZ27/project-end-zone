@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { cheminSur } from '@/lib/cheminSur'
+import { verifierPseudo } from '@/lib/pseudo'
 
 export async function saveOnboarding(formData: FormData) {
   const supabase = await createClient()
@@ -13,10 +15,21 @@ export async function saveOnboarding(formData: FormData) {
     redirect('/login')
   }
 
-  const pseudo = formData.get('pseudo') as string
+  const pseudoBrut = formData.get('pseudo')
   const equipe_favorite = formData.get('equipe_favorite') as string
   const avatar_id = parseInt(formData.get('avatar_id') as string) || 1
-  const next = formData.get('next') as string | null
+  // Sécurité : on n'accepte qu'une page du site comme destination
+  const nextBrut = formData.get('next') as string | null
+  const next = nextBrut ? cheminSur(nextBrut, '') || null : null
+
+  const verification = verifierPseudo(pseudoBrut)
+  if (!verification.ok) {
+    const url = next
+      ? `/onboarding?next=${encodeURIComponent(next)}&error=${encodeURIComponent(verification.message)}`
+      : '/onboarding?error=' + encodeURIComponent(verification.message)
+    redirect(url)
+  }
+  const pseudo = verification.pseudo
 
   const { error } = await supabase
     .from('profiles')

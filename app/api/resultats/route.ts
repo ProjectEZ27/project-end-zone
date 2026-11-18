@@ -1,6 +1,7 @@
 import { BigBallSportsClient } from '@bigballsdata/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { createClient as clientConnecte } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
@@ -20,6 +21,13 @@ const CORRESPONDANCE_EQUIPES: Record<string, string> = {
 let memoire: { t: number; corps: any } | null = null
 
 export async function GET() {
+  // Sécurité : seul un joueur connecté peut déclencher cette mise à jour
+  const session = await clientConnecte()
+  const { data: { user } } = await session.auth.getUser()
+  if (!user) {
+    return NextResponse.json({ erreur: 'Non autorisé' }, { status: 401 })
+  }
+
   if (memoire && Date.now() - memoire.t < 60000) {
     return NextResponse.json(memoire.corps)
   }

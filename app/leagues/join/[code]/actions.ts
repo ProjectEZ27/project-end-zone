@@ -2,7 +2,7 @@
  
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Resend } from 'resend'
+import { envoyerEmailAuJoueur } from '@/lib/emails'
 import { creerNotification } from '@/lib/notifications'
  
 export async function joinLeague(formData: FormData) {
@@ -41,6 +41,21 @@ export async function joinLeague(formData: FormData) {
     redirect('/leagues?demande=deja_envoyee')
   }
  
+  // Ligue complète : inutile d'envoyer une demande
+  const { data: ligueVisee } = await supabase
+    .from('ligues')
+    .select('taille_max')
+    .eq('id', Number(ligue_id))
+    .maybeSingle()
+  const { count: membresActifs } = await supabase
+    .from('adhesions')
+    .select('id', { count: 'exact', head: true })
+    .eq('ligue_id', Number(ligue_id))
+    .eq('statut', 'actif')
+  if (ligueVisee?.taille_max && (membresActifs ?? 0) >= ligueVisee.taille_max) {
+    redirect('/leagues/' + ligue_id + '?error=' + encodeURIComponent(`Cette ligue est complète (${ligueVisee.taille_max} joueurs maximum)`))
+  }
+
   const { error } = await supabase
     .from('adhesions')
     .insert({
@@ -76,13 +91,13 @@ export async function joinLeague(formData: FormData) {
   }
  
   // Notifier le commissaire par e-mail
-  const resend = new Resend(process.env.RESEND_API_KEY)
-  await resend.emails.send({
-    from: 'Project End Zone <onboarding@resend.dev>',
-    to: 'projectendzone27@gmail.com', // adresse de test tant que le domaine n'est pas vérifié
-    subject: 'Nouvelle demande d\'adhésion',
-    html: `<p>Un joueur souhaite rejoindre une de tes ligues. Va sur ton tableau de bord pour valider ou refuser la demande.</p>`,
-  })
+  if (ligueDemandee?.commissaire_id) {
+    await envoyerEmailAuJoueur(
+      ligueDemandee.commissaire_id,
+      "Nouvelle demande d'adhésion",
+      `<p>Un joueur souhaite rejoindre une de tes ligues. Va sur ton tableau de bord pour valider ou refuser la demande.</p>`
+    )
+  }
  
   redirect('/leagues?demande=envoyee')
 }

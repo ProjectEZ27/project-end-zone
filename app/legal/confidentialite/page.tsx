@@ -93,7 +93,7 @@ export default function Confidentialite() {
       </p>
 
       <h2>Âge minimum</h2>
-      <p>Le site est réservé aux personnes âgées d&apos;au moins [ÂGE MINIMUM] ans.</p>
+      <p>Le site est réservé aux personnes âgées d&apos;au moins 15 ans.</p>
 
       <h2>Cookies</h2>
       <p>

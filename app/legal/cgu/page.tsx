@@ -31,11 +31,16 @@ export default function CGU() {
         tous. Aucune mise n&apos;est demandée et aucun gain en argent n&apos;est proposé : ce n&apos;est pas
         un site de paris sportifs.
       </p>
+      <p>
+        Certaines fonctions avancées (Stats Expert) peuvent être proposées avec un abonnement payant. Cet
+        abonnement est réservé aux personnes majeures, ou aux mineurs disposant de l&apos;accord de leur
+        représentant légal.
+      </p>
       <p>Créer un compte vaut acceptation des présentes conditions.</p>
 
       <h2>2. Compte</h2>
       <p>
-        L&apos;inscription est réservée aux personnes âgées d&apos;au moins [ÂGE MINIMUM] ans. Chaque joueur
+        L&apos;inscription est réservée aux personnes âgées d&apos;au moins 15 ans. Chaque joueur
         ne peut avoir qu&apos;un seul compte, qu&apos;il utilise personnellement. Il est responsable de la
         confidentialité de son mot de passe.
       </p>

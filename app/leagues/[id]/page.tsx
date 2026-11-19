@@ -14,7 +14,7 @@ import {
   TbCheck,
   TbX,
 } from 'react-icons/tb'
-import { genererJournalSemaine, derniereSemaineTerminee } from '@/lib/journal'
+import { journalSemaineRapide, derniereSemaineTerminee } from '@/lib/journal'
 import JournalDuMardi from '@/components/JournalDuMardi'
 import LeagueSwitcher from '@/components/LeagueSwitcher'
 import { liguesPourMenu } from '@/lib/accueil'
@@ -38,29 +38,40 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
 
   const estCommissaire = league.commissaire_id === user.id
 
-  // Codes de partage : la base ne les donne qu'aux membres actifs (et le code de secours au commissaire)
-  const { data: codes } = await supabase.rpc('codes_ligue', { p_ligue: Number(id) })
+  // Toutes ces lectures sont indépendantes : on les lance en même temps au lieu d'attendre chacune
+  const [
+    { data: codes },
+    photoAttenteRes,
+    { data: mesAdhesions },
+    monAdhesionRes,
+    adhesionsDataRes,
+    { data: adhesionsMembres },
+    semaineDuJournal,
+  ] = await Promise.all([
+    // Codes de partage : la base ne les donne qu'aux membres actifs (et le code de secours au commissaire)
+    supabase.rpc('codes_ligue', { p_ligue: Number(id) }),
+    // Photo de ligue en attente de validation (visible seulement par la commissaire)
+    estCommissaire
+      ? supabase.from('photos_perso').select('id').eq('type', 'ligue').eq('cible', id).eq('statut', 'en_attente').limit(1)
+      : Promise.resolve({ data: [] as { id: number }[] }),
+    supabase
+      .from('adhesions')
+      .select('ligue_id, epingle, masquee, ligues(id, nom)')
+      .eq('utilisateur_id', user.id)
+      .eq('statut', 'actif'),
+    estCommissaire
+      ? Promise.resolve({ data: null })
+      : supabase.from('adhesions').select('statut').eq('ligue_id', id).eq('utilisateur_id', user.id).eq('statut', 'actif').maybeSingle(),
+    estCommissaire
+      ? supabase.from('adhesions').select('id, utilisateur_id').eq('ligue_id', id).eq('statut', 'en_attente')
+      : Promise.resolve({ data: [] as { id: number; utilisateur_id: string }[] }),
+    supabase.from('adhesions').select('utilisateur_id').eq('ligue_id', id).eq('statut', 'actif'),
+    derniereSemaineTerminee(supabase),
+  ])
+
   const codeInvitation: string = codes?.[0]?.code_invitation ?? ''
   const codeSecours: string | undefined = codes?.[0]?.code_secours ?? undefined
-
-  // Photo de ligue en attente de validation (visible seulement par la commissaire)
-  let photoEnAttente = false
-  if (estCommissaire) {
-    const { data: photoAttente } = await supabase
-      .from('photos_perso')
-      .select('id')
-      .eq('type', 'ligue')
-      .eq('cible', id)
-      .eq('statut', 'en_attente')
-      .limit(1)
-    photoEnAttente = (photoAttente ?? []).length > 0
-  }
-
-  const { data: mesAdhesions } = await supabase
-    .from('adhesions')
-    .select('ligue_id, epingle, masquee, ligues(id, nom)')
-    .eq('utilisateur_id', user.id)
-    .eq('statut', 'actif')
+  const photoEnAttente = (photoAttenteRes.data ?? []).length > 0
 
   const mesLiguesBrutes = (mesAdhesions ?? [])
     .filter((a: any) => a.ligues)
@@ -73,39 +84,7 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
   // Menu déroulant : épinglées d'abord, ligues masquées retirées
   const autresLigues = liguesPourMenu(mesLigues).filter((l) => String(l.id) !== id)
 
-  let estMembreActif = estCommissaire
-  if (!estCommissaire) {
-    const { data: monAdhesion } = await supabase
-      .from('adhesions')
-      .select('statut')
-      .eq('ligue_id', id)
-      .eq('utilisateur_id', user.id)
-      .eq('statut', 'actif')
-      .single()
-    estMembreActif = !!monAdhesion
-  }
-
-  let demandes: any[] = []
-  if (estCommissaire) {
-    const { data: adhesionsData } = await supabase
-      .from('adhesions')
-      .select('id, utilisateur_id')
-      .eq('ligue_id', id)
-      .eq('statut', 'en_attente')
-
-    if (adhesionsData && adhesionsData.length > 0) {
-      const userIds = adhesionsData.map((a) => a.utilisateur_id)
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('id, pseudo')
-        .in('id', userIds)
-
-      demandes = adhesionsData.map((a) => ({
-        ...a,
-        pseudo: profilesData?.find((p) => p.id === a.utilisateur_id)?.pseudo ?? 'Joueur inconnu',
-      }))
-    }
-  }
+  const estMembreActif = estCommissaire || !!monAdhesionRes.data
 
   const statutLabel: Record<string, { label: string; bg: string; color: string }> = {
     en_cours: { label: 'EN COURS', bg: '#0F6E56', color: '#E1F5EE' },
@@ -114,21 +93,27 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
   }
   const badgeStatut = statutLabel[league.statut] ?? { label: league.statut, bg: '#33415a', color: 'white' }
 
-    const { data: adhesionsMembres } = await supabase
-    .from('adhesions')
-    .select('utilisateur_id')
-    .eq('ligue_id', id)
-    .eq('statut', 'actif')
-
   const membreIdsLigue = Array.from(new Set([
     league.commissaire_id,
     ...(adhesionsMembres ?? []).map((a) => a.utilisateur_id),
   ]))
 
-  const semaineDuJournal = await derniereSemaineTerminee(supabase)
-  const journal = semaineDuJournal
-    ? await genererJournalSemaine(supabase, semaineDuJournal, membreIdsLigue)
-    : { semaine: '', articles: [], enVedette: false, nomTribunal: 'Tribunal du mardi', exceptionnel: false }
+  // Pseudos des demandes d'adhésion et journal de la semaine : en même temps aussi
+  const adhesionsData = adhesionsDataRes.data ?? []
+  const [profilesDemandes, journal] = await Promise.all([
+    adhesionsData.length > 0
+      ? supabase.from('profiles').select('id, pseudo').in('id', adhesionsData.map((a) => a.utilisateur_id)).then((r) => r.data ?? [])
+      : Promise.resolve([] as { id: string; pseudo: string }[]),
+    semaineDuJournal
+      ? journalSemaineRapide(supabase, semaineDuJournal, membreIdsLigue)
+      : Promise.resolve({ semaine: '', articles: [], enVedette: false, nomTribunal: 'Tribunal du mardi', exceptionnel: false }),
+  ])
+
+  const demandes: any[] = adhesionsData.map((a) => ({
+    ...a,
+    pseudo: profilesDemandes.find((p) => p.id === a.utilisateur_id)?.pseudo ?? 'Joueur inconnu',
+  }))
+
   const pastilles = [
     { href: `/leagues/${id}/pronostics`, label: 'Résultats', Icon: TbBallAmericanFootball },
     { href: `/leagues/${id}/classement`, label: 'Classement', Icon: TbTrophy },

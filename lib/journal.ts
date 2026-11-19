@@ -1,4 +1,5 @@
 import { SupabaseClient, createClient } from '@supabase/supabase-js'
+import { unstable_cache } from 'next/cache'
 import { NOMS_EQUIPES } from './teamBadge'
 import { calculerClassementSemaine, calculerClassementSaison } from './scoring'
 import { estMatchNul } from './matchNul'
@@ -38,6 +39,7 @@ export type JournalSemaine = {
   diagnostic?: string[] // pour l'administrateur : pourquoi tel article est (ou n'est pas) sorti
   nomTribunal: string // ex. « Tribunal du mardi », « Tribunal des Wild Cards »
   exceptionnel: boolean // vrai si le tribunal ne s'ouvre pas un mardi (saison régulière)
+  dernierMatch?: string // coup d'envoi du dernier match de la semaine (sert à recalculer enVedette)
 }
 const VIDE: JournalSemaine = { semaine: '', articles: [], enVedette: false, nomTribunal: 'Tribunal du mardi', exceptionnel: false }
 
@@ -724,6 +726,7 @@ export async function genererJournalSemaine(
     semaine: semaineActuelle?.nom ?? '',
     articles,
     enVedette: journalEnVedette(dernierMatch),
+    dernierMatch,
     diagnostic: [
       `Joueurs ayant pronostiqué cette semaine : ${aPronostique.size} · actifs (classements) : ${actifs.length}`,
       `Articles possibles : ${candidats.map((c) => c.id).join(', ') || 'aucun'}`,
@@ -732,6 +735,31 @@ export async function genererJournalSemaine(
     ],
     ...(() => { const t = nomDuTribunal(semaineActuelle?.nom ?? '', dernierMatch); return { nomTribunal: t.nom, exceptionnel: t.exceptionnel } })(),
   }
+}
+
+/*
+ * Version rapide pour la page d'une ligue : le journal d'une semaine terminée ne change plus,
+ * on le garde donc en mémoire 1 heure (par semaine et par groupe de membres) au lieu de le
+ * recalculer à chaque visite. Seul « mis en avant ou pas » est recalculé à chaque fois.
+ * Le calcul se fait avec le compte du site : il ne lit que des matchs terminés, déjà visibles de tous.
+ */
+export async function journalSemaineRapide(
+  supabase: SupabaseClient,
+  semaine_id: number,
+  membreIds: string[]
+): Promise<JournalSemaine> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const cle = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !cle) return genererJournalSemaine(supabase, semaine_id, membreIds)
+
+  const membresTries = [...membreIds].sort()
+  const enCache = unstable_cache(
+    async () => genererJournalSemaine(createClient(url, cle), semaine_id, membresTries),
+    ['journal-semaine', String(semaine_id), membresTries.join(',')],
+    { revalidate: 3600 }
+  )
+  const journal = await enCache()
+  return { ...journal, enVedette: journalEnVedette(journal.dernierMatch ?? '') }
 }
 
 /*

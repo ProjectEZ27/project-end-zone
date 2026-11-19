@@ -29,54 +29,146 @@ export default async function Home({
     return <LandingPage />
   }
 
-  const [profileResult, saisonResult, prochainMatchGlobalResult, annoncesResult, tribunal, derniereSemaine] = await Promise.all([
-    supabase.from('profiles').select('pseudo, equipe_favorite').eq('id', user.id).maybeSingle(),
-    supabase.from('saisons').select('id').eq('statut', 'en_cours').single(),
-    supabase.from('matchs').select('semaine_id').neq('statut', 'termine').order('coup_envoi', { ascending: true }).limit(1).maybeSingle(),
+  // Lecture des cookies du récap (sans attente de la base)
+  const jar = await cookies()
+  const idsLusParCookie = jar
+    .getAll()
+    .map((c) => c.name.match(/^recap_lu_(\d+)_(.+)$/))
+    .filter((m): m is RegExpMatchArray => m !== null && m[2] === user.id)
+    .map((m) => Number(m[1]))
+
+  // Toutes les informations de la page sont lancées EN MÊME TEMPS, en plusieurs « fils » indépendants.
+  // Chaque fil n'attend que ce dont il a vraiment besoin (ex. le classement attend la saison, pas le profil).
+  const profileP = supabase.from('profiles').select('pseudo, equipe_favorite').eq('id', user.id).maybeSingle()
+  const saisonIdP = supabase.from('saisons').select('id').eq('statut', 'en_cours').single().then((r) => r.data?.id as number | undefined)
+
+  // Fil « équipe favorite »
+  const infosEquipeP = profileP.then((r) =>
+    r.data?.equipe_favorite ? infosMonEquipe(supabase, r.data.equipe_favorite) : { prochain: null, dernier: null }
+  )
+
+  // Fil « classement général » puis « mes ligues » (qui a besoin du classement pour mon rang)
+  const classementP = saisonIdP.then((id) => (id ? calculerClassementSaison(supabase, id) : []))
+  const mesLiguesP = classementP.then((c) => chargerMesLigues(supabase, user.id, c))
+
+  // Fil « récap animé de la semaine terminée »
+  const recapP = saisonIdP.then((id) => (id ? trouverRecapAAfficher(supabase, user.id, id, idsLusParCookie) : null))
+
+  // Fil « taux de réussite de la saison » (même logique que profile/page.tsx)
+  const tauxP = saisonIdP.then(async (id) => {
+    if (!id) return 0
+    const { data: semainesSaison } = await supabase.from('semaines').select('id').eq('saison_id', id)
+    const semaineIds = (semainesSaison ?? []).map((s) => s.id)
+    if (semaineIds.length === 0) return 0
+    const { data: matchsSaison } = await supabase
+      .from('matchs')
+      .select('id, statut, equipe_gagnante')
+      .in('semaine_id', semaineIds)
+    const matchIds = (matchsSaison ?? []).map((m) => m.id)
+    const matchMap = new Map((matchsSaison ?? []).map((m) => [m.id, m]))
+    if (matchIds.length === 0) return 0
+    const { data: mesPronostics } = await supabase
+      .from('pronostics')
+      .select('match_id, equipe_choisie')
+      .eq('utilisateur_id', user.id)
+      .in('match_id', matchIds)
+    const totalPronostics = (mesPronostics ?? []).filter((p) => matchMap.get(p.match_id)?.statut === 'termine').length
+    const totalCorrects = (mesPronostics ?? []).filter((p) => {
+      const m = matchMap.get(p.match_id)
+      return m && m.statut === 'termine' && p.equipe_choisie === m.equipe_gagnante
+    }).length
+    return totalPronostics > 0 ? Math.round((totalCorrects / totalPronostics) * 100) : 0
+  })
+
+  // Fil « bandeau Pronostics de la semaine » — semaine dérivée du prochain match non terminé (même logique que Pronostics/Profil)
+  const bandeauP = (async () => {
+    const { data: prochainMatchGlobal } = await supabase
+      .from('matchs')
+      .select('semaine_id')
+      .neq('statut', 'termine')
+      .order('coup_envoi', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+    const { data: semaineActuelle } = prochainMatchGlobal
+      ? await supabase.from('semaines').select('id, nom').eq('id', prochainMatchGlobal.semaine_id).single()
+      : await supabase.from('semaines').select('id, nom').order('id', { ascending: false }).limit(1).single()
+    if (!semaineActuelle) {
+      return { semaineActuelle: null, nombreMatchsSemaine: 0, mesPronosFaits: 0, prochainVerrouillage: null as string | null }
+    }
+    // Une seule lecture des matchs de la semaine : nombre, identifiants et prochain coup d'envoi
+    const { data: matchsSemaine } = await supabase
+      .from('matchs')
+      .select('id, statut, coup_envoi')
+      .eq('semaine_id', semaineActuelle.id)
+    const liste = matchsSemaine ?? []
+    const aVenir = liste
+      .filter((m) => m.statut === 'a_venir')
+      .map((m) => m.coup_envoi as string)
+      .sort()
+    let mesPronosFaits = 0
+    if (liste.length > 0) {
+      const { count } = await supabase
+        .from('pronostics')
+        .select('id', { count: 'exact', head: true })
+        .eq('utilisateur_id', user.id)
+        .in('match_id', liste.map((m) => m.id))
+      mesPronosFaits = count ?? 0
+    }
+    return {
+      semaineActuelle: semaineActuelle as { id: number; nom: string },
+      nombreMatchsSemaine: liste.length,
+      mesPronosFaits,
+      prochainVerrouillage: aVenir[0] ?? null,
+    }
+  })()
+
+  // Fil « Tribunal » : notification si le tribunal est mis en avant
+  const tribunalP = tribunalActuel(supabase).then(async (t) => {
+    if (t?.enVedette) await notifierTribunal(supabase, user.id, t)
+    return t
+  })
+
+  const [
+    profileResult,
+    annoncesResult,
+    tribunal,
+    derniereSemaine,
+    infosEquipe,
+    saisonActuelleId,
+    classementSaison,
+    mesLigues,
+    recap,
+    tauxReussite,
+    bandeau,
+  ] = await Promise.all([
+    profileP,
     supabase.from('annonces').select('id, titre, message, date_fin').eq('actif', true).order('id', { ascending: false }).limit(5),
-    tribunalActuel(supabase),
+    tribunalP,
     maDerniereSemaine(supabase, user.id),
+    infosEquipeP,
+    saisonIdP,
+    classementP,
+    mesLiguesP,
+    recapP,
+    tauxP,
+    bandeauP,
   ])
+
+  const profile = profileResult.data
+  if (!profile) {
+    redirect('/onboarding')
+  }
 
   const annonceActive = (annoncesResult.data ?? []).find(
     (a) => !a.date_fin || new Date(a.date_fin) > new Date()
   ) ?? null
 
-  const profile = profileResult.data
   const vedette = tribunal?.enVedette === true
-  if (tribunal?.enVedette) await notifierTribunal(supabase, user.id, tribunal)
-  if (!profile) {
-    redirect('/onboarding')
-  }
-
-  const infosEquipe = profile.equipe_favorite
-    ? await infosMonEquipe(supabase, profile.equipe_favorite)
-    : { prochain: null, dernier: null }
-
-  const saisonActuelleId = saisonResult.data?.id
-
-  const classementSaison = saisonActuelleId
-    ? await calculerClassementSaison(supabase, saisonActuelleId)
-    : []
-
-  // Récap animé de la semaine terminée (jusqu'à 24 h avant la semaine suivante, tant qu'un bouton n'a pas été cliqué)
-  let recap: Awaited<ReturnType<typeof trouverRecapAAfficher>> = null
-  if (saisonActuelleId) {
-    const jar = await cookies()
-    const idsLusParCookie = jar
-      .getAll()
-      .map((c) => c.name.match(/^recap_lu_(\d+)_(.+)$/))
-      .filter((m): m is RegExpMatchArray => m !== null && m[2] === user.id)
-      .map((m) => Number(m[1]))
-    recap = await trouverRecapAAfficher(supabase, user.id, saisonActuelleId, idsLusParCookie)
-  }
   const animes: number[] = Array.isArray(user.user_metadata?.recaps_animes) ? user.user_metadata.recaps_animes : []
 
   // Ligues affichées sur l'accueil : les 3 épinglées, sinon les 3 premières
-  const mesLigues = await chargerMesLigues(supabase, user.id, classementSaison)
   const epinglees = mesLigues.filter((l) => l.epingle !== null).sort((a, b) => a.epingle! - b.epingle!)
   const liguesAccueil = (epinglees.length > 0 ? epinglees : mesLigues.filter((l) => !l.masquee)).slice(0, 3)
-
 
   // Classement général (toutes ligues confondues, ou sans ligue = tous les joueurs de la saison)
   const totalJoueursClassement = classementSaison.length
@@ -84,88 +176,7 @@ export default async function Home({
   const monRangGeneral = monIndexClassement >= 0 ? monIndexClassement + 1 : null
   const mesPointsSaison = monIndexClassement >= 0 ? classementSaison[monIndexClassement].score_saison : 0
 
-  // Taux de réussite global de la saison (même logique que profile/page.tsx)
-  let totalPronostics = 0
-  let totalCorrects = 0
-  if (saisonActuelleId) {
-    const { data: semainesSaison } = await supabase
-      .from('semaines')
-      .select('id')
-      .eq('saison_id', saisonActuelleId)
-
-    const semaineIds = (semainesSaison ?? []).map((s) => s.id)
-    if (semaineIds.length > 0) {
-      const { data: matchsSaison } = await supabase
-        .from('matchs')
-        .select('id, statut, equipe_gagnante')
-        .in('semaine_id', semaineIds)
-
-      const matchIds = (matchsSaison ?? []).map((m) => m.id)
-      const matchMap = new Map((matchsSaison ?? []).map((m) => [m.id, m]))
-
-      if (matchIds.length > 0) {
-        const { data: mesPronostics } = await supabase
-          .from('pronostics')
-          .select('match_id, equipe_choisie')
-          .eq('utilisateur_id', user.id)
-          .in('match_id', matchIds)
-
-        totalPronostics = (mesPronostics ?? []).filter((p) => matchMap.get(p.match_id)?.statut === 'termine').length
-        totalCorrects = (mesPronostics ?? []).filter((p) => {
-          const m = matchMap.get(p.match_id)
-          return m && m.statut === 'termine' && p.equipe_choisie === m.equipe_gagnante
-        }).length
-      }
-    }
-  }
-  const tauxReussite = totalPronostics > 0 ? Math.round((totalCorrects / totalPronostics) * 100) : 0
-
-  // Bandeau "Pronostics de la semaine" — semaine dérivée du prochain match non terminé (même logique que Pronostics/Profil)
-  let semaineActuelle: { id: number; nom: string } | null = null
-  if (prochainMatchGlobalResult.data) {
-    const { data } = await supabase.from('semaines').select('id, nom').eq('id', prochainMatchGlobalResult.data.semaine_id).single()
-    semaineActuelle = data
-  } else {
-    const { data } = await supabase.from('semaines').select('id, nom').order('id', { ascending: false }).limit(1).single()
-    semaineActuelle = data
-  }
-
-  let nombreMatchsSemaine = 0
-  let mesPronosFaits = 0
-  let prochainVerrouillage: string | null = null
-  if (semaineActuelle) {
-    const { count } = await supabase
-      .from('matchs')
-      .select('id', { count: 'exact', head: true })
-      .eq('semaine_id', semaineActuelle.id)
-    nombreMatchsSemaine = count ?? 0
-
-    const { data: matchsSemaineActuelle } = await supabase
-      .from('matchs')
-      .select('id')
-      .eq('semaine_id', semaineActuelle.id)
-    const idsMatchsSemaine = (matchsSemaineActuelle ?? []).map((m) => m.id)
-
-    if (idsMatchsSemaine.length > 0) {
-      const { count: countFaits } = await supabase
-        .from('pronostics')
-        .select('id', { count: 'exact', head: true })
-        .eq('utilisateur_id', user.id)
-        .in('match_id', idsMatchsSemaine)
-      mesPronosFaits = countFaits ?? 0
-    }
-
-    const { data: prochainMatchSemaine } = await supabase
-      .from('matchs')
-      .select('coup_envoi')
-      .eq('semaine_id', semaineActuelle.id)
-      .eq('statut', 'a_venir')
-      .order('coup_envoi', { ascending: true })
-      .limit(1)
-      .maybeSingle()
-
-    prochainVerrouillage = prochainMatchSemaine?.coup_envoi ?? null
-  }
+  const { semaineActuelle, nombreMatchsSemaine, mesPronosFaits, prochainVerrouillage } = bandeau
 
   return (
     <div style={{ position: 'relative', minHeight: '100dvh' }}>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useOptimistic, startTransition } from 'react'
+import { useOptimistic } from 'react'
 import styles from './MatchLine.module.css'
 import { selectPronostic } from '@/app/pronostics/actions'
 import { getCouleurEquipe, estCouleurClaire } from '@/lib/teamColors'
@@ -83,6 +83,13 @@ export default function MatchLine({
   expert,
 }: MatchLineProps) {
   const [optimisticSelectedTeam, setOptimisticSelectedTeam] = useOptimistic(selectedTeam)
+  // Clic sur une équipe : le choix s'affiche immédiatement, puis le serveur enregistre en arrière-plan.
+  // Le changement « instantané » est fait DANS l'action du formulaire : il reste ainsi affiché
+  // jusqu'à ce que le serveur ait répondu (et revient en arrière tout seul si le match est verrouillé).
+  const choisirEquipe = async (formData: FormData) => {
+    setOptimisticSelectedTeam(String(formData.get('equipe')))
+    await selectPronostic(formData)
+  }
 const AFFICHER_SCORE_EN_DIRECT = true // réactivé : mise à jour toutes les 30 s via /api/direct (ESPN)
 const enDirect = AFFICHER_SCORE_EN_DIRECT && locked && !finished && scoreDirectA != null && scoreDirectB != null
 const numeroQT = Number(quartTemps)
@@ -181,13 +188,12 @@ const libelleQT = tempsRestant === 'Mi-temps'
 
       <div className={teamLeftClasses}>
         {canClick ? (
-          <form action={selectPronostic} style={{ width: '100%', height: '100%' }}>
+          <form action={choisirEquipe} style={{ width: '100%', height: '100%' }}>
             <input type="hidden" name="match_id" value={matchId} />
             <input type="hidden" name="equipe" value={team1.code} />
             <button
               type="submit"
               className={styles.teamButton}
-              onClick={() => startTransition(() => setOptimisticSelectedTeam(team1.code))}
             >
               <div className={styles.teamContent}>
                 <div>
@@ -228,13 +234,12 @@ const libelleQT = tempsRestant === 'Mi-temps'
 
       <div className={teamRightClasses}>
         {canClick ? (
-          <form action={selectPronostic} style={{ width: '100%', height: '100%' }}>
+          <form action={choisirEquipe} style={{ width: '100%', height: '100%' }}>
             <input type="hidden" name="match_id" value={matchId} />
             <input type="hidden" name="equipe" value={team2.code} />
             <button
               type="submit"
               className={styles.teamButton}
-              onClick={() => startTransition(() => setOptimisticSelectedTeam(team2.code))}
             >
               <div className={styles.teamContent}>
                 <div>

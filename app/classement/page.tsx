@@ -28,17 +28,21 @@ export default async function Classement({
     redirect('/login')
   }
  
-  const { data: saison } = await supabase
-    .from('saisons')
-    .select('*')
-    .eq('statut', 'en_cours')
-    .single()
- 
-  const { data: adhesions } = await supabase
-    .from('adhesions')
-    .select('ligue_id, epingle, masquee, ligues(id, nom)')
-    .eq('utilisateur_id', user.id)
-    .eq('statut', 'actif')
+  // Lectures sans dépendance : lancées en même temps
+  const [{ data: saison }, { data: adhesions }, { data: monProfil }, { data: adhesionsLigue }] = await Promise.all([
+    supabase.from('saisons').select('*').eq('statut', 'en_cours').single(),
+    supabase
+      .from('adhesions')
+      .select('ligue_id, epingle, masquee, ligues(id, nom)')
+      .eq('utilisateur_id', user.id)
+      .eq('statut', 'actif'),
+    // Animation du mardi : préférence du joueur
+    supabase.from('profiles').select('intro_animation').eq('id', user.id).maybeSingle(),
+    // Membres de la ligue demandée (utilisés seulement si le joueur en fait bien partie, vérifié plus bas)
+    ligueParam && /^\d+$/.test(ligueParam)
+      ? supabase.from('adhesions').select('utilisateur_id').eq('ligue_id', Number(ligueParam)).eq('statut', 'actif')
+      : Promise.resolve({ data: null as { utilisateur_id: string }[] | null }),
+  ])
  
   const liguesBrutes = (adhesions ?? [])
     .filter((a: any) => a.ligues)
@@ -61,17 +65,25 @@ export default async function Classement({
     )
   }
  
-  const classementComplet = await calculerClassementSaison(supabase, saison.id)
+  // Deux fils en parallèle :
+  //  - le classement actuel, puis les profils (photos, avatars) des joueurs classés ;
+  //  - la semaine de référence, puis le classement d'avant (pour les flèches de progression).
+  const classementEtProfilsP = calculerClassementSaison(supabase, saison.id).then(async (classementComplet) => {
+    const ids = classementComplet.map((j) => j.utilisateur_id)
+    const { data: profils } = ids.length > 0
+      ? await supabase.from('profiles').select('id, avatar_id, photo_chemin, equipe_favorite').in('id', ids)
+      : { data: [] as any[] }
+    return { classementComplet, profils }
+  })
+  const referenceP = trouverSemaineReference(supabase, saison.id).then(async (semaineRef) => ({
+    semaineRef,
+    avantComplet: semaineRef ? await calculerClassementSaison(supabase, saison.id, { avantSemaineId: semaineRef.id }) : null,
+  }))
+  const [{ classementComplet, profils }, { semaineRef, avantComplet }] = await Promise.all([classementEtProfilsP, referenceP])
  
   let membresLigueIds: Set<string> | null = null
   let classement = classementComplet
   if (ligueSelectionnee) {
-    const { data: adhesionsLigue } = await supabase
-      .from('adhesions')
-      .select('utilisateur_id')
-      .eq('ligue_id', ligueSelectionnee.id)
-      .eq('statut', 'actif')
- 
     const membres = new Set((adhesionsLigue ?? []).map((a) => a.utilisateur_id))
     membresLigueIds = membres
     classement = classementComplet.filter((j) => membres.has(j.utilisateur_id))
@@ -79,10 +91,8 @@ export default async function Classement({
  
   // Flèches : places gagnées ou perdues depuis le début de la semaine en cours
   const membresFiltre = membresLigueIds
-  const semaineRef = await trouverSemaineReference(supabase, saison.id)
   let deltas = new Map<string, number>()
-  if (semaineRef) {
-    const avantComplet = await calculerClassementSaison(supabase, saison.id, { avantSemaineId: semaineRef.id })
+  if (semaineRef && avantComplet) {
     const avantFiltre = avantComplet.filter((j) => membresFiltre === null || membresFiltre.has(j.utilisateur_id))
     deltas = calculerDeltas(
       classement.map((j) => j.utilisateur_id),
@@ -91,20 +101,11 @@ export default async function Classement({
   }
  
   // Animation du mardi : seulement si la semaine est complète et si le joueur n'a pas désactivé les animations
-  const { data: monProfil } = await supabase
-    .from('profiles')
-    .select('intro_animation')
-    .eq('id', user.id)
-    .maybeSingle()
   const animationsActives = monProfil?.intro_animation !== false
   const animer = !!semaineRef?.terminee && animationsActives
   const scope = ligueSelectionnee ? `ligue-${ligueSelectionnee.id}` : 'general'
   const cleAnimation = `pez-mvt-${user.id}-${scope}-${semaineRef?.id ?? 0}`
  
-  const userIds = classement.map((j) => j.utilisateur_id)
-  const { data: profils } = userIds.length > 0
-    ? await supabase.from('profiles').select('id, avatar_id, photo_chemin, equipe_favorite').in('id', userIds)
-    : { data: [] as any[] }
   const avatarMap = new Map((profils ?? []).map((p) => [p.id, p.avatar_id ?? 1]))
   const photoMap = new Map((profils ?? []).map((p) => [p.id, p.photo_chemin ?? null]))
   const equipeMap = new Map((profils ?? []).map((p) => [p.id, p.equipe_favorite ?? null]))

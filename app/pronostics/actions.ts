@@ -18,11 +18,20 @@ export async function selectPronostic(formData: FormData) {
   const equipe = formData.get('equipe') as string
 
   // Vérifier que le match n'est pas verrouillé (par statut OU par l'heure du coup d'envoi)
-  const { data: match } = await supabase
-    .from('matchs')
-    .select('statut, coup_envoi, equipe_a, equipe_b')
-    .eq('id', match_id)
-    .single()
+  // et regarder si un pronostic existe déjà pour ce match : les deux lectures en même temps
+  const [{ data: match }, { data: existant }] = await Promise.all([
+    supabase
+      .from('matchs')
+      .select('statut, coup_envoi, equipe_a, equipe_b')
+      .eq('id', match_id)
+      .single(),
+    supabase
+      .from('pronostics')
+      .select('id')
+      .eq('utilisateur_id', user.id)
+      .eq('match_id', match_id)
+      .maybeSingle(),
+  ])
 
   if (!match || match.statut !== 'a_venir' || new Date() >= new Date(match.coup_envoi)) {
     return
@@ -32,14 +41,6 @@ export async function selectPronostic(formData: FormData) {
   if (equipe !== match.equipe_a && equipe !== match.equipe_b) {
     return
   }
-
-  // Regarder si un pronostic existe déjà pour ce match
-  const { data: existant } = await supabase
-    .from('pronostics')
-    .select('id')
-    .eq('utilisateur_id', user.id)
-    .eq('match_id', match_id)
-    .single()
 
   if (existant) {
     // Modifier le pronostic existant

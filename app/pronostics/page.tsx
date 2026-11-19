@@ -11,13 +11,12 @@ import { getPowerIndexRanking } from '@/lib/powerIndex'
 import { RESUMES_EQUIPES } from '@/lib/resumesEquipes'
 import { calculerBilanEquipes } from '@/lib/bilanEquipes'
 import BarreActionsSemaine from '@/components/BarreActionsSemaine'
-import { estMatchNul } from '@/lib/matchNul'
+import { estMatchNul, seuilsSemaine } from '@/lib/matchNul'
 import { orienter } from '@/lib/domicile'
 import DirectRafraichisseur from '@/components/DirectRafraichisseur'
 import ResultatsRafraichisseur from '@/components/ResultatsRafraichisseur'
 import AnneauScore from '@/components/AnneauScore'
 import { listerSemainesAvecScores } from '@/lib/scoresSemaines'
-import { calculerClassementSemaine } from '@/lib/scoring'
 
 export default async function Pronostics({ searchParams }: { searchParams: Promise<{ semaine?: string }> }) {
   const { semaine: semaineParam } = await searchParams
@@ -28,10 +27,50 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
     redirect('/login')
   }
 
-  // Mode expert : réglage du joueur + statistiques des 32 équipes (remplies chaque semaine par /api/cron/stats-expert)
-  const [{ data: profilExpert }, { data: lignesExpert }] = await Promise.all([
+  // Semaine par défaut = celle du prochain match non terminé (chronologiquement),
+  // sinon la toute dernière semaine si tout est déjà joué.
+  const chercherSemaineParDefaut = async () => {
+    const { data: prochainMatch } = await supabase
+      .from('matchs')
+      .select('semaine_id, coup_envoi')
+      .neq('statut', 'termine')
+      .order('coup_envoi', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+    if (prochainMatch) {
+      const { data } = await supabase.from('semaines').select('*').eq('id', prochainMatch.semaine_id).single()
+      return data
+    }
+    const { data } = await supabase.from('semaines').select('*').order('id', { ascending: false }).limit(1).single()
+    return data
+  }
+
+  // La saison et ce qui n'en dépend que (bilan des équipes, pronostics spéciaux) partent tout de suite
+  const saisonP = supabase.from('saisons').select('id, nom').eq('statut', 'en_cours').single()
+  const bilanP = saisonP.then((r) =>
+    r.data ? calculerBilanEquipes(supabase, r.data.id) : ({} as Record<string, { victoires: number; defaites: number }>)
+  )
+  const speciauxP = saisonP.then(async (r) => {
+    if (!r.data) return [] as { type: string; choix: string }[]
+    const { data } = await supabase
+      .from('pronostics_speciaux')
+      .select('type, choix')
+      .eq('utilisateur_id', user.id)
+      .eq('saison_id', r.data.id)
+    return (data ?? []) as { type: string; choix: string }[]
+  })
+
+  // Toutes les lectures indépendantes en même temps
+  const [{ data: profilExpert }, { data: lignesExpert }, lignesSemaines, semaineParamResult, classement, semaineDefaut] = await Promise.all([
+    // Mode expert : réglage du joueur + statistiques des 32 équipes (remplies chaque semaine par /api/cron/stats-expert)
     supabase.from('profiles').select('mode_expert').eq('id', user.id).maybeSingle(),
     supabase.from('stats_expert_equipes').select('equipe, derniere_semaine, mis_a_jour, valeurs, rangs'),
+    listerSemainesAvecScores(supabase, user.id),
+    semaineParam
+      ? supabase.from('semaines').select('*').eq('id', semaineParam).single()
+      : Promise.resolve({ data: null }),
+    getPowerIndexRanking(new Date().getFullYear()),
+    semaineParam ? Promise.resolve(null) : chercherSemaineParDefaut(),
   ])
   const modeExpert = profilExpert?.mode_expert ?? true
   const statsExpert = new Map((lignesExpert ?? []).map((l) => [l.equipe as string, l]))
@@ -41,47 +80,12 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
     return s1 && s2 ? { actif: modeExpert, stats1: s1, stats2: s2 } : null
   }
 
-  const [lignesSemaines, semaineParamResult, classement] = await Promise.all([
-    listerSemainesAvecScores(supabase, user.id),
-    semaineParam
-      ? supabase.from('semaines').select('*').eq('id', semaineParam).single()
-      : Promise.resolve({ data: null }),
-    getPowerIndexRanking(new Date().getFullYear())
-  ])
-  let semaine = semaineParamResult.data
+  let semaine = semaineParamResult.data ?? semaineDefaut
+  // Semaine demandée introuvable : on retombe sur la semaine par défaut
+  if (!semaine && semaineParam) semaine = await chercherSemaineParDefaut()
   const rangParEquipe = new Map(classement.map((e) => [e.code, e.rang]))
   const descCourte = (code: string) => {
     return RESUMES_EQUIPES[code]?.texte ?? null
-  }
-
-  if (!semaine) {
-    // Semaine par défaut = celle du prochain match non terminé (chronologiquement),
-    // sinon la toute dernière semaine si tout est déjà joué.
-    const { data: prochainMatch } = await supabase
-      .from('matchs')
-      .select('semaine_id, coup_envoi')
-      .neq('statut', 'termine')
-      .order('coup_envoi', { ascending: true })
-      .limit(1)
-      .maybeSingle()
-
-    if (prochainMatch) {
-      const { data: semaineTrouvee } = await supabase
-        .from('semaines')
-        .select('*')
-        .eq('id', prochainMatch.semaine_id)
-        .single()
-      semaine = semaineTrouvee
-
-    } else {
-      const { data: derniereSemaine } = await supabase
-        .from('semaines')
-        .select('*')
-        .order('id', { ascending: false })
-        .limit(1)
-        .single()
-      semaine = derniereSemaine
-    }
   }
 
   if (!semaine) {
@@ -119,9 +123,17 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   }
 
 
-  const [matchsResult, saisonResult] = await Promise.all([
+  // Matchs de la semaine, mes pronostics de la semaine (lus directement par la semaine), saison, bilan, spéciaux : en même temps
+  const [matchsResult, mesPronosticsResult, saisonResult, bilanParEquipe, pronosSpeciauxResult] = await Promise.all([
     supabase.from('matchs').select('*').eq('semaine_id', semaine.id).order('coup_envoi', { ascending: true }),
-    supabase.from('saisons').select('id, nom').eq('statut', 'en_cours').single()
+    supabase
+      .from('pronostics')
+      .select('*, matchs!inner(semaine_id)')
+      .eq('utilisateur_id', user.id)
+      .eq('matchs.semaine_id', semaine.id),
+    saisonP,
+    bilanP,
+    speciauxP,
   ])
   const matchs = matchsResult.data
   const saison = saisonResult.data
@@ -129,17 +141,8 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
     (!matchs || matchs.length === 0) &&
     (estSemaineWildCard || estSemaineDivisionnaire || estSemaineFinaleConference || estSemaineSuperBowl)
 
-  const matchIds = (matchs ?? []).map((m) => m.id)
-
-  const [bilanParEquipe, mesPronosticsResult, pronosSpeciauxResult] = await Promise.all([
-    saison ? calculerBilanEquipes(supabase, saison.id) : Promise.resolve({} as Record<string, { victoires: number; defaites: number }>),
-    supabase.from('pronostics').select('*').eq('utilisateur_id', user.id).in('match_id', matchIds),
-    saison
-      ? supabase.from('pronostics_speciaux').select('type, choix').eq('utilisateur_id', user.id).eq('saison_id', saison.id)
-      : Promise.resolve({ data: null })
-  ])
-  const mesPronostics = mesPronosticsResult.data
-  const mesPronosSpeciaux = pronosSpeciauxResult.data ?? []
+  const mesPronostics = (mesPronosticsResult.data ?? []).map(({ matchs: _m, ...p }: any) => p)
+  const mesPronosSpeciaux = pronosSpeciauxResult
 
   const mesPronosticsMap = new Map((mesPronostics ?? []).map((p) => [p.match_id, p]))
   const matchsNuls = (matchs ?? []).filter(estMatchNul)
@@ -157,13 +160,21 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
     if ((mesPronostics ?? []).length === 0) {
       scoreSemaineTexte = "Tu n'as pas pronostiqué cette semaine"
     } else {
-      const classementSemaine = await calculerClassementSemaine(supabase, semaine.id)
-      const monScore = classementSemaine.find((j) => j.utilisateur_id === user.id)?.score_semaine ?? 0
+      // Score calculé sur place, avec les mêmes règles que le classement de la semaine (lib/scoring.ts)
       const matchParId = new Map((matchs ?? []).map((m) => [m.id, m]))
       const bonsPronos = (mesPronostics ?? []).filter((p) => {
         const m = matchParId.get(p.match_id)
         return !!m && m.statut === 'termine' && p.equipe_choisie === m.equipe_gagnante
       }).length
+      const regles = seuilsSemaine(semaine, nombreMatchsComptes, (matchs ?? []).length)
+      let monScore = bonsPronos * (semaine.points_par_pronostic ?? 1)
+      if (nombreMatchsComptes > 0 && bonsPronos === nombreMatchsComptes) {
+        monScore += regles.bonus_perfect ?? 0
+      } else if (regles.seuil_bonus_2 && bonsPronos >= regles.seuil_bonus_2) {
+        monScore += regles.bonus_2 ?? 0
+      } else if (regles.seuil_bonus_1 && bonsPronos >= regles.seuil_bonus_1) {
+        monScore += regles.bonus_1 ?? 0
+      }
       scoreAnneau = { score: monScore, corrects: bonsPronos, total: nombreMatchsComptes }
     }
   }

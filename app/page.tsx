@@ -122,9 +122,17 @@ export default async function Home({
     }
   })()
 
-  // Fil « Tribunal » : notification si le tribunal est mis en avant
-  const tribunalP = tribunalActuel(supabase).then(async (t) => {
-    if (t?.enVedette) await notifierTribunal(supabase, user.id, t)
+  // Fil « Ai-je au moins une ligue ? » : sans ligue, il n'y a personne à juger, donc pas de Tribunal
+  const aUneLigueP = supabase
+    .from('adhesions')
+    .select('ligue_id', { count: 'exact', head: true })
+    .eq('utilisateur_id', user.id)
+    .eq('statut', 'actif')
+    .then((r) => (r.count ?? 0) > 0)
+
+  // Fil « Tribunal » : notification si le tribunal est mis en avant ET si le joueur est dans une ligue
+  const tribunalP = Promise.all([tribunalActuel(supabase), aUneLigueP]).then(async ([t, aUneLigue]) => {
+    if (t?.enVedette && aUneLigue) await notifierTribunal(supabase, user.id, t)
     return t
   })
 
@@ -163,7 +171,8 @@ export default async function Home({
     (a) => !a.date_fin || new Date(a.date_fin) > new Date()
   ) ?? null
 
-  const vedette = tribunal?.enVedette === true
+  // Le Tribunal n'est mis en avant que si le joueur est dans au moins une ligue
+  const vedette = tribunal?.enVedette === true && mesLigues.length > 0
   const animes: number[] = Array.isArray(user.user_metadata?.recaps_animes) ? user.user_metadata.recaps_animes : []
 
   // Ligues affichées sur l'accueil : les 3 épinglées, sinon les 3 premières

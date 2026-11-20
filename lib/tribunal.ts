@@ -3,7 +3,8 @@ import { tribunalActuel } from '@/lib/accueil'
 
 /**
  * Appelé par la tâche automatique des résultats : dès que le Tribunal est ouvert (1 h après la fin du
- * dernier match de la semaine), envoie la notification à tous les joueurs qui ne l'ont pas désactivée.
+ * dernier match de la semaine), envoie la notification aux joueurs qui ne l'ont pas désactivée
+ * ET qui sont dans au moins une ligue (sans ligue, il n'y a personne à juger).
  * Une seule notification par joueur et par semaine (clé « tribunal-<semaine> »).
  */
 export async function notifierTribunalATous(): Promise<number> {
@@ -27,7 +28,25 @@ export async function notifierTribunalATous(): Promise<number> {
     if (!data || data.length < 1000) break
   }
 
-  const cibles = joueurs.filter((j) => j.notif_journal_actif !== false)
+  // Joueurs qui sont dans au moins une ligue (adhésion active)
+  const dansUneLigue = new Set<string>()
+  for (let debut = 0; ; debut += 1000) {
+    const { data, error } = await supabase
+      .from('adhesions')
+      .select('utilisateur_id')
+      .eq('statut', 'actif')
+      .order('utilisateur_id', { ascending: true })
+      .order('ligue_id', { ascending: true })
+      .range(debut, debut + 999)
+    if (error) {
+      console.error('[tribunal] lecture des adhésions échouée :', error.message)
+      return 0
+    }
+    for (const a of data ?? []) dansUneLigue.add(String(a.utilisateur_id))
+    if (!data || data.length < 1000) break
+  }
+
+  const cibles = joueurs.filter((j) => j.notif_journal_actif !== false && dansUneLigue.has(String(j.id)))
   if (cibles.length === 0) return 0
 
   // Envoi groupé : une seule lecture des notifications déjà créées, puis des envois par paquets de 500.

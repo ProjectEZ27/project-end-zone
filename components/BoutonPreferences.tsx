@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
-import { TbSettings, TbX, TbBook, TbChevronRight } from 'react-icons/tb'
-import { lirePreferences, changerPreferenceRappel, changerPreferenceTribunal, changerPreferenceExpert, type Preferences } from '@/app/preferences/actions'
+import { TbSettings, TbX, TbBook, TbChevronRight, TbLogout } from 'react-icons/tb'
+import { lirePreferences, changerPreferenceRappel, type Preferences } from '@/app/preferences/actions'
 import { changerIntroAnimation } from '@/app/profile/introActions'
 
 const ALIGNE = 'max(12px, calc(50% - 238px))'
@@ -72,11 +72,11 @@ const titreSection: React.CSSProperties = {
 /**
  * Bouton « Préférences » (roue dentée, à côté de la cloche) et son panneau.
  * Le panneau peut aussi être ouvert depuis le profil (événement « ouvrir-preferences »).
+ * Tout en bas du panneau : le bouton « Se déconnecter ».
  */
 export default function BoutonPreferences() {
   const supabase = createClient()
   const pathname = usePathname()
-  const router = useRouter()
   const [connecte, setConnecte] = useState(false)
   const [ouvert, setOuvert] = useState(false)
   const [prefs, setPrefs] = useState<Preferences | null>(null)
@@ -129,15 +129,6 @@ export default function BoutonPreferences() {
   function changerNotification(valeur: boolean) {
     setPrefs((p) => (p ? { ...p, notif_rappel_actif: valeur } : p))
     changerPreferenceRappel('notification', valeur)
-  }
-  function changerTribunal(valeur: boolean) {
-    setPrefs((p) => (p ? { ...p, notif_journal_actif: valeur } : p))
-    changerPreferenceTribunal(valeur)
-  }
-  function changerExpert(valeur: boolean) {
-    setPrefs((p) => (p ? { ...p, mode_expert: valeur } : p))
-    // Une fois le choix enregistré, la page en cours se met à jour toute seule
-    changerPreferenceExpert(valeur).then(() => router.refresh())
   }
   function changerEmail(valeur: boolean) {
     setPrefs((p) => (p ? { ...p, email_rappel_actif: valeur } : p))
@@ -232,16 +223,6 @@ export default function BoutonPreferences() {
                 <Interrupteur actif={prefs.intro_animation} onChange={changerAnimation} label="Animation d'arrivée sur les profils" />
               </Ligne>
 
-              <div style={titreSection}>⚡ Mode expert</div>
-              <Ligne titre="Stats avancées" detail="Duels « force contre force » sur chaque match et classement expert des équipes.">
-                <Interrupteur actif={prefs.mode_expert} onChange={changerExpert} label="Mode expert" />
-              </Ligne>
-
-              <div style={titreSection}>Tribunal du mardi</div>
-              <Ligne titre="Notification" detail="Une alerte quand le Tribunal du mardi est ouvert">
-                <Interrupteur actif={prefs.notif_journal_actif} onChange={changerTribunal} label="Notification du Tribunal du mardi" />
-              </Ligne>
-
               <div style={titreSection}>Rappels de pronostics</div>
               <p style={{ fontSize: 12, color: '#9fb0c9', margin: '0 0 2px', lineHeight: 1.4, textAlign: 'left' }}>
                 Le matin du premier match de la semaine, si tes pronostics ne sont pas terminés :
@@ -278,6 +259,31 @@ export default function BoutonPreferences() {
             </span>
             <TbChevronRight size={18} color="#9fb0c9" />
           </Link>
+
+          <div style={titreSection}>Compte</div>
+          <form action="/auth/logout" method="post">
+            <button
+              type="submit"
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                padding: '10px 12px',
+                background: 'transparent',
+                color: '#ff8a80',
+                border: '1px solid #8a2f2a',
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              <TbLogout size={18} />
+              Se déconnecter
+            </button>
+          </form>
         </div>
       )}
     </>

@@ -370,10 +370,6 @@ export default async function Home({
           </div>
         )}
 
-        <form action="/auth/logout" method="post" style={{ marginTop: 32 }}>
-          <button style={{ padding: 10 }}>Se déconnecter</button>
-        </form>
-
         <div style={{ marginTop: 40, fontSize: 12, color: '#666', display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Link href="/regles" style={{ color: '#9fb0c9' }}>📖 Rappel des règles</Link>
           <Link href="/legal/mentions" style={{ color: '#666' }}>Mentions légales</Link>

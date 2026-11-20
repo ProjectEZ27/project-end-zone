@@ -44,7 +44,7 @@ export default function ChoixTailleLigue() {
           >
             <span style={{ fontWeight: 600 }}>{p.gratuit ? '● ' : '🔒 '}{p.libelle}</span>
             <span style={{ fontSize: 11 }}>
-              {p.gratuit ? 'Gratuit' : p.prix ?? 'Bientôt disponible'}
+              {p.gratuit ? '' : p.prix ?? 'Bientôt disponible'}
             </span>
           </div>
         ))}

@@ -151,11 +151,6 @@ export default async function ParametresLigue({ params, searchParams }: { params
         {(league.config_rappels?.rappel_2_actif ?? true) && <input type="hidden" name="rappel_2_actif" value="on" />}
         <input type="hidden" name="delai_2" value={league.config_rappels?.delais_heures?.[1] ?? 3} />
  
-        <label style={{ textAlign: 'left' }}>
-          Nom de la ligue
-          <input type="text" name="nom" defaultValue={league.nom} required maxLength={40} style={{ padding: 8, width: '100%', marginTop: 4 }} />
-        </label>
- 
         <ChoixTailleLigue />
  
         <button type="submit" style={{ padding: 10, marginTop: 8 }}>

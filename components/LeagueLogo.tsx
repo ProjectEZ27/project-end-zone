@@ -9,7 +9,8 @@ interface LeagueLogoProps {
   clickable?: boolean
   onClick?: () => void
   photoChemin?: string | null
-  // Un clic agrandit l'image. Pas de zoom quand l'image sert déjà de bouton, ni sur les petites icônes (moins de 40 px)
+  // Un clic agrandit l'image. Désactivé par défaut : seule la page d'une ligue le demande (zoom={true}).
+  // Pas de zoom non plus quand l'image sert déjà de bouton, ni sur les petites icônes (moins de 40 px)
   zoom?: boolean
 }
 
@@ -20,7 +21,7 @@ export default function LeagueLogo({
   clickable = false,
   onClick,
   photoChemin = null,
-  zoom = true,
+  zoom = false,
 }: LeagueLogoProps) {
   const validLogoId = Math.max(1, Math.min(15, logoId))
   const peutAgrandir = zoom && !clickable && !onClick && size >= 40
@@ -28,7 +29,7 @@ export default function LeagueLogo({
   const logo = (
     <div
       style={{
-        cursor: clickable ? 'pointer' : peutAgrandir ? 'zoom-in' : 'default',
+        cursor: clickable ? 'pointer' : peutAgrandir ? 'pointer' : 'default',
         transition: clickable ? 'transform 0.2s' : 'none',
         display: 'inline-block',
       }}

@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { acceptMembership, rejectMembership } from './actions'
-import LeagueLogoEditor from '@/components/LeagueLogoEditor'
+import EnTeteLigue from '@/components/EnTeteLigue'
 import ShareLeagueBox from '@/components/ShareLeagueBox'
 import {
   TbBallAmericanFootball,
@@ -174,15 +174,14 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
           <p style={{ color: '#e05252', marginBottom: 12 }}>⚠️ {errorMessage}</p>
         )}
 
-        <LeagueLogoEditor
+        <EnTeteLigue
           ligueId={id}
-          currentLogoId={league.logo_id ?? 1}
+          nom={league.nom}
+          logoId={league.logo_id ?? 1}
           estCommissaire={estCommissaire}
-          leagueName={league.nom}
           photoChemin={league.photo_chemin ?? null}
           photoEnAttente={photoEnAttente}
         />
-        <h1 style={{ fontSize: 20, fontWeight: 600, marginTop: 8 }}>{league.nom}</h1>
                 <div>
           <LeagueSwitcher ligueActuelleId={id} ligueActuelleNom={league.nom} autresLigues={autresLigues} />
         </div>

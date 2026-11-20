@@ -2,12 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import LienPreferences from '@/components/LienPreferences'
 import SupprimerCompte from '@/components/SupprimerCompte'
-import AvatarEditor from '@/components/AvatarEditor'
-import PseudoEditor from '@/components/PseudoEditor'
-import { NOMS_EQUIPES } from '@/lib/teamBadge'
+import ModifierProfil from '@/components/ModifierProfil'
 import { TbTargetArrow, TbTrendingUp, TbBallAmericanFootball, TbCalendarCheck, TbTrophy, TbCalendar, TbClock } from 'react-icons/tb'
 import { calculerClassementSaison } from '@/lib/scoring'
-import EquipeFavoriteEditor from '@/components/EquipeFavoriteEditor'
 import SloganIntro, { SloganBanner } from '@/components/SloganIntro'
 import { getCouleurAccent } from '@/lib/teamColors'
 import { estMatchNul } from '@/lib/matchNul'
@@ -224,21 +221,18 @@ backgroundImage: profile?.equipe_favorite
       </div>
 
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '24px 24px 100px', textAlign: 'center', color: 'white' }}>
-        <AvatarEditor
-          currentAvatarId={profile?.avatar_id ?? 1}
+        <ModifierProfil
+          pseudo={profile?.pseudo ?? 'Profil'}
+          avatarId={profile?.avatar_id ?? 1}
           photoChemin={profile?.photo_chemin ?? null}
           photoEnAttente={photoEnAttente}
           userId={user.id}
-        >
-          <PseudoEditor currentPseudo={profile?.pseudo ?? 'Profil'} />
-        </AvatarEditor>
+          equipe={profile?.equipe_favorite ?? null}
+        />
 
         {errorMessage && (
           <p style={{ color: '#e05252', marginTop: 8 }}>⚠️ {errorMessage}</p>
         )}
-        <div style={{ marginTop: 4 }}>
-          <EquipeFavoriteEditor currentEquipe={profile?.equipe_favorite ?? null} />
-        </div>
 
         {/* Bandeau du slogan de l'équipe favorite */}
         <SloganBanner team={profile?.equipe_favorite ?? null} anime={animationActive} />

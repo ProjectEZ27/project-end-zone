@@ -28,7 +28,7 @@ export default function UserAvatar({
   const avatar = (
     <div
       style={{
-        cursor: clickable ? 'pointer' : peutAgrandir ? 'zoom-in' : 'default',
+        cursor: clickable ? 'pointer' : peutAgrandir ? 'pointer' : 'default',
         transition: clickable ? 'transform 0.2s, box-shadow 0.2s' : 'none',
         borderRadius: '50%',
         overflow: 'hidden',

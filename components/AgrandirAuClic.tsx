@@ -60,7 +60,7 @@ export default function AgrandirAuClic({
               alignItems: 'center',
               justifyContent: 'center',
               padding: 16,
-              cursor: 'zoom-out',
+              cursor: 'pointer',
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -62,10 +62,15 @@ table {
   color: var(--blanc-craie);
 }
 
-/* Fond Accueil version portable (20/11/2026) */
+/* Fonds version portable (20/11/2026) */
 @media (max-width: 640px) {
   div[style*="Fond-Acceuil.webp"] {
     background-image: url(/fonds/Fond-Accueil-mobile.webp) !important;
+    background-position: center top !important;
+    background-size: cover !important;
+  }
+  div[style*="Fond-Pronostics.webp"] {
+    background-image: url(/fonds/Fond-Pronostics-mobile.webp) !important;
     background-position: center top !important;
     background-size: cover !important;
   }

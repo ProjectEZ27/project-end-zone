@@ -79,4 +79,22 @@ table {
     background-position: center top !important;
     background-size: cover !important;
   }
+  div[style*="Fond-Classement.webp"] {
+    background-image: url(/fonds/Fond-Classement-mobile.webp) !important;
+    background-position: center top !important;
+    background-size: cover !important;
+  }
+  div[style*="Fond-Bilan.webp"] {
+    background-image: url(/fonds/Fond-Bilan-mobile.webp) !important;
+    background-position: center top !important;
+    background-size: cover !important;
+  }
+  div[style*="/fond-profils/"] {
+    background-size: auto 79% !important;
+    background-position: 97% top !important;
+    background-color: #0b1220 !important;
+  }
+  div[style*="/fond-profils/"] > div {
+    background: linear-gradient(180deg, rgba(11, 18, 32, 0.72) 0%, rgba(11, 18, 32, 0.8) 54%, #0b1220 79%, #0b1220 100%) !important;
+  }
 }

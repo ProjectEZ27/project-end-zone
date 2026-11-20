@@ -192,6 +192,7 @@ export default async function ClassementLigue({
     return (
       <Link
         href={`/joueur/${joueur.utilisateur_id}`}
+        prefetch={false}
         style={{
           position: 'relative',
           overflow: 'hidden',

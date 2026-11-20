@@ -76,7 +76,7 @@ export default async function MembresLigue({ params }: { params: Promise<{ id: s
         {membres.map((membre) => (
           <div key={membre.id} style={{ borderBottom: '1px solid #eee', padding: 8, display: 'flex', justifyContent: 'space-between' }}>
             <span>
-              <Link href={`/joueur/${membre.id}`} style={{ color: 'inherit', textDecoration: 'underline' }}>
+              <Link href={`/joueur/${membre.id}`} prefetch={false} style={{ color: 'inherit', textDecoration: 'underline' }}>
                 {membre.pseudo}
               </Link>
               {membre.id === league.commissaire_id ? ' 👑' : ''}

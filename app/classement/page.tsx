@@ -147,6 +147,7 @@ export default async function Classement({
     return (
       <Link
         href={`/joueur/${joueur.utilisateur_id}`}
+        prefetch={false}
         style={{
           position: 'relative',
           overflow: 'hidden',

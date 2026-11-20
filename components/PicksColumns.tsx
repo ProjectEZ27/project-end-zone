@@ -21,6 +21,7 @@ export default function PicksColumns({ picksGauche, picksDroite, nOntPasPronosti
             <Link
               key={i}
               href={`/joueur/${p.userId}`}
+              prefetch={false}
               style={{
                 fontSize: 13,
                 fontWeight: 600,
@@ -37,6 +38,7 @@ export default function PicksColumns({ picksGauche, picksDroite, nOntPasPronosti
             <Link
               key={i}
               href={`/joueur/${p.userId}`}
+              prefetch={false}
               style={{
                 fontSize: 13,
                 fontWeight: 600,

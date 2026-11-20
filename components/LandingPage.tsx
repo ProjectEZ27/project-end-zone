@@ -11,10 +11,6 @@ export default function LandingPage() {
         <header className={styles.nav}>
           <div className={styles.wrap}>
             <img src="/landing/logo.png" alt="Project End Zone" />
-            <div className={styles.liens}>
-              <Link className={`${styles.btn} ${styles.contour} ${styles.petit}`} href="/login">Connexion</Link>
-              <Link className={`${styles.btn} ${styles.plein} ${styles.petit}`} href="/signup">Créer mon compte</Link>
-            </div>
           </div>
         </header>
 

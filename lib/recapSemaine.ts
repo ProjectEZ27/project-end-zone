@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import { calculerClassementSaison, calculerClassementSemaine } from '@/lib/scoring'
 import { trouverSemaineReference, calculerDeltas } from '@/lib/mouvements'
+import { estMatchNul } from '@/lib/matchNul'
 
 // Le récap s'arrête ce nombre d'heures avant le premier match de la semaine suivante
 const HEURES_AVANT_SEMAINE_SUIVANTE = 24
@@ -11,10 +12,34 @@ export type RecapSemaine = {
   semaineSuivante: { id: number; nom: string } | null
   // null = le joueur n'a pas pronostiqué cette semaine
   score: number | null
+  // Bons pronostics sur les matchs comptés (les matchs nuls ne comptent pas) : remplit le cercle du récap
+  corrects: number
+  total: number
   rang: number
   nombreJoueurs: number
   // Places gagnées (positif) ou perdues (négatif) au classement général, null si pas de comparaison possible
   delta: number | null
+}
+
+/** Nombre de bons pronostics du joueur sur la semaine, et nombre de matchs comptés. */
+async function bilanPronostics(supabase: SupabaseClient, userId: string, semaineId: number) {
+  const { data: matchs } = await supabase.from('matchs').select('*').eq('semaine_id', semaineId)
+  const liste = matchs ?? []
+  if (liste.length === 0) return { corrects: 0, total: 0 }
+
+  const { data: pronos } = await supabase
+    .from('pronostics')
+    .select('match_id, equipe_choisie')
+    .eq('utilisateur_id', userId)
+    .in('match_id', liste.map((m) => m.id))
+
+  const parId = new Map(liste.map((m) => [m.id, m]))
+  const corrects = (pronos ?? []).filter((p) => {
+    const m = parId.get(p.match_id)
+    return !!m && m.statut === 'termine' && p.equipe_choisie === m.equipe_gagnante
+  }).length
+
+  return { corrects, total: liste.filter((m) => !estMatchNul(m)).length }
 }
 
 /**
@@ -69,10 +94,11 @@ export async function trouverRecapAAfficher(
     .maybeSingle()
   if (dejaLu) return null
 
-  const [classementSemaine, classementActuel, classementAvant] = await Promise.all([
+  const [classementSemaine, classementActuel, classementAvant, bilan] = await Promise.all([
     calculerClassementSemaine(supabase, ref.id),
     calculerClassementSaison(supabase, saisonId),
     calculerClassementSaison(supabase, saisonId, { avantSemaineId: ref.id }),
+    bilanPronostics(supabase, userId, ref.id),
   ])
 
   const position = classementActuel.findIndex((j) => j.utilisateur_id === userId)
@@ -96,6 +122,8 @@ export async function trouverRecapAAfficher(
     semaineNom: ref.nom,
     semaineSuivante: suivante ? { id: suivante.id, nom: suivante.nom } : null,
     score: monScoreSemaine ? monScoreSemaine.score_semaine : null,
+    corrects: bilan.corrects,
+    total: bilan.total,
     rang: position + 1,
     nombreJoueurs: classementActuel.length,
     delta,

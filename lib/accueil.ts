@@ -104,13 +104,19 @@ export type MatchEquipe = {
   statut: string
   scoreEquipe: number | null
   scoreAdversaire: number | null
+  semaineId?: number
 }
-export type InfosEquipe = { prochain: MatchEquipe | null; dernier: MatchEquipe | null }
+export type InfosEquipe = {
+  prochain: MatchEquipe | null
+  dernier: MatchEquipe | null
+  // Coup d'envoi du tout dernier match de la semaine du « dernier » match (sert à savoir quand la semaine est finie)
+  finSemaineDernier?: string | null
+}
 
 export async function infosMonEquipe(supabase: SupabaseClient, equipe: string): Promise<InfosEquipe> {
   const { data } = await supabase
     .from('matchs')
-    .select('equipe_a, equipe_b, score_a, score_b, coup_envoi, statut')
+    .select('semaine_id, equipe_a, equipe_b, score_a, score_b, coup_envoi, statut')
     .or(`equipe_a.eq.${equipe},equipe_b.eq.${equipe}`)
     .order('coup_envoi', { ascending: true })
 
@@ -123,14 +129,26 @@ export async function infosMonEquipe(supabase: SupabaseClient, equipe: string): 
       statut: m.statut,
       scoreEquipe: estA ? m.score_a : m.score_b,
       scoreAdversaire: estA ? m.score_b : m.score_a,
+      semaineId: m.semaine_id,
     }
   })
 
   const termines = matchs.filter((m) => m.statut === 'termine')
   const restants = matchs.filter((m) => m.statut !== 'termine')
+  const dernier = termines.length > 0 ? termines[termines.length - 1] : null
+
+  // Fin de la semaine du dernier match : le coup d'envoi du match le plus tardif de cette semaine
+  let finSemaineDernier: string | null = null
+  if (dernier?.semaineId) {
+    const { data: matchsSemaine } = await supabase.from('matchs').select('coup_envoi').eq('semaine_id', dernier.semaineId)
+    const fin = (matchsSemaine ?? []).map((m) => new Date(m.coup_envoi).getTime()).reduce((x, y) => Math.max(x, y), 0)
+    if (fin) finSemaineDernier = new Date(fin).toISOString()
+  }
+
   return {
-    dernier: termines.length > 0 ? termines[termines.length - 1] : null,
+    dernier,
     prochain: restants.length > 0 ? restants[0] : null,
+    finSemaineDernier,
   }
 }
 

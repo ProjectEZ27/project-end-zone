@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { NOMS_EQUIPES } from '@/lib/teamBadge'
+import { NOMS_EQUIPES, TeamBadge } from '@/lib/teamBadge'
 import { getCouleurAccent } from '@/lib/teamColors'
 import type { InfosEquipe, MatchEquipe } from '@/lib/accueil'
 
@@ -7,9 +7,13 @@ import type { InfosEquipe, MatchEquipe } from '@/lib/accueil'
  * Carte « Ton équipe » de l'Accueil. Le texte change selon le moment :
  *  - le jour du match : « C'est le grand jour ! »
  *  - pendant le match : « Match en cours »
- *  - dans les 3 jours après : le résultat (victoire / défaite / nul) avec le score
- *  - sinon : le prochain match
+ *  - jusqu'à 1 jour après la fin de la semaine : le résultat (victoire / défaite / nul) avec le score
+ *  - ensuite : le prochain match
  */
+
+// Un match de football américain dure environ 4 h : la semaine est « finie » 4 h après le dernier coup d'envoi
+const DUREE_MATCH_MS = 4 * 3600 * 1000
+const UN_JOUR_MS = 24 * 3600 * 1000
 
 const nomEquipe = (code: string) => `les ${NOMS_EQUIPES[code] ?? code}`
 
@@ -71,7 +75,11 @@ export default function CarteEquipe({ equipe, infos }: { equipe: string | null; 
   let pastille: { texte: string; fond: string } | null = null
 
   const coupProchain = prochain ? new Date(prochain.coupEnvoi) : null
-  const joursDepuisDernier = dernier ? (maintenant.getTime() - new Date(dernier.coupEnvoi).getTime()) / 86400000 : null
+
+  // Le résultat reste affiché jusqu'à 1 jour après la fin de la semaine de ce match
+  // (si la fin de semaine est inconnue, on part du coup d'envoi du match lui-même)
+  const debutReference = dernier ? new Date(infos.finSemaineDernier ?? dernier.coupEnvoi).getTime() : 0
+  const resultatEncoreVisible = dernier !== null && maintenant.getTime() < debutReference + DUREE_MATCH_MS + UN_JOUR_MS
 
   if (prochain && coupProchain && coupProchain <= maintenant) {
     etiquette = 'En direct'
@@ -81,7 +89,7 @@ export default function CarteEquipe({ equipe, infos }: { equipe: string | null; 
     etiquette = 'Aujourd’hui'
     titre = `C'est le grand jour ! Coup d'envoi à ${heure(coupProchain)}`
     detail = <Ligne m={prochain} equipe={equipe} />
-  } else if (dernier && joursDepuisDernier !== null && joursDepuisDernier < 3.5 && dernier.scoreEquipe !== null && dernier.scoreAdversaire !== null) {
+  } else if (dernier && resultatEncoreVisible && dernier.scoreEquipe !== null && dernier.scoreAdversaire !== null) {
     const gagne = dernier.scoreEquipe > dernier.scoreAdversaire
     const nul = dernier.scoreEquipe === dernier.scoreAdversaire
     etiquette = 'Dernier match'
@@ -123,6 +131,7 @@ export default function CarteEquipe({ equipe, infos }: { equipe: string | null; 
         color: 'white',
       }}
     >
+      <TeamBadge code={equipe} size={44} />
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: '#9fb0c9' }}>{etiquette}</span>

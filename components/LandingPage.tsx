@@ -8,15 +8,10 @@ export default function LandingPage() {
     <>
       <div className={styles.fond} />
       <div className={styles.page}>
-        <header className={styles.nav}>
-          <div className={styles.wrap}>
-            <img src="/landing/logo.png" alt="Project End Zone" />
-          </div>
-        </header>
-
         <div className={styles.hero}>
           <div className={styles.wrap}>
             <div className={styles.txt}>
+              <img className={styles.logo} src="/landing/logo.png" alt="Project End Zone" />
               <h1>Le jeu de pronostics NFL.<br /><em>Affronte tes potes, match après match.</em></h1>
               <p className={styles.sous}>Chaque semaine, choisis le vainqueur de chaque match et grimpe au classement, seul ou avec ta ligue d&apos;amis. Toute la saison, jusqu&apos;au dernier match.</p>
               <div className={styles.cta}>

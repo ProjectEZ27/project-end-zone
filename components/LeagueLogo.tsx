@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import { urlPhoto } from '@/lib/photos'
+import AgrandirAuClic from './AgrandirAuClic'
 
 interface LeagueLogoProps {
   logoId: number
@@ -8,6 +9,8 @@ interface LeagueLogoProps {
   clickable?: boolean
   onClick?: () => void
   photoChemin?: string | null
+  // Un clic agrandit l'image. Pas de zoom quand l'image sert déjà de bouton, ni sur les petites icônes (moins de 40 px)
+  zoom?: boolean
 }
 
 export default function LeagueLogo({
@@ -17,13 +20,15 @@ export default function LeagueLogo({
   clickable = false,
   onClick,
   photoChemin = null,
+  zoom = true,
 }: LeagueLogoProps) {
   const validLogoId = Math.max(1, Math.min(15, logoId))
+  const peutAgrandir = zoom && !clickable && !onClick && size >= 40
 
-  return (
+  const logo = (
     <div
       style={{
-        cursor: clickable ? 'pointer' : 'default',
+        cursor: clickable ? 'pointer' : peutAgrandir ? 'zoom-in' : 'default',
         transition: clickable ? 'transform 0.2s' : 'none',
         display: 'inline-block',
       }}
@@ -53,5 +58,16 @@ export default function LeagueLogo({
         />
       )}
     </div>
+  )
+
+  if (!peutAgrandir) return logo
+
+  return (
+    <AgrandirAuClic
+      src={photoChemin ? urlPhoto(photoChemin) : `/Logos%20ligue/Logo%20${validLogoId}.png`}
+      alt={photoChemin ? `Photo de ${leagueName}` : `Logo de ${leagueName}`}
+    >
+      {logo}
+    </AgrandirAuClic>
   )
 }

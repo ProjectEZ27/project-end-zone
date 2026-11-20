@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import { urlPhoto } from '@/lib/photos'
+import AgrandirAuClic from './AgrandirAuClic'
 
 interface UserAvatarProps {
   avatarId: number
@@ -8,6 +9,8 @@ interface UserAvatarProps {
   clickable?: boolean
   onClick?: () => void
   photoChemin?: string | null
+  // Un clic agrandit l'image. Pas de zoom quand l'image sert déjà de bouton, ni sur les petites icônes (moins de 40 px)
+  zoom?: boolean
 }
 
 export default function UserAvatar({
@@ -17,13 +20,15 @@ export default function UserAvatar({
   clickable = false,
   onClick,
   photoChemin = null,
+  zoom = true,
 }: UserAvatarProps) {
   const validAvatarId = Math.max(1, Math.min(16, avatarId))
+  const peutAgrandir = zoom && !clickable && !onClick && size >= 40
 
-  return (
+  const avatar = (
     <div
       style={{
-        cursor: clickable ? 'pointer' : 'default',
+        cursor: clickable ? 'pointer' : peutAgrandir ? 'zoom-in' : 'default',
         transition: clickable ? 'transform 0.2s, box-shadow 0.2s' : 'none',
         borderRadius: '50%',
         overflow: 'hidden',
@@ -55,5 +60,17 @@ export default function UserAvatar({
         />
       )}
     </div>
+  )
+
+  if (!peutAgrandir) return avatar
+
+  return (
+    <AgrandirAuClic
+      src={photoChemin ? urlPhoto(photoChemin) : `/avatars/avatar_${validAvatarId}.png`}
+      alt={photoChemin ? `Photo de ${userName}` : `Avatar de ${userName}`}
+      rond={!photoChemin}
+    >
+      {avatar}
+    </AgrandirAuClic>
   )
 }

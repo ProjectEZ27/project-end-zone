@@ -2,52 +2,11 @@
 
 import { useState } from 'react'
 import { submitSpecialPick } from '@/app/pronostics/actions'
-
-const POSTES = ['QB', 'WR', 'RB', 'TE'] as const
-type Poste = (typeof POSTES)[number]
-
-const JOUEURS: Record<Poste, string[]> = {
-  QB: [
-    'Josh Allen', 'Malik Willis', 'Drake Maye', 'Geno Smith',
-    'Lamar Jackson', 'Joe Burrow', 'Shedeur Sanders', 'Aaron Rodgers',
-    'C.J. Stroud', 'Daniel Jones', 'Trevor Lawrence', 'Cam Ward',
-    'Bo Nix', 'Patrick Mahomes', 'Kirk Cousins', 'Justin Herbert',
-    'Dak Prescott', 'Jaxson Dart', 'Jalen Hurts', 'Jayden Daniels',
-    'Caleb Williams', 'Jared Goff', 'Jordan Love', 'Kyler Murray',
-    'Michael Penix Jr.', 'Bryce Young', 'Tyler Shough', 'Baker Mayfield',
-    'Jacoby Brissett', 'Matthew Stafford', 'Brock Purdy', 'Sam Darnold',
-  ],
-  WR: [
-    'DJ Moore', 'Jalen Tolbert', 'A.J. Brown', 'Adonai Mitchell',
-    'Rashod Bateman', "Ja'Marr Chase", 'Denzel Boston', 'DK Metcalf',
-    'Nico Collins', 'Alec Pierce', 'Brian Thomas Jr.', 'Carnell Tate',
-    'Courtland Sutton', 'Tyquan Thornton', 'Tre Tucker', 'Quentin Johnston',
-    'George Pickens', 'Malik Nabers', 'Dontayvion Wicks', 'Terry McLaurin',
-    'Rome Odunze', 'Isaac TeSlaa', 'Christian Watson', 'Matthew Golden',
-    'Justin Jefferson', 'Drake London', 'Jahan Dotson', 'Tetairoa McMillan',
-    'Jordyn Tyson', 'Chris Olave', 'Emeka Egbuka', 'Jalen McMillan',
-    'Marvin Harrison Jr.', 'Michael Wilson', 'Davante Adams', 'Puka Nacua',
-    'Mike Evans', 'Deebo Samuel Sr.', 'Jaxon Smith-Njigba', 'Rashid Shaheed',
-  ],
-  RB: [
-    'James Cook III', "De'Von Achane", 'Rhamondre Stevenson', 'Breece Hall',
-    'Derrick Henry', 'Chase Brown', 'Quinshon Judkins', 'Jaylen Warren',
-    'David Montgomery', 'Jonathan Taylor', 'Bhayshul Tuten', 'Tony Pollard',
-    'J.K. Dobbins', 'Kenneth Walker III', 'Ashton Jeanty', 'Omarion Hampton',
-    'Javonte Williams', 'Cam Skattebo', 'Saquon Barkley', 'Jacory Croskey-Merritt',
-    "D'Andre Swift", 'Jahmyr Gibbs', 'Josh Jacobs', 'Aaron Jones Sr.',
-    'Bijan Robinson', 'Chuba Hubbard', 'Alvin Kamara', 'Bucky Irving',
-    'Jeremiyah Love', 'Kyren Williams', 'Christian McCaffrey', 'Zach Charbonnet',
-  ],
-  TE: [
-    'Trey McBride', 'Brock Bowers', 'George Kittle', 'Travis Kelce',
-    'Sam LaPorta', 'T.J. Hockenson', 'Jake Ferguson', 'Dalton Kincaid',
-    'Tyler Warren', 'Colston Loveland', 'Mark Andrews', 'Evan Engram',
-  ],
-}
+import { POSTES, JOUEURS, type Poste } from '@/lib/joueursMvp'
+import { getCouleurEquipe, estCouleurClaire } from '@/lib/teamColors'
 
 function posteDe(nom: string): Poste | null {
-  return POSTES.find((p) => JOUEURS[p].includes(nom)) ?? null
+  return POSTES.find((p) => JOUEURS[p].some((j) => j.nom === nom)) ?? null
 }
 
 /*
@@ -98,16 +57,17 @@ export default function ChoixMvp({ saisonId, choixActuel }: { saisonId: string; 
       <div
         role="tabpanel"
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+          display: 'flex',
+          flexDirection: 'column',
           gap: 6,
-          maxHeight: 220,
+          maxHeight: 280,
           overflowY: 'auto',
           padding: 2,
         }}
       >
-        {JOUEURS[poste].map((nom) => {
+        {JOUEURS[poste].map(({ nom, equipe }) => {
           const actif = !saisie.trim() && choisi === nom
+          const { primary } = getCouleurEquipe(equipe)
           return (
             <button
               key={nom}
@@ -118,17 +78,37 @@ export default function ChoixMvp({ saisonId, choixActuel }: { saisonId: string; 
                 setSaisie('')
               }}
               style={{
-                padding: '8px 10px',
-                borderRadius: 8,
-                fontSize: 13,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '8px 12px',
+                borderRadius: 10,
+                fontSize: 14,
                 textAlign: 'left',
                 cursor: 'pointer',
-                background: actif ? 'rgba(200,53,46,0.22)' : '#0B1426',
+                background: actif ? 'rgba(200,53,46,0.22)' : '#16233F',
                 color: 'white',
                 border: actif ? '1px solid #C8352E' : '1px solid #33415a',
               }}
             >
-              {nom}
+              <span
+                aria-label={equipe ? `Équipe : ${equipe}` : undefined}
+                style={{
+                  minWidth: 46,
+                  padding: '6px 0',
+                  borderRadius: 6,
+                  textAlign: 'center',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  background: equipe ? primary : 'transparent',
+                  color: equipe && estCouleurClaire(primary) ? '#0B1426' : '#fff',
+                  border: equipe ? 'none' : '1px dashed #33415a',
+                }}
+              >
+                {equipe || '—'}
+              </span>
+              <span style={{ flex: 1, fontWeight: 600 }}>{nom}</span>
+              <span style={{ fontSize: 12, color: '#9fb0c9' }}>{poste}</span>
             </button>
           )
         })}

@@ -25,13 +25,17 @@ export default async function PageLigues({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [saisonResult, vedette] = await Promise.all([
-    supabase.from('saisons').select('id').eq('statut', 'en_cours').single(),
+  // Tout part en même temps : le classement se calcule pendant que les ligues sont lues
+  const classementP = supabase
+    .from('saisons')
+    .select('id')
+    .eq('statut', 'en_cours')
+    .single()
+    .then((r) => (r.data?.id ? calculerClassementSaison(supabase, r.data.id) : []))
+  const [vedette, mesLigues] = await Promise.all([
     journalEnVedette(supabase),
+    chargerMesLigues(supabase, user.id, classementP),
   ])
-  const saisonId = saisonResult.data?.id
-  const classementSaison = saisonId ? await calculerClassementSaison(supabase, saisonId) : []
-  const mesLigues = await chargerMesLigues(supabase, user.id, classementSaison)
 
   const epinglees = mesLigues.filter((l) => l.epingle !== null).sort((a, b) => a.epingle! - b.epingle!)
   const autres = mesLigues.filter((l) => l.epingle === null && !l.masquee)

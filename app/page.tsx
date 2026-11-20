@@ -49,7 +49,7 @@ export default async function Home({
 
   // Fil « classement général » puis « mes ligues » (qui a besoin du classement pour mon rang)
   const classementP = saisonIdP.then((id) => (id ? calculerClassementSaison(supabase, id) : []))
-  const mesLiguesP = classementP.then((c) => chargerMesLigues(supabase, user.id, c))
+  const mesLiguesP = chargerMesLigues(supabase, user.id, classementP)
 
   // Fil « récap animé de la semaine terminée »
   const recapP = saisonIdP.then((id) => (id ? trouverRecapAAfficher(supabase, user.id, id, idsLusParCookie) : null))

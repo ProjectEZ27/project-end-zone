@@ -151,7 +151,9 @@ export type MaLigue = {
 export async function chargerMesLigues(
   supabase: SupabaseClient,
   userId: string,
-  classementSaison: { utilisateur_id: string }[],
+  // Le classement peut être donné tout prêt, ou « en cours de calcul » : dans ce cas les lectures
+  // des ligues démarrent tout de suite et on n'attend le classement qu'à la fin (pour mon rang).
+  classementSaison: { utilisateur_id: string }[] | PromiseLike<{ utilisateur_id: string }[]>,
 ): Promise<MaLigue[]> {
   const { data: adhesions } = await supabase
     .from('adhesions')
@@ -165,28 +167,32 @@ export async function chargerMesLigues(
   const ligueIds = uniques.map((a) => a.ligues.id)
   if (ligueIds.length === 0) return []
 
-  const { data: membres } = await supabase
-    .from('adhesions')
-    .select('ligue_id, utilisateur_id')
-    .in('ligue_id', ligueIds)
-    .eq('statut', 'actif')
+  // Membres de mes ligues et demandes en attente (ligues où je suis commissaire) : en même temps
+  const idsCommissaire = uniques.filter((a) => a.ligues.commissaire_id === userId).map((a) => a.ligues.id)
+  const [{ data: membres }, { data: attente }] = await Promise.all([
+    supabase
+      .from('adhesions')
+      .select('ligue_id, utilisateur_id')
+      .in('ligue_id', ligueIds)
+      .eq('statut', 'actif'),
+    idsCommissaire.length > 0
+      ? supabase.from('adhesions').select('ligue_id').in('ligue_id', idsCommissaire).eq('statut', 'en_attente')
+      : Promise.resolve({ data: [] as any[] }),
+  ])
   const membresParLigue = new Map<number, string[]>()
   for (const m of membres ?? []) {
     if (!membresParLigue.has(m.ligue_id)) membresParLigue.set(m.ligue_id, [])
     membresParLigue.get(m.ligue_id)!.push(m.utilisateur_id)
   }
 
-  const idsCommissaire = uniques.filter((a) => a.ligues.commissaire_id === userId).map((a) => a.ligues.id)
-  const { data: attente } = idsCommissaire.length > 0
-    ? await supabase.from('adhesions').select('ligue_id').in('ligue_id', idsCommissaire).eq('statut', 'en_attente')
-    : { data: [] as any[] }
   const demandes = new Map<number, number>()
   for (const d of attente ?? []) demandes.set(d.ligue_id, (demandes.get(d.ligue_id) ?? 0) + 1)
 
+  const classement = await classementSaison
   return uniques.map((a) => {
     const l = a.ligues
     const ids = membresParLigue.get(l.id) ?? []
-    const dansLigue = classementSaison.filter((j) => ids.includes(j.utilisateur_id))
+    const dansLigue = classement.filter((j) => ids.includes(j.utilisateur_id))
     const index = dansLigue.findIndex((j) => j.utilisateur_id === userId)
     return {
       id: l.id,

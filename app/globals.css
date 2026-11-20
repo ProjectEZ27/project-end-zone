@@ -69,7 +69,4 @@ table {
     background-position: center top !important;
     background-size: cover !important;
   }
-  div[style*="Fond-Acceuil.webp"] > div {
-    background: rgba(11, 18, 32, 0.3) !important;
-  }
 }

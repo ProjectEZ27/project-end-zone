@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { NOMS_EQUIPES, TeamBadge } from '@/lib/teamBadge'
+import { NOMS_EQUIPES } from '@/lib/teamBadge'
 import { getCouleurAccent } from '@/lib/teamColors'
 import type { InfosEquipe, MatchEquipe } from '@/lib/accueil'
 
@@ -9,6 +9,7 @@ import type { InfosEquipe, MatchEquipe } from '@/lib/accueil'
  *  - pendant le match : « Match en cours »
  *  - jusqu'à 1 jour après la fin de la semaine : le résultat (victoire / défaite / nul) avec le score
  *  - ensuite : le prochain match
+ * (Pas de logo d'équipe sur cette carte : seule la bande de couleur à gauche rappelle l'équipe.)
  */
 
 // Un match de football américain dure environ 4 h : la semaine est « finie » 4 h après le dernier coup d'envoi
@@ -118,9 +119,6 @@ export default function CarteEquipe({ equipe, infos }: { equipe: string | null; 
   return (
     <div
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
         background: '#16233F',
         border: '0.5px solid #33415a',
         borderLeft: `4px solid ${accent}`,
@@ -131,19 +129,16 @@ export default function CarteEquipe({ equipe, infos }: { equipe: string | null; 
         color: 'white',
       }}
     >
-      <TeamBadge code={equipe} size={44} />
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: '#9fb0c9' }}>{etiquette}</span>
-          {pastille && (
-            <span style={{ fontSize: 9, fontWeight: 700, background: pastille.fond, color: 'white', borderRadius: 20, padding: '1px 7px' }}>
-              {pastille.texte}
-            </span>
-          )}
-        </div>
-        <div style={{ fontSize: 15, fontWeight: 700, marginTop: 2, lineHeight: 1.25 }}>{titre}</div>
-        {detail && <div style={{ fontSize: 12, color: '#9fb0c9', marginTop: 2 }}>{detail}</div>}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span style={{ fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: '#9fb0c9' }}>{etiquette}</span>
+        {pastille && (
+          <span style={{ fontSize: 9, fontWeight: 700, background: pastille.fond, color: 'white', borderRadius: 20, padding: '1px 7px' }}>
+            {pastille.texte}
+          </span>
+        )}
       </div>
+      <div style={{ fontSize: 15, fontWeight: 700, marginTop: 2, lineHeight: 1.25 }}>{titre}</div>
+      {detail && <div style={{ fontSize: 12, color: '#9fb0c9', marginTop: 2 }}>{detail}</div>}
     </div>
   )
 }

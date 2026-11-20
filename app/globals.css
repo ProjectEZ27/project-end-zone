@@ -74,4 +74,9 @@ table {
     background-position: center top !important;
     background-size: cover !important;
   }
+  div[style*="Fond-Ligue.webp"] {
+    background-image: url(/fonds/Fond-Ligue-mobile.webp) !important;
+    background-position: center top !important;
+    background-size: cover !important;
+  }
 }

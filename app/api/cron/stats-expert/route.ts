@@ -11,10 +11,10 @@ export const maxDuration = 60
 // Mise à jour hebdomadaire des statistiques du mode expert (données : nflverse).
 // Accès : CRON_SECRET (tâche planifiée) ou le compte admin connecté (test à la main depuis le navigateur).
 export async function GET(request: Request) {
-  const secret = process.env.CRON_SECRET
-  let autorise =
-    !!secret &&
-    request.headers.get('authorization') === `Bearer ${secret}`
+  // Deux secrets acceptés : celui de Vercel (CRON_SECRET) et celui de cron-job.org (RAPPELS_SECRET)
+  const secrets = [process.env.CRON_SECRET, process.env.RAPPELS_SECRET].filter((s): s is string => !!s)
+  const recu = request.headers.get('authorization')
+  let autorise = secrets.some((s) => recu === `Bearer ${s}`)
   if (!autorise) {
     const sb = await clientConnecte()
     const { data: { user } } = await sb.auth.getUser()

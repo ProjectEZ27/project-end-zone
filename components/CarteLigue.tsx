@@ -69,7 +69,9 @@ export default function CarteLigue({
         <Link
           href={`/leagues/${ligue.id}`}
           style={{
-            aspectRatio: '1 / 1',
+            aspectRatio: avecReglages ? '1 / 1.12' : '1 / 1',
+            boxSizing: 'border-box',
+            paddingTop: avecReglages ? HAUTEUR_BANDEAU + 8 : 10,
             backgroundColor: '#16233F',
             border: vedette ? '1px solid #C8352E' : '0.5px solid #33415a',
             borderTop: avecReglages ? 'none' : undefined,
@@ -78,8 +80,10 @@ export default function CarteLigue({
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 6,
-            padding: 10,
+            gap: 5,
+            paddingLeft: 10,
+            paddingRight: 10,
+            paddingBottom: 10,
             textDecoration: 'none',
             color: 'white',
             position: 'relative',
@@ -92,14 +96,14 @@ export default function CarteLigue({
           )}
           {ligue.demandes > 0 && (
             <div style={{
-              position: 'absolute', bottom: vedette ? 24 : 6, left: 6, background: '#C8352E', color: 'white', fontSize: 10, fontWeight: 700,
+              position: 'absolute', top: haut, left: 6, background: '#C8352E', color: 'white', fontSize: 10, fontWeight: 700,
               width: 18, height: 18, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 0 6px rgba(200,53,46,0.6)',
             }}>
               {ligue.demandes}
             </div>
           )}
-          <LeagueLogo logoId={ligue.logo_id ?? 1} size={52} leagueName={ligue.nom} photoChemin={ligue.photo_chemin ?? null} />
+          <LeagueLogo logoId={ligue.logo_id ?? 1} size={avecReglages ? 44 : 52} leagueName={ligue.nom} photoChemin={ligue.photo_chemin ?? null} />
           <div style={{ fontSize: 11, fontWeight: 700, textAlign: 'center', lineHeight: 1.2 }}>{ligue.nom}</div>
           <div style={{ fontSize: 10, color: '#9fb0c9' }}>{ligue.nombreJoueurs} joueurs</div>
           {vedette && (
@@ -115,30 +119,30 @@ export default function CarteLigue({
         {avecReglages && <BoutonCouleurLigue ligueId={ligue.id} couleur={ligue.couleur} />}
 
         {controles === 'epinglee' && (
-          <form action={desepinglerLigue} style={{ position: 'absolute', top: haut, left: 6, zIndex: 3 }}>
+          <form action={desepinglerLigue} style={{ position: 'absolute', bottom: vedette ? 24 : 6, left: 6, zIndex: 3 }}>
             <input type="hidden" name="ligueId" value={ligue.id} />
             <button
               type="submit"
               aria-label="Retirer des épinglées"
               title="Retirer des épinglées"
-              style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.18)', color: '#ffffff', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ width: 24, height: 24, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.18)', color: '#ffffff', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              <TbPinFilled size={15} />
+              <TbPinFilled size={14} />
             </button>
           </form>
         )}
 
         {controles === 'autre' && (
-          <form action={epinglerLigue} style={{ position: 'absolute', top: haut, left: 6, zIndex: 3 }}>
+          <form action={epinglerLigue} style={{ position: 'absolute', bottom: vedette ? 24 : 6, left: 6, zIndex: 3 }}>
             <input type="hidden" name="ligueId" value={ligue.id} />
             <button
               type="submit"
               aria-label="Épingler cette ligue"
               disabled={pleine}
               title={pleine ? 'Tu as déjà 3 ligues épinglées' : 'Épingler'}
-              style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.08)', color: '#5b6b86', cursor: pleine ? 'default' : 'pointer', opacity: pleine ? 0.3 : 1, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ width: 24, height: 24, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.08)', color: '#5b6b86', cursor: pleine ? 'default' : 'pointer', opacity: pleine ? 0.3 : 1, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              <TbPin size={15} />
+              <TbPin size={14} />
             </button>
           </form>
         )}

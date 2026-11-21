@@ -37,6 +37,8 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
   }
 
   const estCommissaire = league.commissaire_id === user.id
+  // Ligue ouverte (région, sponsor) : pas de code d'invitation à partager, pas de limite de joueurs affichée
+  const ouverte = league.type === 'ouverte'
 
   // Toutes ces lectures sont indépendantes : on les lance en même temps au lieu d'attendre chacune
   const [
@@ -186,7 +188,7 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
           <LeagueSwitcher ligueActuelleId={id} ligueActuelleNom={league.nom} autresLigues={autresLigues} />
         </div>
         <p style={{ fontSize: 13, color: '#9fb0c9', marginTop: 4 }}>
-          {league.taille_max} joueurs max{' '}
+          {ouverte ? 'Ligue ouverte' : `${league.taille_max} joueurs max`}{' '}
           <span style={{ margin: '0 4px' }}>·</span>
           Statut :{' '}
           <span style={{
@@ -237,7 +239,7 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
             reactions={reactionsJournal}
           />
         )}
-        {estCommissaire && (
+        {estCommissaire && !ouverte && (
           <div style={{ marginTop: 20, background: '#16233F', border: '0.5px solid #33415a', borderRadius: 12, padding: 16 }}>
             <TbCrown size={20} color="#EF9F27" style={{ display: 'block', margin: '0 auto 6px' }} />
             <div style={{ fontSize: 14, fontWeight: 600 }}>Bienvenue dans la ligue</div>
@@ -251,7 +253,7 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
           </div>
         )}
 
-        {!estCommissaire && estMembreActif && (
+        {!estCommissaire && estMembreActif && !ouverte && (
           <div style={{ marginTop: 20, background: '#16233F', border: '0.5px solid #33415a', borderRadius: 12, padding: 16 }}>
             <ShareLeagueBox
               codeInvitation={codeInvitation}

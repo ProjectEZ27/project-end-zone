@@ -5,6 +5,7 @@ import JoinLeagueForm from '../JoinLeagueForm'
 import CarteLigue from '@/components/CarteLigue'
 import { calculerClassementSaison } from '@/lib/scoring'
 import { journalEnVedette, chargerMesLigues } from '@/lib/accueil'
+import { nomRegion } from '@/lib/regions'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,12 +19,16 @@ const titreSection = (texte: string) => (
 export default async function PageLigues({
   searchParams,
 }: {
-  searchParams: Promise<{ demande?: string }>
+  searchParams: Promise<{ demande?: string; region?: string }>
 }) {
   const params = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  // Région du joueur (définitive une fois choisie)
+  const { data: profilRegion } = await supabase.from('profiles').select('region').eq('id', user.id).maybeSingle()
+  const aUneRegion = !!profilRegion?.region
 
   // Tout part en même temps : le classement se calcule pendant que les ligues sont lues
   const classementP = supabase
@@ -88,6 +93,43 @@ export default async function PageLigues({
           }}>
             ⏳ Tu as déjà une demande en attente pour cette ligue — pas besoin de la refaire.
           </div>
+        )}
+
+
+        {params.region === 'ok' && (
+          <div style={{
+            background: 'rgba(78,232,146,0.15)',
+            border: '1px solid rgba(78,232,146,0.4)',
+            borderRadius: 8,
+            padding: 12,
+            marginBottom: 16,
+            fontSize: 14,
+            color: '#4ee892',
+          }}>
+            ✅ Région enregistrée : tu fais partie de la ligue {nomRegion(profilRegion?.region) ?? 'de ta région'}.
+          </div>
+        )}
+
+        {!aUneRegion && (
+          <Link
+            href="/leagues/region"
+            style={{
+              display: 'block',
+              textAlign: 'left',
+              background: '#16233F',
+              border: '1px solid #C8352E',
+              borderRadius: 12,
+              padding: 14,
+              marginBottom: 20,
+              textDecoration: 'none',
+              color: 'white',
+            }}
+          >
+            <div style={{ fontSize: 15, fontWeight: 600 }}>Choisis ta région</div>
+            <div style={{ fontSize: 13, color: '#9fb0c9', marginTop: 4, lineHeight: 1.5 }}>
+              Rejoins la ligue de ta région et entre dans le classement des régions.
+            </div>
+          </Link>
         )}
 
         <div style={{ textAlign: 'left' }}>

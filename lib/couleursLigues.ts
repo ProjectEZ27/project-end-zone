@@ -16,3 +16,6 @@ export const COULEUR_PAR_DEFAUT = '#ffffff'
 export function couleurValide(code: unknown): string {
   return COULEURS_LIGUES.some((c) => c.code === code) ? (code as string) : COULEUR_PAR_DEFAUT
 }
+
+// Hauteur (en px) du bandeau de couleur en haut d'une carte de ligue
+export const HAUTEUR_BANDEAU = 14

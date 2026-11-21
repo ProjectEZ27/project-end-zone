@@ -2,9 +2,7 @@
 
 import { useState } from 'react'
 import { choisirCouleurLigue } from '@/app/leagues/epingles'
-import { COULEURS_LIGUES, COULEUR_PAR_DEFAUT } from '@/lib/couleursLigues'
-
-export const HAUTEUR_BANDEAU = 14
+import { COULEURS_LIGUES, COULEUR_PAR_DEFAUT, HAUTEUR_BANDEAU } from '@/lib/couleursLigues'
 
 /*
  * Bandeau de couleur en haut d'une carte de ligue : c'est aussi le bouton.

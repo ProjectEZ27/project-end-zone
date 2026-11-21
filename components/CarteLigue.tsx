@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { TbPin, TbPinFilled, TbChevronLeft, TbChevronRight, TbEye, TbEyeOff } from 'react-icons/tb'
 import LeagueLogo from '@/components/LeagueLogo'
-import BoutonCouleurLigue, { HAUTEUR_BANDEAU } from '@/components/BoutonCouleurLigue'
+import BoutonCouleurLigue from '@/components/BoutonCouleurLigue'
+import { HAUTEUR_BANDEAU } from '@/lib/couleursLigues'
 import { epinglerLigue, desepinglerLigue, deplacerEpingle, masquerLigue, afficherLigue } from '@/app/leagues/epingles'
 import type { MaLigue } from '@/lib/accueil'
 
@@ -120,7 +121,7 @@ export default function CarteLigue({
               type="submit"
               aria-label="Retirer des épinglées"
               title="Retirer des épinglées"
-              style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.08)', color: '#EF9F27', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.18)', color: '#ffffff', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               <TbPinFilled size={15} />
             </button>
@@ -135,7 +136,7 @@ export default function CarteLigue({
               aria-label="Épingler cette ligue"
               disabled={pleine}
               title={pleine ? 'Tu as déjà 3 ligues épinglées' : 'Épingler'}
-              style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.08)', color: '#9fb0c9', cursor: pleine ? 'default' : 'pointer', opacity: pleine ? 0.3 : 1, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.08)', color: '#5b6b86', cursor: pleine ? 'default' : 'pointer', opacity: pleine ? 0.3 : 1, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               <TbPin size={15} />
             </button>

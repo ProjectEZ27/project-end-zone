@@ -2,7 +2,6 @@
 
 import { useEffect, useState, type ReactNode } from 'react'
 import IconeInfo from '@/components/IconeInfo'
-import { getCouleurEquipe } from '@/lib/teamColors'
 import { formaterMajExpert } from '@/lib/majExpert'
 
 export type StatsEquipe = {
@@ -82,28 +81,78 @@ function resume(duels: Resultat[], s1: StatsEquipe, s2: StatsEquipe): string {
   return phrases.join(' ')
 }
 
-function DuelLigne({ d, couleurAtt, couleurDef }: { d: Resultat; couleurAtt: string; couleurDef: string }) {
+// Couleurs identiques pour toutes les équipes (lisibles sur le fond sombre)
+const CLAIR = '#E4ECFA' // partie de celui qui attaque
+const SOMBRE = '#4A5A82' // partie de celui qui défend
+const OR = '#f0c040' // même doré que le bouton « Duels expert »
+
+const rond = (couleur: string, cote: 'gauche' | 'droite') => (
+  <span
+    style={{
+      display: 'inline-block',
+      width: 8,
+      height: 8,
+      borderRadius: '50%',
+      background: couleur,
+      [cote === 'gauche' ? 'marginRight' : 'marginLeft']: 5,
+    }}
+  />
+)
+
+// Bandeau doré qui ouvre chaque série de 4 duels. Avant la 2e série : un trait doré épais en plus.
+function EnTeteSerie({ att, def, premier }: { att: string; def: string; premier: boolean }) {
+  return (
+    <>
+      {!premier && <div style={{ height: 4, borderRadius: 2, background: OR, margin: '22px 0 12px' }} />}
+      <div
+        style={{
+          marginTop: premier ? 10 : 0,
+          background: OR,
+          borderRadius: 8,
+          padding: '8px 12px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: 8,
+        }}
+      >
+        <span style={{ fontSize: 13, fontWeight: 700, color: '#2e2200' }}>{att} attaque</span>
+        <span style={{ fontSize: 10, color: '#4a3800' }}>face à la défense de {def}</span>
+      </div>
+    </>
+  )
+}
+
+function DuelLigne({ d, premier }: { d: Resultat; premier: boolean }) {
   const fAtt = 33 - d.rangAtt
   const fDef = 33 - d.rangDef
-  const pctAtt = Math.round((fAtt / (fAtt + fDef)) * 100)
+  // Limité entre 6 et 94 % pour que les deux parties restent toujours visibles
+  const pctAtt = Math.min(94, Math.max(6, Math.round((fAtt / (fAtt + fDef)) * 100)))
   const equilibre = Math.abs(d.ecart) < SEUIL
   const gagnant = d.ecart > 0 ? d.codeAtt : d.codeDef
-  const couleurVerdict = equilibre ? '#9fb0c9' : d.ecart > 0 ? couleurAtt : couleurDef
   return (
-    <div style={{ padding: '9px 0', borderTop: '1px solid #26344f' }}>
+    <div style={{ padding: '9px 0', borderTop: premier ? 'none' : '1px solid #26344f' }}>
       <div style={{ fontSize: 12, fontWeight: 700, textAlign: 'left' }}>{d.titre}</div>
       <div style={{ fontSize: 10, color: '#9fb0c9', margin: '2px 0 6px', textAlign: 'left' }}>{d.sousTitre}</div>
-      <div style={{ display: 'flex', height: 8, borderRadius: 5, overflow: 'hidden', background: '#26344f' }}>
-        <div style={{ width: `${pctAtt}%`, background: couleurAtt }} />
-        <div style={{ width: `${100 - pctAtt}%`, background: couleurDef }} />
+      <div style={{ position: 'relative', height: 14 }}>
+        <div style={{ position: 'absolute', top: 3, left: 0, right: 0, height: 8, display: 'flex', gap: 3 }}>
+          <div style={{ width: `${pctAtt}%`, background: CLAIR, borderRadius: '5px 0 0 5px' }} />
+          <div style={{ flex: 1, background: SOMBRE, borderRadius: '0 5px 5px 0' }} />
+        </div>
+        <div style={{ position: 'absolute', top: 0, left: `calc(${pctAtt}% - 1px)`, width: 2, height: 14, background: '#fff', borderRadius: 1 }} />
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#9fb0c9', marginTop: 3 }}>
-        <span>{d.codeAtt} {d.libelleAtt} : {rang(d.rangAtt)}</span>
-        <span>{d.codeDef} {d.libelleDef} : {rang(d.rangDef)}</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 10, color: '#9fb0c9', marginTop: 3 }}>
+        <span>{rond(CLAIR, 'gauche')}{d.codeAtt} {d.libelleAtt} : {rang(d.rangAtt)}</span>
+        <span>{d.codeDef} {d.libelleDef} : {rang(d.rangDef)}{rond(SOMBRE, 'droite')}</span>
       </div>
-      <div style={{ fontSize: 11, marginTop: 4, textAlign: 'left', color: equilibre ? '#9fb0c9' : '#fff' }}>
-        <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: couleurVerdict, marginRight: 6 }} />
-        {equilibre ? 'Équilibré' : `Avantage ${gagnant}`}
+      <div style={{ marginTop: 6, textAlign: 'left' }}>
+        {equilibre ? (
+          <span style={{ border: `1px solid ${SOMBRE}`, color: '#9fb0c9', fontSize: 11, borderRadius: 6, padding: '1px 8px' }}>Équilibré</span>
+        ) : (
+          <span style={{ background: CLAIR, color: '#14203d', fontSize: 11, fontWeight: 700, borderRadius: 6, padding: '2px 9px' }}>
+            Avantage {gagnant}
+          </span>
+        )}
       </div>
     </div>
   )
@@ -116,8 +165,6 @@ function DuelLigne({ d, couleurAtt, couleurDef }: { d: Resultat; couleurAtt: str
  * `infos` : le contenu du panneau du « i », construit par MatchLine.
  */
 export default function DuelsExpert({
-  code1,
-  code2,
   stats1,
   stats2,
   actif,
@@ -144,8 +191,6 @@ export default function DuelsExpert({
   const afficherInfo = !!infos
   if (!afficherDuel && !afficherInfo) return null
 
-  const couleur1 = getCouleurEquipe(code1).primary
-  const couleur2 = getCouleurEquipe(code2).primary
   const duels = actif && stats1 && stats2 ? [...calculer(stats1, stats2), ...calculer(stats2, stats1)] : []
 
   return (
@@ -209,12 +254,10 @@ export default function DuelsExpert({
             Rangs sur 32 équipes (1er = meilleur) · saison en cours, jusqu&apos;à la semaine {Math.max(stats1.derniere_semaine, stats2.derniere_semaine)}
           </div>
           {duels.map((d, i) => (
-            <DuelLigne
-              key={i}
-              d={d}
-              couleurAtt={d.codeAtt === code1 ? couleur1 : couleur2}
-              couleurDef={d.codeDef === code1 ? couleur1 : couleur2}
-            />
+            <div key={i}>
+              {i % 4 === 0 && <EnTeteSerie att={d.codeAtt} def={d.codeDef} premier={i === 0} />}
+              <DuelLigne d={d} premier={i % 4 === 0} />
+            </div>
           ))}
           <div style={{ marginTop: 6, padding: 10, borderRadius: 10, background: 'rgba(240,192,64,0.1)', border: '1px solid rgba(240,192,64,0.4)', fontSize: 12, lineHeight: 1.5, textAlign: 'left' }}>
             <b>📌 L&apos;essentiel :</b> {resume(duels, stats1, stats2)}

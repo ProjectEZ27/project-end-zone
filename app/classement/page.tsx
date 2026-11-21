@@ -9,6 +9,7 @@ import MouvementFleche from '@/components/MouvementFleche'
 import { TbChevronRight } from 'react-icons/tb'
 import ChoixLigueClassement from '@/components/ChoixLigueClassement'
 import { liguesPourMenu } from '@/lib/accueil'
+import { nomRegion } from '@/lib/regions'
  
 const TAILLE_PAGE = 50
 const HAUTEUR_LIGNE = 67
@@ -71,7 +72,7 @@ export default async function Classement({
   const classementEtProfilsP = calculerClassementSaison(supabase, saison.id).then(async (classementComplet) => {
     const ids = classementComplet.map((j) => j.utilisateur_id)
     const { data: profils } = ids.length > 0
-      ? await supabase.from('profiles').select('id, avatar_id, photo_chemin, equipe_favorite').in('id', ids)
+      ? await supabase.from('profiles').select('id, avatar_id, photo_chemin, equipe_favorite, region').in('id', ids)
       : { data: [] as any[] }
     return { classementComplet, profils }
   })
@@ -109,6 +110,7 @@ export default async function Classement({
   const avatarMap = new Map((profils ?? []).map((p) => [p.id, p.avatar_id ?? 1]))
   const photoMap = new Map((profils ?? []).map((p) => [p.id, p.photo_chemin ?? null]))
   const equipeMap = new Map((profils ?? []).map((p) => [p.id, p.equipe_favorite ?? null]))
+  const regionMap = new Map((profils ?? []).map((p) => [p.id, nomRegion(p.region)]))
  
   const totalPages = Math.max(1, Math.ceil(classement.length / TAILLE_PAGE))
   const pageCorrigee = Math.min(pageActuelle, totalPages)
@@ -173,7 +175,9 @@ export default async function Classement({
           <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {joueur.pseudo} {moi && <span style={{ color: '#E8544C', fontSize: 10, fontWeight: 700 }}>(TOI)</span>}
           </div>
-          <div style={{ fontSize: 10, color: '#9fb0c9' }}>{joueur.score_saison} pts</div>
+          <div style={{ fontSize: 10, color: '#9fb0c9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {joueur.score_saison} pts{regionMap.get(joueur.utilisateur_id) ? ` · ${regionMap.get(joueur.utilisateur_id)}` : ''}
+          </div>
         </div>
         {delta !== 0 && (
           <MouvementFleche delta={delta} moi={moi} cleAnimation={cleAnimation} animer={animer} />
@@ -211,7 +215,7 @@ export default async function Classement({
         </h1>
         <p style={{ fontSize: 12, color: '#9fb0c9', marginTop: 4, marginBottom: 16 }}>Saison 2026-2027</p>
  
-        {mesLigues.length > 0 && (
+        {(
           <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 20, flexWrap: 'wrap' }}>
             <Link
               href="/classement"
@@ -228,10 +232,27 @@ export default async function Classement({
             >
               Général
             </Link>
-            <ChoixLigueClassement
-              ligues={liguesPourMenu(mesLigues, ligueSelectionnee?.id ?? null)}
-              ligueActuelleId={ligueSelectionnee?.id ?? null}
-            />
+            {mesLigues.length > 0 && (
+              <ChoixLigueClassement
+                ligues={liguesPourMenu(mesLigues, ligueSelectionnee?.id ?? null)}
+                ligueActuelleId={ligueSelectionnee?.id ?? null}
+              />
+            )}
+            <Link
+              href="/classement/regions"
+              style={{
+                padding: '7px 16px',
+                borderRadius: 20,
+                fontSize: 12,
+                fontWeight: 700,
+                textDecoration: 'none',
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                color: 'rgba(255,255,255,0.7)',
+              }}
+            >
+              Régions
+            </Link>
           </div>
         )}
  

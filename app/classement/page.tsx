@@ -38,7 +38,7 @@ export default async function Classement({
       .eq('utilisateur_id', user.id)
       .eq('statut', 'actif'),
     // Animation du mardi : préférence du joueur
-    supabase.from('profiles').select('intro_animation').eq('id', user.id).maybeSingle(),
+    supabase.from('profiles').select('intro_animation, region').eq('id', user.id).maybeSingle(),
     // Membres de la ligue demandée (utilisés seulement si le joueur en fait bien partie, vérifié plus bas)
     ligueParam && /^\d+$/.test(ligueParam)
       ? supabase.from('adhesions').select('utilisateur_id').eq('ligue_id', Number(ligueParam)).eq('statut', 'actif')
@@ -238,6 +238,7 @@ export default async function Classement({
                 ligueActuelleId={ligueSelectionnee?.id ?? null}
               />
             )}
+            {monProfil?.region && (
             <Link
               href="/classement/regions"
               style={{
@@ -253,6 +254,7 @@ export default async function Classement({
             >
               Régions
             </Link>
+            )}
           </div>
         )}
  

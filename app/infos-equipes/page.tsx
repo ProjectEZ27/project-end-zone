@@ -10,16 +10,20 @@ import Link from 'next/link'
 import { formaterMajExpert } from '@/lib/majExpert'
 import { createClient } from '@/lib/supabase/server'
 import ClassementExpert, { type LigneExpert } from '@/components/ClassementExpert'
+import BlessuresExpert from '@/components/BlessuresExpert'
+import type { LigneBlessures } from '@/lib/blessures'
 
 export default async function InfosEquipes({ searchParams }: { searchParams: Promise<{ vue?: string }> }) {
   const { vue } = await searchParams
   const vueExpert = vue === 'expert'
+  const vueBlessures = vue === 'blessures'
   const annee = new Date().getFullYear()
   const classement = await getPowerIndexRanking(annee)
 
   // Mode expert : réglage du joueur + statistiques des équipes
   let modeExpert = false
   let lignesExpert: LigneExpert[] = []
+  let lignesBlessures: (LigneBlessures & { mis_a_jour?: string })[] = []
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (user) {
@@ -29,6 +33,10 @@ export default async function InfosEquipes({ searchParams }: { searchParams: Pro
   if (vueExpert && modeExpert) {
     const { data } = await supabase.from('stats_expert_equipes').select('equipe, derniere_semaine, mis_a_jour, valeurs, rangs')
     lignesExpert = (data ?? []) as LigneExpert[]
+  }
+  if (vueBlessures && modeExpert) {
+    const { data } = await supabase.from('blessures_expert').select('equipe, saison, semaine, mis_a_jour, joueurs')
+    lignesBlessures = (data ?? []) as (LigneBlessures & { mis_a_jour?: string })[]
   }
   const onglet = (actif: boolean) => ({
     flex: 1,
@@ -87,16 +95,60 @@ export default async function InfosEquipes({ searchParams }: { searchParams: Pro
         </div>
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-          <Link href="/infos-equipes" style={onglet(!vueExpert)}>Power Ranking</Link>
+          <Link href="/infos-equipes" style={onglet(!vueExpert && !vueBlessures)}>Power Ranking</Link>
           <Link
             href="/infos-equipes?vue=expert"
             style={{ ...onglet(vueExpert), ...(modeExpert ? {} : { opacity: 0.45 }) }}
           >
-            {modeExpert ? '⚡' : '🔒'} Classement expert
+            {modeExpert ? '⚡' : '🔒'} Classement
+          </Link>
+          <Link
+            href="/infos-equipes?vue=blessures"
+            style={{ ...onglet(vueBlessures), ...(modeExpert ? {} : { opacity: 0.45 }) }}
+          >
+            {modeExpert ? '🩹' : '🔒'} Blessures
           </Link>
         </div>
 
-        {vueExpert ? (
+        {vueBlessures ? (
+          !modeExpert ? (
+            <div style={{ border: '1px dashed #f0c040', borderRadius: 12, padding: 18, textAlign: 'center', fontSize: 13, color: '#9fb0c9', lineHeight: 1.7 }}>
+              🔒 <b style={{ color: '#f0c040' }}>Blessures</b>
+              <br />
+              Les nouveaux blessés, ceux qui restent sur la liste et les retours, équipe par équipe.
+              <br />
+              Active le mode expert dans ⚙️ Préférences.
+            </div>
+          ) : lignesBlessures.length === 0 ? (
+            <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)' }}>
+              Liste des blessures momentanément indisponible, réessaie plus tard.
+            </p>
+          ) : (
+            <>
+              <div style={{ textAlign: 'center', marginBottom: 14 }}>
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(240,192,64,0.5)',
+                  borderRadius: 20,
+                  padding: '6px 14px',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: '#c9cdd6',
+                }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f0c040', display: 'inline-block' }} />
+                  {formaterMajExpert(lignesBlessures[0].mis_a_jour)
+                    ? `Mis à jour le ${formaterMajExpert(lignesBlessures[0].mis_a_jour)}`
+                    : 'Mise à jour récente'}
+                  {' · rapports officiels de la NFL · prochaine mise à jour mercredi, 19h'}
+                </span>
+              </div>
+              <BlessuresExpert lignes={lignesBlessures} />
+            </>
+          )
+        ) : vueExpert ? (
           !modeExpert ? (
             <div style={{ border: '1px dashed #f0c040', borderRadius: 12, padding: 18, textAlign: 'center', fontSize: 13, color: '#9fb0c9', lineHeight: 1.7 }}>
               🔒 <b style={{ color: '#f0c040' }}>Classement expert</b>

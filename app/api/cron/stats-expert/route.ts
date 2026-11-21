@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createClient as clientConnecte } from '@/lib/supabase/server'
 import { ADMIN_ID } from '@/lib/admin'
 import { calculerStatsExpert, saisonNfl, urlsNflverse } from '@/lib/statsExpert'
+import { calculerBlessures, urlBlessuresNflverse } from '@/lib/blessures'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -40,7 +41,30 @@ export async function GET(request: Request) {
       .upsert(lignes.map((l) => ({ ...l, mis_a_jour: new Date().toISOString() })), { onConflict: 'equipe' })
     if (error) return NextResponse.json({ erreur: error.message }, { status: 500 })
 
-    return NextResponse.json({ ok: true, saison, derniere_semaine: lignes[0].derniere_semaine, equipes: lignes.length })
+    // Blessures : à part, pour qu'un souci ici ne bloque jamais les statistiques ci-dessus
+    let blessures: { ok: boolean; equipes?: number; erreur?: string } = { ok: false }
+    try {
+      const repBlessures = await fetch(urlBlessuresNflverse(saison), { cache: 'no-store' })
+      if (!repBlessures.ok) {
+        blessures = { ok: false, erreur: `Téléchargement impossible (${repBlessures.status}), anciennes données conservées` }
+      } else {
+        const lignesBlessures = calculerBlessures(await repBlessures.text(), saison)
+        if (lignesBlessures.length === 0) {
+          blessures = { ok: false, erreur: 'Fichier vide, anciennes données conservées' }
+        } else {
+          const { error: erreurBlessures } = await supabase
+            .from('blessures_expert')
+            .upsert(lignesBlessures.map((l) => ({ ...l, mis_a_jour: new Date().toISOString() })), { onConflict: 'equipe' })
+          blessures = erreurBlessures
+            ? { ok: false, erreur: erreurBlessures.message }
+            : { ok: true, equipes: lignesBlessures.length }
+        }
+      }
+    } catch (e) {
+      blessures = { ok: false, erreur: e instanceof Error ? e.message : 'Erreur inconnue' }
+    }
+
+    return NextResponse.json({ ok: true, saison, derniere_semaine: lignes[0].derniere_semaine, equipes: lignes.length, blessures })
   } catch (e) {
     // En cas de souci, on ne touche à rien : les chiffres de la semaine précédente restent affichés
     return NextResponse.json({ erreur: e instanceof Error ? e.message : 'Erreur inconnue' }, { status: 500 })

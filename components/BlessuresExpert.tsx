@@ -17,13 +17,13 @@ const FILTRES = [
 const STATUT_TEXTE: Record<JoueurBlesse['statut'], string> = {
   out: 'Écarté',
   doubtful: 'Incertain',
-  questionable: 'Probable',
+  questionable: 'Incertain',
   retour: 'De retour',
 }
 const STATUT_COULEUR: Record<JoueurBlesse['statut'], { fond: string; texte: string }> = {
   out: { fond: 'rgba(255,107,95,0.15)', texte: '#ff6b5f' },
   doubtful: { fond: 'rgba(240,192,64,0.15)', texte: '#f0c040' },
-  questionable: { fond: 'rgba(255,255,255,0.08)', texte: '#c9cdd6' },
+  questionable: { fond: 'rgba(240,192,64,0.15)', texte: '#f0c040' },
   retour: { fond: 'rgba(78,232,146,0.15)', texte: '#4ee892' },
 }
 const INFO_TYPE: Record<JoueurBlesse['type'], string> = {

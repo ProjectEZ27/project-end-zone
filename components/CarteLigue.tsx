@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import LeagueLogo from '@/components/LeagueLogo'
 import { epinglerLigue, desepinglerLigue, deplacerEpingle, masquerLigue, afficherLigue } from '@/app/leagues/epingles'
+import BoutonCouleurLigue from '@/components/BoutonCouleurLigue'
 import type { MaLigue } from '@/lib/accueil'
 
 const petitBouton: React.CSSProperties = {
@@ -39,6 +40,7 @@ export default function CarteLigue({
   pleine?: boolean
 }) {
   const rang = ligue.rang
+  const couleur = ligue.couleur ?? '#ffffff'
   const badge =
     rang === 1 ? { bg: '#EF9F27', color: '#412402', label: '1er' } :
     rang === 2 ? { bg: '#B9C1CC', color: '#1c1c1c', label: '2e' } :
@@ -54,6 +56,7 @@ export default function CarteLigue({
           aspectRatio: '1 / 1',
           backgroundColor: '#16233F',
           border: vedette ? '1px solid #C8352E' : '0.5px solid #33415a',
+          borderTop: `4px solid ${couleur}`,
           borderRadius: 10,
           display: 'flex',
           flexDirection: 'column',
@@ -94,7 +97,7 @@ export default function CarteLigue({
       </Link>
 
       {controles === 'epinglee' && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 6 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 6, marginTop: 6 }}>
           <form action={deplacerEpingle}>
             <input type="hidden" name="ligueId" value={ligue.id} />
             <input type="hidden" name="sens" value="avant" />
@@ -109,11 +112,12 @@ export default function CarteLigue({
             <input type="hidden" name="sens" value="apres" />
             <button type="submit" aria-label="Déplacer vers la droite" disabled={position >= total - 1} style={{ ...petitBouton, opacity: position >= total - 1 ? 0.3 : 1 }}>▶</button>
           </form>
+          <BoutonCouleurLigue ligueId={ligue.id} couleur={ligue.couleur} />
         </div>
       )}
 
       {controles === 'autre' && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 6 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 6, marginTop: 6 }}>
           <form action={epinglerLigue}>
             <input type="hidden" name="ligueId" value={ligue.id} />
             <button
@@ -130,6 +134,7 @@ export default function CarteLigue({
             <input type="hidden" name="ligueId" value={ligue.id} />
             <button type="submit" aria-label="Masquer des menus" title="Masquer des menus déroulants" style={petitBouton}>🙈</button>
           </form>
+          <BoutonCouleurLigue ligueId={ligue.id} couleur={ligue.couleur} />
         </div>
       )}
 

@@ -2,6 +2,7 @@
  
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { couleurValide } from '@/lib/couleursLigues'
  
 const MAX = 3
  
@@ -85,3 +86,12 @@ export async function afficherLigue(formData: FormData) {
   rafraichir()
 }
  
+/** Couleur de la ligue (visible dans la page Ligues et le menu du Classement), propre à chaque joueur. */
+export async function choisirCouleurLigue(formData: FormData) {
+  const ligueId = Number(formData.get('ligueId'))
+  const couleur = couleurValide(formData.get('couleur'))
+  const { supabase, user } = await mesEpingles()
+  if (!user || !ligueId) return
+  await supabase.from('adhesions').update({ couleur }).eq('utilisateur_id', user.id).eq('ligue_id', ligueId)
+  rafraichir()
+}

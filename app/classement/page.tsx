@@ -34,7 +34,7 @@ export default async function Classement({
     supabase.from('saisons').select('*').eq('statut', 'en_cours').single(),
     supabase
       .from('adhesions')
-      .select('ligue_id, epingle, masquee, ligues(id, nom)')
+      .select('ligue_id, epingle, masquee, couleur, ligues(id, nom)')
       .eq('utilisateur_id', user.id)
       .eq('statut', 'actif'),
     // Animation du mardi : préférence du joueur
@@ -47,11 +47,11 @@ export default async function Classement({
  
   const liguesBrutes = (adhesions ?? [])
     .filter((a: any) => a.ligues)
-    .map((a: any) => ({ ...a.ligues, epingle: a.epingle ?? null, masquee: a.masquee === true }))
+    .map((a: any) => ({ ...a.ligues, epingle: a.epingle ?? null, masquee: a.masquee === true, couleur: a.couleur ?? null }))
  
   const mesLigues = Array.from(
     new Map(liguesBrutes.map((l: any) => [l.id, l])).values()
-  ) as { id: number; nom: string; epingle: number | null; masquee: boolean }[]
+  ) as { id: number; nom: string; epingle: number | null; masquee: boolean; couleur: string | null }[]
  
   const ligueSelectionnee = ligueParam
     ? mesLigues.find((l) => String(l.id) === ligueParam) ?? null

@@ -13,10 +13,11 @@ import ClassementExpert, { type LigneExpert } from '@/components/ClassementExper
 import BlessuresExpert from '@/components/BlessuresExpert'
 import type { LigneBlessures } from '@/lib/blessures'
 
-export default async function InfosEquipes({ searchParams }: { searchParams: Promise<{ vue?: string }> }) {
-  const { vue } = await searchParams
-  const vueExpert = vue === 'expert'
-  const vueBlessures = vue === 'blessures'
+export default async function InfosEquipes({ searchParams }: { searchParams: Promise<{ vue?: string; section?: string }> }) {
+  const { vue, section } = await searchParams
+  // Mode expert = un seul onglet avec deux sections : Classement et Blessures (l'ancien lien ?vue=blessures reste valable)
+  const vueExpert = vue === 'expert' || vue === 'blessures'
+  const vueBlessures = vue === 'blessures' || (vue === 'expert' && section === 'blessures')
   const annee = new Date().getFullYear()
   const classement = await getPowerIndexRanking(annee)
 
@@ -30,7 +31,7 @@ export default async function InfosEquipes({ searchParams }: { searchParams: Pro
     const { data: profil } = await supabase.from('profiles').select('mode_expert').eq('id', user.id).maybeSingle()
     modeExpert = profil?.mode_expert ?? true
   }
-  if (vueExpert && modeExpert) {
+  if (vueExpert && !vueBlessures && modeExpert) {
     const { data } = await supabase.from('stats_expert_equipes').select('equipe, derniere_semaine, mis_a_jour, valeurs, rangs')
     lignesExpert = (data ?? []) as LigneExpert[]
   }
@@ -38,6 +39,17 @@ export default async function InfosEquipes({ searchParams }: { searchParams: Pro
     const { data } = await supabase.from('blessures_expert').select('equipe, saison, semaine, mis_a_jour, joueurs')
     lignesBlessures = (data ?? []) as (LigneBlessures & { mis_a_jour?: string })[]
   }
+  const sousOnglet = (actif: boolean) => ({
+    flex: 1,
+    textAlign: 'center' as const,
+    padding: '8px 4px',
+    borderRadius: 8,
+    fontSize: 13,
+    fontWeight: 700,
+    textDecoration: 'none',
+    background: actif ? '#f0c040' : 'transparent',
+    color: actif ? '#0b1220' : '#9fb0c9',
+  })
   const onglet = (actif: boolean) => ({
     flex: 1,
     textAlign: 'center' as const,
@@ -95,27 +107,28 @@ export default async function InfosEquipes({ searchParams }: { searchParams: Pro
         </div>
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-          <Link href="/infos-equipes" style={onglet(!vueExpert && !vueBlessures)}>Power Ranking</Link>
+          <Link href="/infos-equipes" style={onglet(!vueExpert)}>Power Ranking</Link>
           <Link
             href="/infos-equipes?vue=expert"
             style={{ ...onglet(vueExpert), ...(modeExpert ? {} : { opacity: 0.45 }) }}
           >
-            {modeExpert ? '⚡' : '🔒'} Classement
-          </Link>
-          <Link
-            href="/infos-equipes?vue=blessures"
-            style={{ ...onglet(vueBlessures), ...(modeExpert ? {} : { opacity: 0.45 }) }}
-          >
-            {modeExpert ? '🩹' : '🔒'} Blessures
+            {modeExpert ? '⚡' : '🔒'} Mode expert
           </Link>
         </div>
+
+        {vueExpert && modeExpert && (
+          <div style={{ display: 'flex', gap: 6, marginBottom: 20, padding: 4, borderRadius: 12, background: 'rgba(22,35,63,0.8)', border: '1px solid #2a3552' }}>
+            <Link href="/infos-equipes?vue=expert&section=classement" style={sousOnglet(!vueBlessures)}>Classement</Link>
+            <Link href="/infos-equipes?vue=expert&section=blessures" style={sousOnglet(vueBlessures)}>Blessures</Link>
+          </div>
+        )}
 
         {vueBlessures ? (
           !modeExpert ? (
             <div style={{ border: '1px dashed #f0c040', borderRadius: 12, padding: 18, textAlign: 'center', fontSize: 13, color: '#9fb0c9', lineHeight: 1.7 }}>
-              🔒 <b style={{ color: '#f0c040' }}>Blessures</b>
+              🔒 <b style={{ color: '#f0c040' }}>Mode expert</b>
               <br />
-              Les nouveaux blessés, ceux qui restent sur la liste et les retours, équipe par équipe.
+              Classements par passe, course, défense et pression, et blessures équipe par équipe.
               <br />
               Active le mode expert dans ⚙️ Préférences.
             </div>
@@ -151,9 +164,9 @@ export default async function InfosEquipes({ searchParams }: { searchParams: Pro
         ) : vueExpert ? (
           !modeExpert ? (
             <div style={{ border: '1px dashed #f0c040', borderRadius: 12, padding: 18, textAlign: 'center', fontSize: 13, color: '#9fb0c9', lineHeight: 1.7 }}>
-              🔒 <b style={{ color: '#f0c040' }}>Classement expert</b>
+              🔒 <b style={{ color: '#f0c040' }}>Mode expert</b>
               <br />
-              Classements par passe, course, défense et pression, et tableau complet des 32 équipes.
+              Classements par passe, course, défense et pression, et blessures équipe par équipe.
               <br />
               Active le mode expert dans ⚙️ Préférences.
             </div>

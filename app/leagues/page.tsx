@@ -44,6 +44,9 @@ export default async function PageLigues({
 
   const epinglees = mesLigues.filter((l) => l.epingle !== null).sort((a, b) => a.epingle! - b.epingle!)
   const autres = mesLigues.filter((l) => l.epingle === null && !l.masquee)
+  // Les ligues non épinglées sont rangées par type
+  const autresAmis = autres.filter((l) => l.type !== 'ouverte')
+  const autresOuvertes = autres.filter((l) => l.type === 'ouverte')
   const masquees = mesLigues.filter((l) => l.masquee)
   const pleine = epinglees.length >= 3
 
@@ -140,7 +143,7 @@ export default async function PageLigues({
               {titreSection(`Épinglées (${epinglees.length}/3) · affichées sur l'accueil`)}
               {epinglees.length === 0 ? (
                 <p style={{ color: '#7a8aa5', fontSize: 13, margin: '0 0 8px' }}>
-                  Appuie sur ☆ sous une ligue pour l'épingler : elle apparaîtra sur ton accueil.
+                  Appuie sur l'épingle d'une ligue pour l'épingler : elle apparaîtra sur ton accueil.
                 </p>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
@@ -150,11 +153,22 @@ export default async function PageLigues({
                 </div>
               )}
 
-              {autres.length > 0 && (
+              {autresAmis.length > 0 && (
                 <div style={{ marginTop: 28 }}>
-                  {titreSection(`Mes autres ligues (${autres.length})`)}
+                  {titreSection(`Mes ligues d'amis (${autresAmis.length})`)}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
-                    {autres.map((l) => (
+                    {autresAmis.map((l) => (
+                      <CarteLigue key={l.id} ligue={l} vedette={vedette} controles="autre" pleine={pleine} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {autresOuvertes.length > 0 && (
+                <div style={{ marginTop: 28 }}>
+                  {titreSection(`Mes ligues ouvertes (${autresOuvertes.length})`)}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
+                    {autresOuvertes.map((l) => (
                       <CarteLigue key={l.id} ligue={l} vedette={vedette} controles="autre" pleine={pleine} />
                     ))}
                   </div>
@@ -193,6 +207,25 @@ export default async function PageLigues({
               ➕ Créer une nouvelle ligue
             </Link>
           </div>
+        </div>
+
+        <div style={{
+          marginTop: 28,
+          padding: 14,
+          border: '1px dashed #33415a',
+          borderRadius: 12,
+          fontSize: 13,
+          color: '#9fb0c9',
+          lineHeight: 1.6,
+          textAlign: 'center',
+        }}>
+          Une ligue ouverte pour ton entreprise, ton club ou ta marque ?{' '}
+          <a
+            href="mailto:projectendzone27@gmail.com?subject=Ligue%20ouverte%20Project%20End%20Zone"
+            style={{ color: 'white', fontWeight: 600 }}
+          >
+            Nous contacter
+          </a>
         </div>
       </div>
     </div>

@@ -162,6 +162,8 @@ export type MaLigue = {
   epingle: number | null // 1, 2 ou 3 si épinglée, sinon null
   masquee: boolean // masquée des menus déroulants
   couleur: string | null // couleur choisie par le joueur (null = blanc)
+  type: string // 'amis' | 'club' | 'ouverte'
+  region_code: string | null // renseigné pour les ligues de région
   nombreJoueurs: number
   rang: number | null
   demandes: number
@@ -176,7 +178,7 @@ export async function chargerMesLigues(
 ): Promise<MaLigue[]> {
   const { data: adhesions } = await supabase
     .from('adhesions')
-    .select('ligue_id, epingle, masquee, couleur, ligues(id, nom, logo_id, photo_chemin, commissaire_id)')
+    .select('ligue_id, epingle, masquee, couleur, ligues(id, nom, logo_id, photo_chemin, commissaire_id, type, region_code)')
     .eq('utilisateur_id', userId)
     .eq('statut', 'actif')
     .order('ligue_id', { ascending: true })
@@ -222,6 +224,8 @@ export async function chargerMesLigues(
       epingle: a.epingle ?? null,
       masquee: a.masquee === true,
       couleur: a.couleur ?? null,
+      type: l.type ?? 'amis',
+      region_code: l.region_code ?? null,
       nombreJoueurs: ids.length,
       rang: index >= 0 ? index + 1 : null,
       demandes: demandes.get(l.id) ?? 0,

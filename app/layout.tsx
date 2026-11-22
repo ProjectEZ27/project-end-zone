@@ -28,6 +28,11 @@ export const metadata: Metadata = {
     ],
     apple: "/favicon-180.png",
   },
+  appleWebApp: {
+    capable: true,
+    title: "End Zone",
+    statusBarStyle: "black",
+  },
   openGraph: {
     title: "Project End Zone",
     description: "Pronostics NFL entre amis",
@@ -38,6 +43,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  themeColor: "#0d1420",
 };
 
 export default function RootLayout({

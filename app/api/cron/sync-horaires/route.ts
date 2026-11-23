@@ -16,7 +16,7 @@ export const maxDuration = 60
  * avec l'heure officielle donnée par Big Ball Sports, corrige la base si elle est fausse, puis envoie
  * un e-mail pour dire ce qui a été changé.
  *
- * Accès : CRON_SECRET (tâche planifiée, en-tête Authorization) ou le compte admin connecté (test dans le navigateur).
+ * Accès : CRON_SECRET ou RAPPELS_SECRET (tâche planifiée, en-tête Authorization) ou le compte admin connecté (test dans le navigateur).
  *
  * Paramètres utiles :
  *   ?simulation=1   montre ce qui serait changé, sans rien modifier ni envoyer
@@ -114,9 +114,10 @@ async function envoyerAlerte(sujet: string, html: string): Promise<boolean> {
 }
 
 export async function GET(request: Request) {
-  // Accès : tâche planifiée (secret) ou compte admin connecté
-  const secret = process.env.CRON_SECRET
-  let autorise = !!secret && request.headers.get('authorization') === `Bearer ${secret}`
+  // Deux secrets acceptés : celui de Vercel (CRON_SECRET) et celui de cron-job.org (RAPPELS_SECRET)
+  const secrets = [process.env.CRON_SECRET, process.env.RAPPELS_SECRET].filter((s): s is string => !!s)
+  const recu = request.headers.get('authorization')
+  let autorise = secrets.some((s) => recu === `Bearer ${s}`)
   if (!autorise) {
     const sb = await clientConnecte()
     const {

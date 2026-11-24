@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { tribunalActuel } from '@/lib/accueil'
+import { envoyerPushGroupe } from '@/lib/push'
 
 /**
  * Appelé par la tâche automatique des résultats : dès que le Tribunal est ouvert (1 h après la fin du
@@ -81,7 +82,14 @@ export async function notifierTribunalATous(): Promise<number> {
 
   for (let i = 0; i < aCreer.length; i += 500) {
     const { error } = await supabase.from('notifications').insert(aCreer.slice(i, i + 500))
-    if (error) console.error('[tribunal] création des notifications échouée :', error.message)
+    if (error) {
+      console.error('[tribunal] création des notifications échouée :', error.message)
+    } else {
+      // La même notification part aussi sur les téléphones (appli iPhone / Android)
+      await envoyerPushGroupe(
+        aCreer.slice(i, i + 500).map((n) => ({ userId: String(n.user_id), titre: n.titre, message: n.message, lien: n.lien }))
+      )
+    }
   }
   return aCreer.length
 }

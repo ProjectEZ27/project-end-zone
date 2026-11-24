@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { envoyerPush } from '@/lib/push'
 
 export type TypeNotification = 'rappel' | 'badge' | 'ligue' | 'photo' | 'site' | 'journal'
 
@@ -41,7 +42,12 @@ export async function creerNotification(n: {
       lien: n.lien ?? null,
       cle: n.cle ?? null,
     })
-    if (error) console.error('[notifications] création échouée :', error.message)
+    if (error) {
+      console.error('[notifications] création échouée :', error.message)
+    } else {
+      // La même notification part aussi sur le téléphone du joueur (appli iPhone / Android)
+      await envoyerPush({ userId: n.userId, titre: n.titre, message: n.message, lien: n.lien })
+    }
   } catch (e) {
     console.error('[notifications] erreur inattendue :', e)
   }

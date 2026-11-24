@@ -4,6 +4,7 @@ import "./globals.css";
 import Nav from "./nav";
 import AuthRecoveryListener from "./AuthRecoveryListener";
 import NotificationBell from "@/components/NotificationBell";
+import EnregistrementPush from "@/components/EnregistrementPush";
 import BoutonRetour from "@/components/BoutonRetour";
 import BoutonPreferences from "@/components/BoutonPreferences";
 import { Analytics } from "@vercel/analytics/next";
@@ -61,6 +62,7 @@ export default function RootLayout({
           <div style={{ paddingBottom: 70 }}>{children}</div>
           <Nav />
           <NotificationBell />
+          <EnregistrementPush />
           <BoutonRetour />
           <BoutonPreferences />
           <Analytics />

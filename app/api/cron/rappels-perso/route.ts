@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { estSemaineOuverte } from '@/lib/semaineOuverture'
+import { envoyerPushGroupe } from '@/lib/push'
 
 export const dynamic = 'force-dynamic'
 
@@ -206,6 +207,11 @@ export async function GET(request: NextRequest) {
     if (error) {
       erreurs.push(`notifications : ${error.message}`)
       console.error('[rappels] création des notifications échouée :', error.message)
+    } else {
+      // La même notification part aussi sur les téléphones (appli iPhone / Android)
+      await envoyerPushGroupe(
+        notifications.map((n) => ({ userId: n.user_id, titre: n.titre, message: n.message, lien: n.lien }))
+      )
     }
   }
 

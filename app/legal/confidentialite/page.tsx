@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 // Dernière mise à jour du texte : à modifier à chaque changement
-const DATE_MAJ = '18/11/2026'
+const DATE_MAJ = '24/11/2026'
 
 export default function Confidentialite() {
   const lien: React.CSSProperties = { color: '#E8544C' }
@@ -37,6 +37,7 @@ export default function Confidentialite() {
         <li>Ton pseudo, ton avatar, ton équipe favorite et ta photo de profil si tu en envoies une</li>
         <li>Tes pronostics, tes scores, tes ligues et tes réactions</li>
         <li>Tes préférences (rappels, notifications, animations)</li>
+        <li>Si tu utilises l&apos;appli sur téléphone et que tu acceptes les notifications : un identifiant technique de ton téléphone, pour t&apos;envoyer ces notifications</li>
         <li>Des données techniques de connexion, nécessaires à la sécurité du site</li>
       </ul>
       <p>
@@ -66,6 +67,7 @@ export default function Confidentialite() {
         <li>Vercel Inc. (États-Unis) : hébergement du site et mesure d&apos;audience anonyme</li>
         <li>Supabase Inc. (États-Unis) : base de données et photos, stockées dans l&apos;Union européenne (Irlande)</li>
         <li>Resend (États-Unis) : envoi des e-mails</li>
+        <li>Google LLC, via Firebase Cloud Messaging (États-Unis) : envoi des notifications sur les téléphones, uniquement si tu les as acceptées dans l&apos;appli</li>
       </ul>
       <p>
         Ces sociétés étant américaines, certaines données peuvent être transférées hors de l&apos;Union

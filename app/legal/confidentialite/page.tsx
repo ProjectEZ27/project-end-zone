@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 // Dernière mise à jour du texte : à modifier à chaque changement
-const DATE_MAJ = '24/11/2026'
+const DATE_MAJ = '25/11/2026'
 
 export default function Confidentialite() {
   const lien: React.CSSProperties = { color: '#E8544C' }
@@ -80,7 +80,8 @@ export default function Confidentialite() {
         Tes données sont conservées tant que ton compte existe. Tu peux le supprimer toi-même à tout moment
         avec le lien « Supprimer mon compte » en bas de ta page Profil : ton compte et toutes tes données
         (pronostics, ligues, réactions, photo) sont alors effacés immédiatement. Tu peux aussi le demander en
-        écrivant à projectendzone27@gmail.com : nous le faisons dans un délai d&apos;un mois.
+        écrivant à projectendzone27@gmail.com : nous le faisons dans un délai d&apos;un mois. Toutes les
+        explications sont sur la page <Link href="/legal/supprimer-compte" style={lien}>Supprimer mon compte</Link>.
       </p>
 
       <h2>Tes droits</h2>
@@ -109,7 +110,8 @@ export default function Confidentialite() {
       <p style={{ fontSize: 13, marginTop: 8 }}>
         <Link href="/legal/mentions" style={lien}>Mentions légales</Link>{' · '}
         <Link href="/legal/cgu" style={lien}>Conditions d&apos;utilisation</Link>{' · '}
-        <Link href="/legal/confidentialite" style={lien}>Confidentialité</Link>
+        <Link href="/legal/confidentialite" style={lien}>Confidentialité</Link>{' · '}
+        <Link href="/legal/supprimer-compte" style={lien}>Supprimer mon compte</Link>
       </p>
       </div>
     </div>

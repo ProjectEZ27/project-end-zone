@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 // Dernière mise à jour du texte : à modifier à chaque changement
-const DATE_MAJ = '18/11/2026'
+const DATE_MAJ = '25/11/2026'
 
 export default function MentionsLegales() {
   const lien: React.CSSProperties = { color: '#E8544C' }
@@ -38,11 +38,11 @@ export default function MentionsLegales() {
       <h2>Hébergement</h2>
       <p>
         Le site est hébergé par Vercel Inc.<br />
-        [ADRESSE ACTUELLE DE VERCEL À VÉRIFIER]<br />
+        440 N Barranca Ave #4133, Covina, CA 91723, États-Unis<br />
         Site : vercel.com
       </p>
       <p>
-        La base de données et les photos sont stockées par Supabase Inc. (région : [RÉGION SUPABASE]).
+        La base de données et les photos sont stockées par Supabase Inc. (région : Union européenne, Irlande).
       </p>
 
       <h2>Un jeu gratuit, sans pari</h2>
@@ -73,7 +73,8 @@ export default function MentionsLegales() {
       <p style={{ fontSize: 13, marginTop: 8 }}>
         <Link href="/legal/mentions" style={lien}>Mentions légales</Link>{' · '}
         <Link href="/legal/cgu" style={lien}>Conditions d&apos;utilisation</Link>{' · '}
-        <Link href="/legal/confidentialite" style={lien}>Confidentialité</Link>
+        <Link href="/legal/confidentialite" style={lien}>Confidentialité</Link>{' · '}
+        <Link href="/legal/supprimer-compte" style={lien}>Supprimer mon compte</Link>
       </p>
       </div>
     </div>

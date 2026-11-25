@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 // Dernière mise à jour du texte : à modifier à chaque changement
-const DATE_MAJ = '18/11/2026'
+const DATE_MAJ = '25/11/2026'
 
 export default function CGU() {
   const lien: React.CSSProperties = { color: '#E8544C' }
@@ -28,19 +28,15 @@ export default function CGU() {
       <h2>1. Objet</h2>
       <p>
         Project End Zone est un jeu de pronostics sur les matchs de football américain, gratuit et ouvert à
-        tous. Aucune mise n&apos;est demandée et aucun gain en argent n&apos;est proposé : ce n&apos;est pas
-        un site de paris sportifs.
-      </p>
-      <p>
-        Certaines fonctions avancées (Stats Expert) peuvent être proposées avec un abonnement payant. Cet
-        abonnement est réservé aux personnes majeures, ou aux mineurs disposant de l&apos;accord de leur
-        représentant légal.
+        tous, accessible sur le site projectendzone.fr et dans les applications mobiles iPhone et Android.
+        Aucune mise n&apos;est demandée, aucun achat n&apos;est proposé et aucun gain en argent n&apos;est
+        offert : ce n&apos;est pas un site de paris sportifs.
       </p>
       <p>Créer un compte vaut acceptation des présentes conditions.</p>
 
       <h2>2. Compte</h2>
       <p>
-        L&apos;inscription est réservée aux personnes âgées d&apos;au moins 15 ans. Chaque joueur
+        L&apos;inscription est réservée aux personnes âgées d&apos;au moins 16 ans. Chaque joueur
         ne peut avoir qu&apos;un seul compte, qu&apos;il utilise personnellement. Il est responsable de la
         confidentialité de son mot de passe.
       </p>
@@ -79,8 +75,9 @@ export default function CGU() {
         préavis en cas de triche, et retirer le joueur des classements et de l&apos;attribution des lots.
       </p>
       <p>
-        Chaque joueur peut demander la suppression de son compte à tout moment en écrivant à
-        projectendzone27@gmail.com.
+        Chaque joueur peut supprimer son compte à tout moment depuis le bas de sa page Profil, ou le demander
+        en écrivant à projectendzone27@gmail.com. Toutes les explications sont sur la page{' '}
+        <Link href="/legal/supprimer-compte" style={lien}>Supprimer mon compte</Link>.
       </p>
 
       <h2>8. Résultats et disponibilité</h2>
@@ -89,14 +86,15 @@ export default function CGU() {
         peut corriger un résultat après coup ; le classement est alors recalculé.
       </p>
       <p>
-        Le site est fourni en l&apos;état, sans garantie de disponibilité permanente. L&apos;éditeur ne peut
-        pas être tenu responsable d&apos;une interruption du service ou d&apos;une perte de données.
+        Le site et les applications sont fournis en l&apos;état, sans garantie de disponibilité permanente.
+        L&apos;éditeur ne peut pas être tenu responsable d&apos;une interruption du service ou d&apos;une
+        perte de données.
       </p>
 
       <h2>9. Modification des conditions</h2>
       <p>
         Ces conditions peuvent évoluer. Les joueurs sont informés de toute modification importante par e-mail
-        ou par une notification sur le site.
+        ou par une notification sur le site ou dans l&apos;application.
       </p>
 
       <h2>10. Droit applicable</h2>
@@ -106,7 +104,8 @@ export default function CGU() {
       <p style={{ fontSize: 13, marginTop: 8 }}>
         <Link href="/legal/mentions" style={lien}>Mentions légales</Link>{' · '}
         <Link href="/legal/cgu" style={lien}>Conditions d&apos;utilisation</Link>{' · '}
-        <Link href="/legal/confidentialite" style={lien}>Confidentialité</Link>
+        <Link href="/legal/confidentialite" style={lien}>Confidentialité</Link>{' · '}
+        <Link href="/legal/supprimer-compte" style={lien}>Supprimer mon compte</Link>
       </p>
       </div>
     </div>

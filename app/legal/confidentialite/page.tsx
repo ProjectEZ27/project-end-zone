@@ -38,7 +38,7 @@ export default function Confidentialite() {
         <li>Tes pronostics, tes scores, tes ligues et tes réactions</li>
         <li>Tes préférences (rappels, notifications, animations)</li>
         <li>Si tu utilises l&apos;appli sur téléphone et que tu acceptes les notifications : un identifiant technique de ton téléphone, pour t&apos;envoyer ces notifications</li>
-        <li>Des données techniques de connexion, nécessaires à la sécurité du site</li>
+        <li>Des données techniques de connexion, nécessaires à la sécurité du site et des applications</li>
       </ul>
       <p>
         Si tu gagnes un lot, nous te demanderons ton nom et une adresse postale, uniquement pour te
@@ -96,7 +96,7 @@ export default function Confidentialite() {
       </p>
 
       <h2>Âge minimum</h2>
-      <p>Le site est réservé aux personnes âgées d&apos;au moins 15 ans.</p>
+      <p>Le site et les applications sont réservés aux personnes âgées d&apos;au moins 16 ans.</p>
 
       <h2>Cookies</h2>
       <p>

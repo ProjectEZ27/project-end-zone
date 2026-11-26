@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { after } from 'next/server'
 import { NOMS_EQUIPES } from '@/lib/teamBadge'
 import SelecteurSemaine from './SelecteurSemaine'
 import MatchLine from '@/components/MatchLine'
@@ -17,6 +18,7 @@ import DirectRafraichisseur from '@/components/DirectRafraichisseur'
 import ResultatsRafraichisseur from '@/components/ResultatsRafraichisseur'
 import AnneauScore from '@/components/AnneauScore'
 import { listerSemainesAvecScores } from '@/lib/scoresSemaines'
+import { choisirInfos, lirePhotos, enregistrerPhotos, signatureInfos, type InfosMatch, type Photo } from '@/lib/infosAvantMatch'
 
 export default async function Pronostics({ searchParams }: { searchParams: Promise<{ semaine?: string }> }) {
   const { semaine: semaineParam } = await searchParams
@@ -61,7 +63,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   })
 
   // Toutes les lectures indépendantes en même temps
-  const [{ data: profilExpert }, { data: lignesExpert }, lignesSemaines, semaineParamResult, classement, semaineDefaut] = await Promise.all([
+  const [{ data: profilExpert }, { data: lignesExpert, error: erreurExpert }, lignesSemaines, semaineParamResult, classement, semaineDefaut] = await Promise.all([
     // Mode expert : réglage du joueur + statistiques des 32 équipes (remplies chaque semaine par /api/cron/stats-expert)
     supabase.from('profiles').select('mode_expert').eq('id', user.id).maybeSingle(),
     supabase.from('stats_expert_equipes').select('equipe, derniere_semaine, mis_a_jour, valeurs, rangs'),
@@ -74,11 +76,6 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   ])
   const modeExpert = profilExpert?.mode_expert ?? true
   const statsExpert = new Map((lignesExpert ?? []).map((l) => [l.equipe as string, l]))
-  const expertPour = (a: string, b: string) => {
-    const s1 = statsExpert.get(a)
-    const s2 = statsExpert.get(b)
-    return s1 && s2 ? { actif: modeExpert, stats1: s1, stats2: s2 } : null
-  }
 
   let semaine = semaineParamResult.data ?? semaineDefaut
   // Semaine demandée introuvable : on retombe sur la semaine par défaut
@@ -86,6 +83,26 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
   const rangParEquipe = new Map(classement.map((e) => [e.code, e.rang]))
   const descCourte = (code: string) => {
     return RESUMES_EQUIPES[code]?.texte ?? null
+  }
+  // Les infos du jour pour les deux équipes d'un match
+  const infosDuJour = (a: string, b: string): InfosMatch =>
+    Object.fromEntries(
+      [a, b].map((code) => [
+        code,
+        { rang: rangParEquipe.get(code) ?? null, texte: descCourte(code), stats: statsExpert.get(code) ?? null },
+      ])
+    )
+  // Ce que la ligne de match doit recevoir pour son « i » et ses Duels expert
+  const proprietesInfos = (infos: InfosMatch | null, a: string, b: string) => {
+    const s1 = infos?.[a]?.stats
+    const s2 = infos?.[b]?.stats
+    return {
+      rank1: infos?.[a]?.rang ?? null,
+      rank2: infos?.[b]?.rang ?? null,
+      desc1: infos?.[a]?.texte ?? null,
+      desc2: infos?.[b]?.texte ?? null,
+      expert: s1 && s2 ? { actif: modeExpert, stats1: s1, stats2: s2 } : null,
+    }
   }
 
   if (!semaine) {
@@ -202,6 +219,37 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
 
   const creneaux = grouperMatchsParCreneau(matchs ?? [])
 
+  // « Infos avant le match » : photo rafraîchie avant le coup d'envoi, figée ensuite (voir lib/infosAvantMatch.ts)
+  const infosParMatch = new Map<string, { infos: InfosMatch | null; figees: boolean }>()
+  if (semaineOuverte && (matchs ?? []).length > 0) {
+    const photos = await lirePhotos((matchs ?? []).map((m) => String(m.id)))
+    const aRafraichir: Photo[] = []
+    const aRattraper: Photo[] = []
+    for (const match of matchs ?? []) {
+      const id = String(match.id)
+      const actuelles = infosDuJour(match.equipe_a, match.equipe_b)
+      const choix = choisirInfos({
+        actuelles,
+        photo: photos.get(id),
+        coupEnvoi: match.coup_envoi,
+        commence: match.statut !== 'a_venir' || maintenant >= new Date(match.coup_envoi).getTime(),
+        termine: match.statut === 'termine',
+        maintenant,
+      })
+      infosParMatch.set(id, choix)
+      if (choix.enregistrer) {
+        const liste = choix.enregistrer === 'rafraichir' ? aRafraichir : aRattraper
+        liste.push({ match_id: id, contenu: actuelles, signature: signatureInfos(actuelles) })
+      }
+    }
+    // Enregistrement après l'envoi de la page (le joueur n'attend pas). Si les statistiques n'ont pas
+    // pu être lues, on n'écrit rien pour ne pas abîmer une photo.
+    if (!erreurExpert && aRafraichir.length + aRattraper.length > 0) {
+      after(() => enregistrerPhotos(aRafraichir, aRattraper))
+    }
+  }
+  const infosPasseesDisponibles = [...infosParMatch.values()].some((c) => c.infos !== null)
+
   return (
     <div style={{ position: 'relative', minHeight: '100dvh' }}>
       <div style={{
@@ -267,7 +315,14 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
         )
       })()}
 
-      {!semaineTerminee && <BarreActionsSemaine avecInfos={nombreTotal > 0 && !estSemainePlayoffsVide} modeExpert={modeExpert} />}
+      {(!semaineTerminee || infosPasseesDisponibles) && (
+        <BarreActionsSemaine
+          key={semaine.id}
+          avecInfos={nombreTotal > 0 && !estSemainePlayoffsVide}
+          modeExpert={modeExpert}
+          semainePassee={semaineTerminee}
+        />
+      )}
 
       {estPremiereSemaine && saison && (
         <SpecialPicksPreseason saisonId={saison.id} mesPronosSpeciaux={mesPronosSpeciaux} />
@@ -346,6 +401,7 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
                   const [codeG, codeD] = orienter(match.equipe_a, match.equipe_b)
                   const [scoreG, scoreD] = orienter(match.score_a, match.score_b)
                   const [directG, directD] = orienter(match.score_a_direct, match.score_b_direct)
+                  const choix = infosParMatch.get(String(match.id))
                   return (
                     <MatchLine
                       key={match.id}
@@ -362,13 +418,10 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
                       scoreDirectB={directD}
                       quartTemps={match.quart_temps}
                       tempsRestant={match.temps_restant}
-                      rank1={rangParEquipe.get(codeG) ?? null}
-                      rank2={rangParEquipe.get(codeD) ?? null}
-                      desc1={descCourte(codeG)}
-                      desc2={descCourte(codeD)}
+                      {...proprietesInfos(choix?.infos ?? null, codeG, codeD)}
+                      infosAvantMatch={choix?.figees ?? false}
                       bilan1={bilanParEquipe[codeG] ?? null}
                       bilan2={bilanParEquipe[codeD] ?? null}
-                      expert={expertPour(codeG, codeD)}
                     />
                   )
                 })}
@@ -393,13 +446,9 @@ export default async function Pronostics({ searchParams }: { searchParams: Promi
                   finished={false}
                   equipeGagnante={null}
                   ouvert={false}
-                  rank1={rangParEquipe.get(codeG) ?? null}
-                  rank2={rangParEquipe.get(codeD) ?? null}
-                  desc1={descCourte(codeG)}
-                  desc2={descCourte(codeD)}
+                  {...proprietesInfos(infosDuJour(codeG, codeD), codeG, codeD)}
                   bilan1={bilanParEquipe[codeG] ?? null}
                   bilan2={bilanParEquipe[codeD] ?? null}
-                  expert={expertPour(codeG, codeD)}
                 />
               )
             })}

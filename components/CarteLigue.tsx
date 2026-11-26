@@ -1,10 +1,10 @@
 import Link from 'next/link'
-import { TbPin, TbPinFilled, TbChevronLeft, TbChevronRight, TbEye, TbEyeOff } from 'react-icons/tb'
+import { TbPin, TbPinFilled, TbChevronLeft, TbChevronRight, TbEye, TbEyeOff, TbGavel, TbCheck } from 'react-icons/tb'
 import LeagueLogo from '@/components/LeagueLogo'
 import BoutonCouleurLigue from '@/components/BoutonCouleurLigue'
 import { HAUTEUR_BANDEAU } from '@/lib/couleursLigues'
 import { epinglerLigue, desepinglerLigue, deplacerEpingle, masquerLigue, afficherLigue } from '@/app/leagues/epingles'
-import type { MaLigue } from '@/lib/accueil'
+import type { MaLigue, LectureTribunal } from '@/lib/accueil'
 
 const pastille: React.CSSProperties = {
   height: 30,
@@ -37,14 +37,14 @@ const coque: React.CSSProperties = {
  */
 export default function CarteLigue({
   ligue,
-  vedette = false,
+  tribunal,
   controles = 'aucun',
   position = 0,
   total = 0,
   pleine = false,
 }: {
   ligue: MaLigue
-  vedette?: boolean
+  tribunal?: LectureTribunal // repère « À lire » / « Lu » (page Ligues, tant que le tribunal est consultable)
   controles?: 'aucun' | 'epinglee' | 'autre' | 'masquee'
   position?: number
   total?: number
@@ -73,7 +73,7 @@ export default function CarteLigue({
             boxSizing: 'border-box',
             paddingTop: avecReglages ? HAUTEUR_BANDEAU + 8 : 10,
             backgroundColor: '#16233F',
-            border: vedette ? '1px solid #C8352E' : '0.5px solid #33415a',
+            border: '0.5px solid #33415a',
             borderTop: avecReglages ? 'none' : undefined,
             borderRadius: 10,
             display: 'flex',
@@ -106,12 +106,14 @@ export default function CarteLigue({
           <LeagueLogo logoId={ligue.logo_id ?? 1} size={avecReglages ? 44 : 52} leagueName={ligue.nom} photoChemin={ligue.photo_chemin ?? null} />
           <div style={{ fontSize: 11, fontWeight: 700, textAlign: 'center', lineHeight: 1.2 }}>{ligue.nom}</div>
           <div style={{ fontSize: 10, color: '#9fb0c9' }}>{ligue.nombreJoueurs} joueurs</div>
-          {vedette && (
+          {tribunal && (
             <div style={{
-              position: 'absolute', bottom: 0, left: 0, right: 0, background: '#C8352E', color: 'white', fontSize: 8, fontWeight: 700,
-              letterSpacing: 0.5, textTransform: 'uppercase', textAlign: 'center', padding: '2px 0', borderRadius: '0 0 9px 9px',
+              display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, lineHeight: 1, whiteSpace: 'nowrap',
+              color: tribunal === 'a_lire' ? '#F0C040' : '#7a8aa5',
+              marginLeft: avecReglages ? 22 : 0, // laisse la place à l'épingle, en bas à gauche
             }}>
-              ⚖️ Tribunal ouvert
+              {tribunal === 'a_lire' ? <TbGavel size={13} aria-hidden /> : <TbCheck size={13} aria-hidden />}
+              {tribunal === 'a_lire' ? 'À lire' : 'Lu'}
             </div>
           )}
         </Link>
@@ -119,7 +121,7 @@ export default function CarteLigue({
         {avecReglages && <BoutonCouleurLigue ligueId={ligue.id} couleur={ligue.couleur} />}
 
         {controles === 'epinglee' && (
-          <form action={desepinglerLigue} style={{ position: 'absolute', bottom: vedette ? 24 : 6, left: 6, zIndex: 3 }}>
+          <form action={desepinglerLigue} style={{ position: 'absolute', bottom: 6, left: 6, zIndex: 3 }}>
             <input type="hidden" name="ligueId" value={ligue.id} />
             <button
               type="submit"
@@ -133,7 +135,7 @@ export default function CarteLigue({
         )}
 
         {controles === 'autre' && (
-          <form action={epinglerLigue} style={{ position: 'absolute', bottom: vedette ? 24 : 6, left: 6, zIndex: 3 }}>
+          <form action={epinglerLigue} style={{ position: 'absolute', bottom: 6, left: 6, zIndex: 3 }}>
             <input type="hidden" name="ligueId" value={ligue.id} />
             <button
               type="submit"

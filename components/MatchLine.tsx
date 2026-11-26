@@ -29,6 +29,7 @@ interface MatchLineProps {
   bilan1?: { victoires: number; defaites: number } | null
   bilan2?: { victoires: number; defaites: number } | null
   expert?: { actif: boolean; stats1: StatsEquipe; stats2: StatsEquipe } | null
+  infosAvantMatch?: boolean // vrai quand les infos affichées sont celles figées au coup d'envoi
 }
 
 function Streaks({ side }: { side: 'left' | 'right' }) {
@@ -81,6 +82,7 @@ export default function MatchLine({
   bilan1,
   bilan2,
   expert,
+  infosAvantMatch = false,
 }: MatchLineProps) {
   const [optimisticSelectedTeam, setOptimisticSelectedTeam] = useOptimistic(selectedTeam)
   // Clic sur une équipe : le choix s'affiche immédiatement, puis le serveur enregistre en arrière-plan.
@@ -276,7 +278,7 @@ const libelleQT = tempsRestant === 'Mi-temps'
           Match nul : ne compte ni comme victoire ni comme défaite
         </div>
       )}
-      {!finished && (rank1 != null || rank2 != null || expert?.actif) && (
+      {(rank1 != null || rank2 != null || expert?.actif) && (
         <DuelsExpert
           code1={team1.code}
           code2={team2.code}
@@ -285,24 +287,31 @@ const libelleQT = tempsRestant === 'Mi-temps'
           actif={!!expert?.actif}
           infos={
             rank1 != null || rank2 != null ? (
-              <div className={styles.infoPanel} style={{ marginTop: 6 }}>
-                {rank1 != null && (
-                  <div className={styles.infoCol}>
-                    <span className={styles.rankValue}>
-                      {team1.name} — {rank1}e sur 32 <span className={styles.rankNote}>(indicatif)</span>
-                    </span>
-                    {desc1 && <span className={styles.rankDesc}>{desc1}</span>}
+              <div style={{ width: '100%', marginTop: 6 }}>
+                {infosAvantMatch && (
+                  <div style={{ fontSize: 11, color: '#f0c040', marginBottom: 4, textAlign: 'center' }}>
+                    Infos avant le match
                   </div>
                 )}
-                {rank1 != null && rank2 != null && <div className={styles.infoDivider} />}
-                {rank2 != null && (
-                  <div className={styles.infoCol}>
-                    <span className={styles.rankValue}>
-                      {team2.name} — {rank2}e sur 32 <span className={styles.rankNote}>(indicatif)</span>
-                    </span>
-                    {desc2 && <span className={styles.rankDesc}>{desc2}</span>}
-                  </div>
-                )}
+                <div className={styles.infoPanel} style={{ marginTop: 0 }}>
+                  {rank1 != null && (
+                    <div className={styles.infoCol}>
+                      <span className={styles.rankValue}>
+                        {team1.name} — {rank1}e sur 32 <span className={styles.rankNote}>(indicatif)</span>
+                      </span>
+                      {desc1 && <span className={styles.rankDesc}>{desc1}</span>}
+                    </div>
+                  )}
+                  {rank1 != null && rank2 != null && <div className={styles.infoDivider} />}
+                  {rank2 != null && (
+                    <div className={styles.infoCol}>
+                      <span className={styles.rankValue}>
+                        {team2.name} — {rank2}e sur 32 <span className={styles.rankNote}>(indicatif)</span>
+                      </span>
+                      {desc2 && <span className={styles.rankDesc}>{desc2}</span>}
+                    </div>
+                  )}
+                </div>
               </div>
             ) : null
           }

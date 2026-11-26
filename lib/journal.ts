@@ -34,19 +34,32 @@ export type Article = {
 export type JournalSemaine = {
   semaine: string
   articles: Article[]
-  // vrai pendant 2 jours (mardi et mercredi) à partir d'1 h après le dernier match : le tribunal est alors mis en avant et ouvert
-  enVedette: boolean
   diagnostic?: string[] // pour l'administrateur : pourquoi tel article est (ou n'est pas) sorti
   nomTribunal: string // ex. « Tribunal du mardi », « Tribunal des Wild Cards »
   exceptionnel: boolean // vrai si le tribunal ne s'ouvre pas un mardi (saison régulière)
-  dernierMatch?: string // coup d'envoi du dernier match de la semaine (sert à recalculer enVedette)
 }
-const VIDE: JournalSemaine = { semaine: '', articles: [], enVedette: false, nomTribunal: 'Tribunal du mardi', exceptionnel: false }
+const VIDE: JournalSemaine = { semaine: '', articles: [], nomTribunal: 'Tribunal du mardi', exceptionnel: false }
 
 /** Le tribunal s'ouvre 1 h après la fin supposée du dernier match (coup d'envoi + 4 h). */
 export const DELAI_TRIBUNAL_MS = 5 * 3600 * 1000
-// Mis en avant (et ouvert d'office) pendant 2 jours : le mardi et le mercredi
-export const DUREE_VEDETTE_MS = 2 * 86400000
+/** Mis en avant (message sur l'accueil, journal ouvert d'office) pendant les 24 premières heures. */
+export const DUREE_VEDETTE_MS = 24 * 3600 * 1000
+/** Si aucune semaine suivante n'est au calendrier (après le Super Bowl), on ferme au bout de 7 jours. */
+const DUREE_SANS_SUITE_MS = 7 * 86400000
+
+/**
+ * - « vedette » : les 24 premières heures après l'ouverture ;
+ * - « consultable » : ensuite, jusqu'au coup d'envoi du premier match de la semaine suivante ;
+ * - « ferme » : avant l'ouverture, et dès que la semaine suivante a commencé.
+ */
+export type EtatTribunal = 'ferme' | 'vedette' | 'consultable'
+
+export function etatDuTribunal(dernierMatchMs: number, semaineSuivanteMs: number | null, maintenant: number = Date.now()): EtatTribunal {
+  const ouverture = dernierMatchMs + DELAI_TRIBUNAL_MS
+  const fermeture = semaineSuivanteMs ?? ouverture + DUREE_SANS_SUITE_MS
+  if (maintenant < ouverture || maintenant >= fermeture) return 'ferme'
+  return maintenant - ouverture < DUREE_VEDETTE_MS ? 'vedette' : 'consultable'
+}
 
 /**
  * Nom du tribunal : par manche en playoffs, sinon le jour d'ouverture (« du mardi » dans le cas normal).
@@ -725,8 +738,6 @@ export async function genererJournalSemaine(
   return {
     semaine: semaineActuelle?.nom ?? '',
     articles,
-    enVedette: journalEnVedette(dernierMatch),
-    dernierMatch,
     diagnostic: [
       `Joueurs ayant pronostiqué cette semaine : ${aPronostique.size} · actifs (classements) : ${actifs.length}`,
       `Articles possibles : ${candidats.map((c) => c.id).join(', ') || 'aucun'}`,
@@ -740,7 +751,7 @@ export async function genererJournalSemaine(
 /*
  * Version rapide pour la page d'une ligue : le journal d'une semaine terminée ne change plus,
  * on le garde donc en mémoire 1 heure (par semaine et par groupe de membres) au lieu de le
- * recalculer à chaque visite. Seul « mis en avant ou pas » est recalculé à chaque fois.
+ * recalculer à chaque visite. L'état du tribunal (ouvert, consultable, fermé) est calculé à part.
  * Le calcul se fait avec le compte du site : il ne lit que des matchs terminés, déjà visibles de tous.
  */
 export async function journalSemaineRapide(
@@ -758,19 +769,7 @@ export async function journalSemaineRapide(
     ['journal-semaine', String(semaine_id), membresTries.join(',')],
     { revalidate: 3600 }
   )
-  const journal = await enCache()
-  return { ...journal, enVedette: journalEnVedette(journal.dernierMatch ?? '') }
-}
-
-/*
- * Le journal est mis en avant le mardi et le mercredi (heure de Paris), à condition que
- * la semaine de matchs soit récente (pas en pleine intersaison). Le reste du temps,
- * il reste consultable via un petit bouton « Revoir le journal du mardi précédent ».
- */
-function journalEnVedette(dernierMatch: string, maintenant: Date = new Date()): boolean {
-  if (!dernierMatch) return false
-  const depuisOuverture = maintenant.getTime() - (new Date(dernierMatch).getTime() + DELAI_TRIBUNAL_MS)
-  return depuisOuverture >= 0 && depuisOuverture < DUREE_VEDETTE_MS
+  return enCache()
 }
 
 /*

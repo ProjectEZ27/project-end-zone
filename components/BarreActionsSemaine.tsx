@@ -24,7 +24,15 @@ const bouton = {
  * Deux petits boutons côte à côte : le power ranking (page dédiée)
  * et l'affichage des infos équipes sous chaque match (si la semaine a des matchs).
  */
-export default function BarreActionsSemaine({ avecInfos, modeExpert }: { avecInfos: boolean; modeExpert: boolean }) {
+export default function BarreActionsSemaine({
+  avecInfos,
+  modeExpert,
+  semainePassee = false,
+}: {
+  avecInfos: boolean
+  modeExpert: boolean
+  semainePassee?: boolean // semaine terminée : on montre les infos figées avant les matchs
+}) {
   const [open, setOpen] = useState(false)
 
   function basculer() {
@@ -80,7 +88,7 @@ export default function BarreActionsSemaine({ avecInfos, modeExpert }: { avecInf
           }}
         >
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ee892' }} />
-          {MISE_A_JOUR_INFOS}
+          {semainePassee ? 'Infos telles qu’elles étaient avant les matchs' : MISE_A_JOUR_INFOS}
         </p>
       )}
     </div>

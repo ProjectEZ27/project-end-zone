@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { startTransition, useEffect, useRef, useState } from 'react'
 import { Anton } from 'next/font/google'
 import JournalPhrase from '@/components/JournalPhrase'
 import ReactionsArticle, { type ReactionJoueur } from '@/components/ReactionsArticle'
+import { marquerTribunalLu } from '@/app/leagues/[id]/tribunalLu'
 import type { Article } from '@/lib/journal'
 
 const anton = Anton({ weight: '400', subsets: ['latin'] })
@@ -55,6 +56,9 @@ function Vanne({ texte, grand }: { texte: string; grand?: boolean }) {
 }
 
 export default function JournalDuMardi({
+  ligueId,
+  semaineId,
+  dejaLu,
   semaine,
   nomTribunal = 'Tribunal du mardi',
   exceptionnel = false,
@@ -63,11 +67,14 @@ export default function JournalDuMardi({
   ouvertAuDepart = false,
   reactions,
 }: {
+  ligueId: number
+  semaineId: number
+  dejaLu: boolean // ce joueur a déjà vu le journal de cette ligue cette semaine
   semaine: string
   nomTribunal?: string // ex. « Tribunal du mardi », « Tribunal des Wild Cards »
   exceptionnel?: boolean // vrai si le tribunal s'ouvre un autre jour que le mardi
   articles: Article[]
-  enVedette: boolean // mardi et mercredi : barre « le journal est sorti » ; sinon petit bouton discret
+  enVedette: boolean // les 24 premières heures : barre « le tribunal est ouvert » ; ensuite petit bouton discret
   ouvertAuDepart?: boolean
   // Réactions des joueurs (absent = pas de réactions)
   reactions?: {
@@ -82,6 +89,18 @@ export default function JournalDuMardi({
 
   const principaux = articles.filter((a) => !a.fixe)
   const fixe = articles.find((a) => a.fixe)
+
+  // Dès que le journal est affiché ouvert, la ligue passe en « Lu »
+  const aMarquer = ouvert && !dejaLu && principaux.length > 0
+  const envoye = useRef(false)
+  useEffect(() => {
+    if (!aMarquer || envoye.current) return
+    envoye.current = true
+    startTransition(async () => {
+      await marquerTribunalLu(ligueId, semaineId)
+    })
+  }, [aMarquer, ligueId, semaineId])
+
   if (principaux.length === 0) return null
   const une = principaux[0]
   const cartes = principaux.slice(1)
@@ -151,7 +170,7 @@ export default function JournalDuMardi({
             fontSize: 12, cursor: 'pointer',
           }}
         >
-          {ouvert ? 'Fermer le tribunal ✕' : `⚖️ Revoir le ${nomTribunal} précédent`}
+          {ouvert ? 'Fermer le tribunal ✕' : `⚖️ ${dejaLu ? 'Revoir' : 'Lire'} le ${nomTribunal}`}
         </button>
       )}
 

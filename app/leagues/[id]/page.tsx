@@ -14,10 +14,10 @@ import {
   TbCheck,
   TbX,
 } from 'react-icons/tb'
-import { journalSemaineRapide, derniereSemaineTerminee } from '@/lib/journal'
+import { journalSemaineRapide } from '@/lib/journal'
 import JournalDuMardi from '@/components/JournalDuMardi'
 import LeagueSwitcher from '@/components/LeagueSwitcher'
-import { liguesPourMenu } from '@/lib/accueil'
+import { liguesPourMenu, tribunalActuel, liguesTribunalLu } from '@/lib/accueil'
 
 export default async function LeagueDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string }> }) {
   const { id } = await params
@@ -48,7 +48,7 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
     monAdhesionRes,
     adhesionsDataRes,
     { data: adhesionsMembres },
-    semaineDuJournal,
+    tribunal,
   ] = await Promise.all([
     // Codes de partage : la base ne les donne qu'aux membres actifs (et le code de secours au commissaire)
     supabase.rpc('codes_ligue', { p_ligue: Number(id) }),
@@ -68,7 +68,7 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
       ? supabase.from('adhesions').select('id, utilisateur_id').eq('ligue_id', id).eq('statut', 'en_attente')
       : Promise.resolve({ data: [] as { id: number; utilisateur_id: string }[] }),
     supabase.from('adhesions').select('utilisateur_id').eq('ligue_id', id).eq('statut', 'actif'),
-    derniereSemaineTerminee(supabase),
+    tribunalActuel(supabase),
   ])
 
   const codeInvitation: string = codes?.[0]?.code_invitation ?? ''
@@ -100,6 +100,10 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
     ...(adhesionsMembres ?? []).map((a) => a.utilisateur_id),
   ]))
 
+  // Le journal n'est proposé que jusqu'au premier match de la semaine suivante
+  const semaineDuJournal = tribunal && tribunal.etat !== 'ferme' ? tribunal.semaineId : null
+  const journalOuvertDOffice = tribunal?.etat === 'vedette'
+
   // Pseudos des demandes d'adhésion et journal de la semaine : en même temps aussi
   const adhesionsData = adhesionsDataRes.data ?? []
   const [profilesDemandes, journal] = await Promise.all([
@@ -108,7 +112,7 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
       : Promise.resolve([] as { id: string; pseudo: string }[]),
     semaineDuJournal
       ? journalSemaineRapide(supabase, semaineDuJournal, membreIdsLigue)
-      : Promise.resolve({ semaine: '', articles: [], enVedette: false, nomTribunal: 'Tribunal du mardi', exceptionnel: false }),
+      : Promise.resolve({ semaine: '', articles: [], nomTribunal: 'Tribunal du mardi', exceptionnel: false }),
   ])
 
   const demandes: any[] = adhesionsData.map((a) => ({
@@ -228,14 +232,18 @@ export default async function LeagueDetail({ params, searchParams }: { params: P
           ))}
         </div>
 
-        {journal.articles.length > 0 && (
+        {semaineDuJournal && journal.articles.length > 0 && (
           <JournalDuMardi
+            key={`${id}-${semaineDuJournal}`}
+            ligueId={Number(id)}
+            semaineId={semaineDuJournal}
+            dejaLu={liguesTribunalLu(user.user_metadata, semaineDuJournal).includes(Number(id))}
             semaine={journal.semaine}
             nomTribunal={journal.nomTribunal}
             exceptionnel={journal.exceptionnel}
             articles={journal.articles}
-            enVedette={journal.enVedette}
-            ouvertAuDepart={journal.enVedette}
+            enVedette={journalOuvertDOffice}
+            ouvertAuDepart={journalOuvertDOffice}
             reactions={reactionsJournal}
           />
         )}

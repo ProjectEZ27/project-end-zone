@@ -364,7 +364,7 @@ export default async function Home({
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
               {liguesAccueil.map((l) => (
-                <CarteLigue key={l.id} ligue={l} vedette={vedette} />
+                <CarteLigue key={l.id} ligue={l} />
               ))}
             </div>
           </div>

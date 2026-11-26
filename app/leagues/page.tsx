@@ -4,7 +4,9 @@ import Link from 'next/link'
 import JoinLeagueForm from '../JoinLeagueForm'
 import CarteLigue from '@/components/CarteLigue'
 import { calculerClassementSaison } from '@/lib/scoring'
-import { journalEnVedette, chargerMesLigues } from '@/lib/accueil'
+import { TbGavel } from 'react-icons/tb'
+import { tribunalActuel, chargerMesLigues, liguesTribunalLu, lectureTribunalParLigue } from '@/lib/accueil'
+import type { LectureTribunal } from '@/lib/accueil'
 import { nomRegion } from '@/lib/regions'
 
 export const dynamic = 'force-dynamic'
@@ -37,10 +39,16 @@ export default async function PageLigues({
     .eq('statut', 'en_cours')
     .single()
     .then((r) => (r.data?.id ? calculerClassementSaison(supabase, r.data.id) : []))
-  const [vedette, mesLigues] = await Promise.all([
-    journalEnVedette(supabase),
+  const [tribunal, mesLigues] = await Promise.all([
+    tribunalActuel(supabase),
     chargerMesLigues(supabase, user.id, classementP),
   ])
+
+  // Tribunal : repère « À lire » / « Lu » par ligue, jusqu'au premier match de la semaine suivante
+  const lecture: Map<number, LectureTribunal> = tribunal && tribunal.etat !== 'ferme'
+    ? await lectureTribunalParLigue(supabase, tribunal.semaineId, liguesTribunalLu(user.user_metadata, tribunal.semaineId), mesLigues)
+    : new Map()
+  const aLire = [...lecture.values()].filter((e) => e === 'a_lire').length
 
   const epinglees = mesLigues.filter((l) => l.epingle !== null).sort((a, b) => a.epingle! - b.epingle!)
   const autres = mesLigues.filter((l) => l.epingle === null && !l.masquee)
@@ -70,6 +78,19 @@ export default async function PageLigues({
 
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '64px 24px 100px', textAlign: 'center' }}>
         <h1 style={{ fontSize: 22, color: 'white', margin: '0 0 16px' }}>Mes ligues</h1>
+
+        {tribunal && lecture.size > 0 && (
+          <div style={{
+            display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 6,
+            fontSize: 12, color: '#9fb0c9', borderBottom: '0.5px solid #33415a', paddingBottom: 10, marginBottom: 20,
+          }}>
+            <TbGavel size={15} color="#F0C040" aria-hidden />
+            <span style={{ color: '#EEF2FA' }}>
+              {tribunal.etat === 'vedette' ? `Le ${tribunal.nom} est ouvert` : `${tribunal.nom} encore consultable`}
+            </span>
+            <span>· {aLire > 0 ? `${aLire} ligue${aLire > 1 ? 's' : ''} à lire` : 'Tu as tout lu'}</span>
+          </div>
+        )}
 
         {params.demande === 'envoyee' && (
           <div style={{
@@ -148,7 +169,7 @@ export default async function PageLigues({
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
                   {epinglees.map((l, i) => (
-                    <CarteLigue key={l.id} ligue={l} vedette={vedette} controles="epinglee" position={i} total={epinglees.length} />
+                    <CarteLigue key={l.id} ligue={l} tribunal={lecture.get(l.id)} controles="epinglee" position={i} total={epinglees.length} />
                   ))}
                 </div>
               )}
@@ -158,7 +179,7 @@ export default async function PageLigues({
                   {titreSection(`Mes ligues d'amis (${autresAmis.length})`)}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
                     {autresAmis.map((l) => (
-                      <CarteLigue key={l.id} ligue={l} vedette={vedette} controles="autre" pleine={pleine} />
+                      <CarteLigue key={l.id} ligue={l} tribunal={lecture.get(l.id)} controles="autre" pleine={pleine} />
                     ))}
                   </div>
                 </div>
@@ -169,7 +190,7 @@ export default async function PageLigues({
                   {titreSection(`Mes ligues ouvertes (${autresOuvertes.length})`)}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
                     {autresOuvertes.map((l) => (
-                      <CarteLigue key={l.id} ligue={l} vedette={vedette} controles="autre" pleine={pleine} />
+                      <CarteLigue key={l.id} ligue={l} tribunal={lecture.get(l.id)} controles="autre" pleine={pleine} />
                     ))}
                   </div>
                 </div>
@@ -185,7 +206,7 @@ export default async function PageLigues({
                   </p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
                     {masquees.map((l) => (
-                      <CarteLigue key={l.id} ligue={l} vedette={vedette} controles="masquee" />
+                      <CarteLigue key={l.id} ligue={l} tribunal={lecture.get(l.id)} controles="masquee" />
                     ))}
                   </div>
                 </details>

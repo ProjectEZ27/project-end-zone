@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { derniereSemaineTerminee, nomDuTribunal, DELAI_TRIBUNAL_MS, DUREE_VEDETTE_MS } from '@/lib/journal'
+import { derniereSemaineTerminee, nomDuTribunal, etatDuTribunal, journalSemaineRapide, type EtatTribunal } from '@/lib/journal'
 import { creerNotification } from '@/lib/notifications'
 import { calculerClassementSemaine } from '@/lib/scoring'
 
@@ -7,25 +7,76 @@ import { calculerClassementSemaine } from '@/lib/scoring'
  * Petites fonctions utilisées par l'Accueil et la page Ligues.
  */
 
-export type TribunalActuel = { semaineId: number; nom: string; exceptionnel: boolean; enVedette: boolean }
+export type TribunalActuel = {
+  semaineId: number
+  nom: string
+  exceptionnel: boolean
+  etat: EtatTribunal
+  enVedette: boolean // les 24 premières heures : message sur l'accueil, journal ouvert d'office, notification
+}
 
-/** Dernière semaine terminée : son nom de tribunal, et s'il est « en vedette » (3 jours après l'ouverture). */
+/** Dernière semaine terminée : son nom de tribunal et son état (ouvert, encore consultable ou fermé). */
 export async function tribunalActuel(supabase: SupabaseClient): Promise<TribunalActuel | null> {
   const semaineId = await derniereSemaineTerminee(supabase)
   if (!semaineId) return null
-  const [{ data: semaine }, { data: matchs }] = await Promise.all([
+  const [{ data: semaine }, { data: matchs }, { data: suivants }] = await Promise.all([
     supabase.from('semaines').select('nom').eq('id', semaineId).single(),
     supabase.from('matchs').select('coup_envoi').eq('semaine_id', semaineId),
+    // Premier match des semaines suivantes : à son coup d'envoi, le tribunal ferme
+    supabase.from('matchs').select('coup_envoi').gt('semaine_id', semaineId).order('coup_envoi', { ascending: true }).limit(1),
   ])
   const dernier = (matchs ?? []).map((m) => new Date(m.coup_envoi).getTime()).reduce((x, y) => Math.max(x, y), 0)
   if (!dernier) return null
   const t = nomDuTribunal(semaine?.nom ?? '', new Date(dernier).toISOString())
-  const depuis = Date.now() - (dernier + DELAI_TRIBUNAL_MS)
-  return { semaineId, nom: t.nom, exceptionnel: t.exceptionnel, enVedette: depuis >= 0 && depuis < DUREE_VEDETTE_MS }
+  const suivant = suivants?.[0] ? new Date(suivants[0].coup_envoi).getTime() : null
+  const etat = etatDuTribunal(dernier, suivant)
+  return { semaineId, nom: t.nom, exceptionnel: t.exceptionnel, etat, enVedette: etat === 'vedette' }
 }
 
-export async function journalEnVedette(supabase: SupabaseClient): Promise<boolean> {
-  return (await tribunalActuel(supabase))?.enVedette === true
+/** Ligues dont j'ai déjà vu le journal de cette semaine (mémorisé sur mon compte, pas sur l'appareil). */
+export function liguesTribunalLu(infosCompte: Record<string, unknown> | undefined, semaineId: number): number[] {
+  const lu = infosCompte?.tribunal_lu as { semaine?: unknown; ligues?: unknown } | undefined
+  return lu?.semaine === semaineId && Array.isArray(lu.ligues) ? (lu.ligues as number[]) : []
+}
+
+export type LectureTribunal = 'a_lire' | 'lu'
+
+/**
+ * Pour la page Ligues : « à lire » ou « lu » pour chacune de mes ligues qui a un journal cette semaine.
+ * Une ligue sans journal (pas assez de joueurs actifs) ou masquée n'apparaît pas dans la réponse.
+ */
+export async function lectureTribunalParLigue(
+  supabase: SupabaseClient,
+  semaineId: number,
+  dejaLues: number[],
+  ligues: MaLigue[],
+): Promise<Map<number, LectureTribunal>> {
+  const etats = new Map<number, LectureTribunal>()
+  await Promise.all(
+    ligues
+      .filter((l) => !l.masquee)
+      .map(async (l) => {
+        if (dejaLues.includes(l.id)) {
+          etats.set(l.id, 'lu')
+          return
+        }
+        // Mêmes membres que sur la page de la ligue : le journal calculé ici lui est resservi
+        const { data: membres } = await supabase
+          .from('adhesions')
+          .select('utilisateur_id')
+          .eq('ligue_id', l.id)
+          .eq('statut', 'actif')
+        const ids = Array.from(new Set([l.commissaire_id, ...(membres ?? []).map((m) => m.utilisateur_id as string)]))
+          .filter((x): x is string => !!x)
+        try {
+          const journal = await journalSemaineRapide(supabase, semaineId, ids)
+          if (journal.articles.some((a) => !a.fixe)) etats.set(l.id, 'a_lire')
+        } catch (e) {
+          console.error('[tribunal] journal illisible pour la ligue', l.id, e)
+        }
+      }),
+  )
+  return etats
 }
 
 /** Notification d'un joueur (ouverture de l'Accueil) : filet de sécurité, la clé évite les doublons. */

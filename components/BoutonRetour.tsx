@@ -25,7 +25,7 @@ export default function BoutonRetour() {
       onClick={retour}
       style={{
         position: 'absolute',
-        top: 12,
+        top: 'calc(12px + var(--marge-haut))',
         left: 'max(12px, calc(50% - 238px))',
         zIndex: 200,
         width: 40,

@@ -150,7 +150,7 @@ export default function BoutonPreferences() {
         onClick={() => setOuvert((o) => !o)}
         style={{
           position: 'absolute',
-          top: 12,
+          top: 'calc(12px + var(--marge-haut))',
           right: `calc(${ALIGNE} + 48px)`,
           zIndex: 200,
           width: 40,
@@ -175,7 +175,7 @@ export default function BoutonPreferences() {
           aria-label="Préférences"
           style={{
             position: 'fixed',
-            top: 60,
+            top: 'calc(60px + var(--marge-haut))',
             right: ALIGNE,
             left: 12,
             marginLeft: 'auto',

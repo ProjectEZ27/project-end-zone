@@ -269,7 +269,7 @@ export default function RecapSemaine({
         overflowY: 'auto',
         display: 'flex',
         flexDirection: 'column',
-        padding: '24px 20px',
+        padding: 'calc(24px + var(--marge-haut)) 20px calc(24px + var(--marge-bas))',
       }}
     >
       <button
@@ -278,7 +278,7 @@ export default function RecapSemaine({
         aria-label="Fermer, voir plus tard"
         style={{
           position: 'absolute',
-          top: 16,
+          top: 'calc(16px + var(--marge-haut))',
           right: 16,
           width: 40,
           height: 40,

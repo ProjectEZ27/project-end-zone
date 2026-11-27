@@ -78,7 +78,7 @@ export default function AgrandirAuClic({
               aria-label="Fermer"
               style={{
                 position: 'absolute',
-                top: 16,
+                top: 'calc(16px + var(--marge-haut))',
                 right: 16,
                 width: 40,
                 height: 40,

@@ -7,6 +7,13 @@
   --or-trophee: #C89B3D;
   --blanc-craie: #F2F4F7;
   --encre: #1A1D24;
+  /* Zones réservées par le téléphone (heure, batterie, barre de geste). Valent 0 sur ordinateur. */
+  --marge-haut: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --marge-bas: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+}
+
+html {
+  background-color: #0d1420;
 }
 
 * {

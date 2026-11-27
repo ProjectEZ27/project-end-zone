@@ -18,15 +18,19 @@ export default function Nav() {
   return (
     <nav
       style={{
+        // Barre arrondie qui flotte au-dessus de la barre de geste du téléphone
         position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
+        bottom: 'max(10px, min(calc(var(--marge-bas) - 8px), 16px), min(calc(var(--marge-bas) + 4px), calc((var(--marge-bas) - 36px) * 6)))',
+        left: 12,
+        right: 12,
+        maxWidth: 500,
+        margin: '0 auto',
         display: 'flex',
         justifyContent: 'space-around',
         backgroundColor: '#16233F',
-        borderTop: '1px solid #33415a',
-        padding: '10px 0',
+        border: '1px solid #33415a',
+        borderRadius: 28,
+        padding: '9px 8px',
         zIndex: 100,
       }}
     >

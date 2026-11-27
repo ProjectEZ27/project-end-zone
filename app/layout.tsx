@@ -45,6 +45,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: "#0d1420",
+  // L'écran va jusqu'aux bords : les marges de l'iPhone sont gérées dans globals.css
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -59,7 +61,12 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
           <AuthRecoveryListener />
-          <div style={{ paddingBottom: 70 }}>{children}</div>
+          <div style={{ paddingTop: "var(--marge-haut)", paddingBottom: "calc(70px + var(--marge-bas))" }}>{children}</div>
+          {/* Bandeau uni sous l'heure et la batterie : la page défile derrière */}
+          <div
+            aria-hidden="true"
+            style={{ position: "fixed", top: 0, left: 0, right: 0, height: "var(--marge-haut)", background: "#0d1420", zIndex: 210, pointerEvents: "none" }}
+          />
           <Nav />
           <NotificationBell />
           <EnregistrementPush />

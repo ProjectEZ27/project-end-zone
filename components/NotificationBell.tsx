@@ -138,7 +138,7 @@ export default function NotificationBell() {
         onClick={() => setOuvert((o) => !o)}
         style={{
           position: 'absolute',
-          top: 12,
+          top: 'calc(12px + var(--marge-haut))',
           right: 'max(12px, calc(50% - 238px))', // alignée sur la colonne centrale du site, y compris sur grand écran
           zIndex: 200,
           width: 40,
@@ -185,7 +185,7 @@ export default function NotificationBell() {
           aria-label="Notifications"
           style={{
             position: 'fixed',
-            top: 60,
+            top: 'calc(60px + var(--marge-haut))',
             right: 'max(12px, calc(50% - 238px))',
             left: 12,
             marginLeft: 'auto',

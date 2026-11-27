@@ -7,6 +7,7 @@ import NotificationBell from "@/components/NotificationBell";
 import EnregistrementPush from "@/components/EnregistrementPush";
 import BoutonRetour from "@/components/BoutonRetour";
 import BoutonPreferences from "@/components/BoutonPreferences";
+import BandeauHaut from "@/components/BandeauHaut";
 import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
@@ -62,11 +63,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
           <AuthRecoveryListener />
           <div style={{ paddingTop: "var(--marge-haut)", paddingBottom: "calc(70px + var(--marge-bas))" }}>{children}</div>
-          {/* Bandeau uni sous l'heure et la batterie : la page défile derrière */}
-          <div
-            aria-hidden="true"
-            style={{ position: "fixed", top: 0, left: 0, right: 0, height: "var(--marge-haut)", background: "#0d1420", zIndex: 210, pointerEvents: "none" }}
-          />
+          <BandeauHaut />
           <Nav />
           <NotificationBell />
           <EnregistrementPush />

@@ -16,7 +16,7 @@
 .petit{padding:9px 16px;font-size:14px}
 .page a:focus-visible,.page summary:focus-visible{outline:3px solid var(--or);outline-offset:2px}
 
-.hero{position:relative;overflow:hidden}
+.hero{position:relative;overflow:hidden;margin-top:calc(-1 * var(--marge-haut));padding-top:var(--marge-haut)}
 .hero::before{content:'';position:absolute;inset:0;background:url(/landing/hero.jpg) 70% center/cover;opacity:.5}
 .hero::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#0F1419 25%,rgba(15,20,25,.6) 70%,rgba(15,20,25,.85))}
 .hero .wrap{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:40px;align-items:center;padding-block:40px 64px}
